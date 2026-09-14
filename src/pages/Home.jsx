@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen, Sparkles, Youtube, Facebook, Instagram, Music2 } 
 import Seo from "@/components/site/Seo";
 import EmailCapture from "@/components/site/EmailCapture";
 import EbookSlider from "@/components/site/EbookSlider";
+import HeroCarousel from "@/components/site/HeroCarousel";
 import VideoLibrary from "@/components/site/VideoLibrary";
 import Testimonials from "@/components/site/Testimonials";
 import { StudyCard, VideoCard, ProductCard, SectionHeading } from "@/components/site/Cards";
@@ -35,7 +36,7 @@ const SOCIALS = [
 ];
 
 export default function Home() {
-  const { studies, videos, ebooks, products, testimonials, siteContent, membershipStats, loading } = useSiteData();
+  const { studies, videos, ebooks, products, testimonials, siteContent, membershipStats, heroSlides, loading } = useSiteData();
 
   const sliderEbooks = ebooks.length > 0 ? ebooks.slice(0, 8) : [];
   const videoLibraryContent = siteContent.find((c) => c.section_key === "video_library");
@@ -52,47 +53,51 @@ export default function Home() {
       />
 
       {/* SECTION 1 — HERO */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden grain-overlay">
-        <div className="absolute inset-0">
-          <Image
-            src={GEN.jerusalem}
-            alt="Ancient biblical landscape"
-            className="w-full h-full object-cover"
-            fittingType="fill"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-background" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
-        </div>
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center pt-20 pb-16">
-          <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.3em] text-primary mb-5">
-            Cinematic Bible Discovery
-          </p>
-          <h1 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.05] text-white text-balance mb-6">
-            Discover the Bible<br />Like Never Before
-          </h1>
-          <p className="text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Explore powerful biblical stories, historical insights, videos, studies and resources
-            designed to help you understand Scripture more deeply.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/bible-studies"
-              className="bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-all flex items-center justify-center gap-2 glow-bronze"
-            >
-              <BookOpen className="w-5 h-5" />
-              Explore Bible Studies
-            </Link>
-            <Link
-              to="/books"
-              className="border border-foreground/30 text-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-foreground hover:text-background transition-all flex items-center justify-center gap-2 glow-bronze"
-            >
-              Shop Books
-              <ArrowRight className="w-5 h-5" />
-            </Link>
+      {heroSlides.length > 0 ? (
+        <HeroCarousel slides={heroSlides} />
+      ) : (
+        <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden grain-overlay">
+          <div className="absolute inset-0">
+            <Image
+              src={GEN.jerusalem}
+              alt="Ancient biblical landscape"
+              className="w-full h-full object-cover"
+              fittingType="fill"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-background" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
           </div>
-        </div>
-        <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-background to-transparent z-[5]" />
-      </section>
+          <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center pt-20 pb-16">
+            <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.3em] text-primary mb-5">
+              Cinematic Bible Discovery
+            </p>
+            <h1 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.05] text-white text-balance mb-6">
+              Discover the Bible<br />Like Never Before
+            </h1>
+            <p className="text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto mb-10 leading-relaxed">
+              Explore powerful biblical stories, historical insights, videos, studies and resources
+              designed to help you understand Scripture more deeply.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                to="/bible-studies"
+                className="bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-all flex items-center justify-center gap-2 glow-bronze"
+              >
+                <BookOpen className="w-5 h-5" />
+                Explore Bible Studies
+              </Link>
+              <Link
+                to="/books"
+                className="border border-foreground/30 text-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-foreground hover:text-background transition-all flex items-center justify-center gap-2 glow-bronze"
+              >
+                Shop Books
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
+          </div>
+          <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-background to-transparent z-[5]" />
+        </section>
+      )}
 
       {/* SECTION 2 — VIDEO LIBRARY */}
       <VideoLibrary content={videoLibraryContent} stats={membershipStats} />

@@ -116,6 +116,14 @@ export default function Header({ cartCount = 0 }) {
               </Link>
               {isAuthenticated ? (
                 <div className="hidden sm:flex items-center gap-2 ml-1 pl-2 border-l border-border">
+                  {user?.role === "admin" && (
+                    <Link
+                      to="/admin"
+                      className="text-sm font-medium uppercase tracking-wide text-primary hover:text-primary/80 px-2 py-1"
+                    >
+                      Admin
+                    </Link>
+                  )}
                   <Link
                     to="/account"
                     className="flex items-center gap-1.5 text-sm font-medium uppercase tracking-wide text-foreground/80 hover:text-primary transition-colors px-2 py-1"
@@ -193,6 +201,15 @@ export default function Header({ cartCount = 0 }) {
               <div className="border-t border-border mt-2 pt-2">
                 {isAuthenticated ? (
                   <>
+                    {user?.role === "admin" && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-3 px-5 py-3.5 text-primary hover:bg-secondary transition-colors border-b border-border/50"
+                      >
+                        <span className="font-medium uppercase tracking-wide text-sm">Admin</span>
+                      </Link>
+                    )}
                     <Link
                       to="/account"
                       onClick={() => setMobileOpen(false)}
