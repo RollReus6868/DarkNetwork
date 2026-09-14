@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { Play, ArrowRight, BookOpen, Download, Mail } from "lucide-react";
 import { Image } from "@/components/ui/image";
+import { PriceButton } from "@/components/site/PriceButton";
+import { stripHtml } from "@/lib/gradients";
 
 export function StudyCard({ study }) {
   return (
@@ -40,8 +42,8 @@ export function VideoCard({ video }) {
           />
           <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full bg-primary/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Play className="w-5 h-5 text-primary-foreground fill-current ml-0.5" />
+            <div className="w-12 h-12 rounded-full bg-[#FF0000] flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Play className="w-5 h-5 text-white fill-white ml-0.5" />
             </div>
           </div>
           <span className="absolute top-3 left-3 text-[10px] font-semibold uppercase tracking-[0.15em] bg-black/60 backdrop-blur px-2.5 py-1 rounded text-primary border border-primary/30">
@@ -79,15 +81,29 @@ export function EbookCard({ ebook }) {
             Digital Book
           </span>
         </div>
+        {/* Hover popup */}
+        <div className="absolute inset-0 bg-black/92 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
+          <p className="text-sm text-foreground/80 line-clamp-3 mb-3">{stripHtml(ebook.description)}</p>
+          {ebook.what_you_learn?.length > 0 && (
+            <div className="mb-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary mb-1.5">What You'll Learn</p>
+              <ul className="space-y-1">
+                {ebook.what_you_learn.slice(0, 3).map((item, i) => (
+                  <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span className="line-clamp-1">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
       <h3 className="font-heading text-xl font-semibold leading-tight mb-2 group-hover:text-primary transition-colors">
         {ebook.title}
       </h3>
       {ebook.subtitle && <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{ebook.subtitle}</p>}
-      <div className="inline-flex items-center gap-2 bg-primary/15 border border-primary/50 rounded px-3 py-1.5 group-hover:bg-primary/25 transition-colors">
-        <span className="text-muted-foreground line-through text-sm">${ebook.price.toFixed(2)}</span>
-        <span className="text-primary font-bold text-lg">${discounted}</span>
-      </div>
+      <PriceButton id={ebook.id} originalPrice={ebook.price} discountedPrice={discounted} />
     </Link>
   );
 }
@@ -112,14 +128,21 @@ export function ProductCard({ product }) {
         <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
           Sale 30%
         </span>
+        {/* Hover popup */}
+        <div className="absolute inset-0 bg-black/92 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
+          <p className="text-sm text-foreground/80 line-clamp-3 mb-3">{stripHtml(product.description)}</p>
+          {product.story_behind_design && (
+            <div className="mb-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary mb-1.5">Story Behind the Design</p>
+              <p className="text-xs text-foreground/70 line-clamp-3">{stripHtml(product.story_behind_design)}</p>
+            </div>
+          )}
+        </div>
       </div>
       <h3 className="font-heading text-xl font-semibold leading-tight mb-2 group-hover:text-primary transition-colors">
         {product.title}
       </h3>
-      <div className="inline-flex items-center gap-2 bg-primary/15 border border-primary/50 rounded px-3 py-1.5 group-hover:bg-primary/25 transition-colors">
-        <span className="text-muted-foreground line-through text-sm">${product.price.toFixed(2)}</span>
-        <span className="text-primary font-bold text-lg">${discounted}</span>
-      </div>
+      <PriceButton id={product.id} originalPrice={product.price} discountedPrice={discounted} />
     </Link>
   );
 }

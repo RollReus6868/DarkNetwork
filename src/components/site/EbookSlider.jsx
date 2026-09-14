@@ -4,6 +4,8 @@ import AutoScroll from "embla-carousel-auto-scroll";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Image } from "@/components/ui/image";
+import { PriceButton } from "@/components/site/PriceButton";
+import { stripHtml } from "@/lib/gradients";
 
 export default function EbookSlider({ ebooks = [] }) {
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -116,14 +118,33 @@ function SliderCard({ ebook }) {
         <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
           Sale 30%
         </span>
-        <div className="absolute bottom-0 inset-x-0 p-4">
-          <h3 className="font-heading text-xl lg:text-2xl font-semibold text-white leading-tight group-hover:text-primary transition-colors line-clamp-2 mb-3">
+        {/* Default content — fades out on hover */}
+        <div className="absolute bottom-0 inset-x-0 p-4 transition-opacity duration-300 group-hover:opacity-0">
+          <h3 className="font-heading text-xl lg:text-2xl font-semibold text-white leading-tight line-clamp-2 mb-3">
             {ebook.title}
           </h3>
-          <div className="inline-flex items-center gap-2 bg-primary/15 border border-primary/50 rounded px-3 py-1.5 group-hover:bg-primary/25 transition-colors">
-            <span className="text-muted-foreground line-through text-sm">${ebook.price.toFixed(2)}</span>
-            <span className="text-primary font-bold text-lg">${discounted}</span>
-          </div>
+          <PriceButton id={ebook.id} originalPrice={ebook.price} discountedPrice={discounted} />
+        </div>
+        {/* Hover popup */}
+        <div className="absolute inset-0 bg-black/92 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
+          <h3 className="font-heading text-xl lg:text-2xl font-semibold text-white leading-tight mb-2 line-clamp-2">
+            {ebook.title}
+          </h3>
+          <p className="text-sm text-foreground/80 line-clamp-3 mb-3">{stripHtml(ebook.description)}</p>
+          {ebook.what_you_learn?.length > 0 && (
+            <div className="mb-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary mb-1.5">What You'll Learn</p>
+              <ul className="space-y-1">
+                {ebook.what_you_learn.slice(0, 3).map((item, i) => (
+                  <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span className="line-clamp-1">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <PriceButton id={ebook.id} originalPrice={ebook.price} discountedPrice={discounted} />
         </div>
       </div>
     </Link>

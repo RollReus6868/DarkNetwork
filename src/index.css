@@ -4,24 +4,24 @@
 
 @layer base {
   :root {
-    --background: 0 0% 4%;
+    --background: 20 40% 5%;
     --foreground: 40 30% 91%;
-    --card: 0 0% 7%;
+    --card: 22 30% 8%;
     --card-foreground: 40 30% 91%;
-    --popover: 0 0% 7%;
+    --popover: 22 30% 8%;
     --popover-foreground: 40 30% 91%;
     --primary: 38 35% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 12%;
+    --secondary: 25 25% 12%;
     --secondary-foreground: 40 30% 91%;
-    --muted: 0 0% 12%;
+    --muted: 25 20% 12%;
     --muted-foreground: 40 15% 60%;
     --accent: 0 60% 25%;
     --accent-foreground: 40 30% 91%;
     --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 16%;
-    --input: 0 0% 16%;
+    --border: 25 15% 16%;
+    --input: 25 15% 16%;
     --ring: 38 35% 55%;
     --radius: 0.25rem;
     --font-heading: 'Cormorant Garamond', Georgia, serif;
@@ -86,5 +86,12 @@
   }
   .group:hover .glow-bronze-group {
     box-shadow: 0 0 18px 3px hsl(38 35% 55% / 0.5);
+  }
+
+  .bg-brown-dark {
+    background: linear-gradient(160deg, #1a0f08 0%, #2d1810 100%);
+  }
+  .bg-brown {
+    background: linear-gradient(160deg, #3d2817 0%, #4a3020 100%);
   }
 }

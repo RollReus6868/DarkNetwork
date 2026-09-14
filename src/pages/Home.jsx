@@ -99,22 +99,24 @@ export default function Home() {
 
       {/* SECTION 3 — EBOOK SLIDER */}
       {sliderEbooks.length > 0 && (
-        <section className="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Digital Library</p>
-              <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">Featured Ebooks</h2>
+        <section className="py-20 lg:py-28 bg-brown-dark grain-overlay">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Digital Library</p>
+                <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">Featured Ebooks</h2>
+              </div>
+              <Link to="/books" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
+                View All Books <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
-            <Link to="/books" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
-              View All Books <ArrowRight className="w-4 h-4" />
-            </Link>
+            <EbookSlider ebooks={sliderEbooks} />
           </div>
-          <EbookSlider ebooks={sliderEbooks} />
         </section>
       )}
 
       {/* SECTION 4 — FEATURED POD / MERCHANDISE */}
-      <section className="py-20 lg:py-28 bg-secondary/50 border-y border-border">
+      <section className="py-20 lg:py-28 bg-brown border-y border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
@@ -144,41 +146,43 @@ export default function Home() {
       <Testimonials testimonials={testimonials} />
 
       {/* SECTION 7 — EXPLORE THE BIBLE */}
-      <section className="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          eyebrow="The Library"
-          title="Explore the Bible"
-          subtitle="Journey through Scripture across six editorial collections — from ancient texts to unsolved mysteries."
-        />
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-          {CATEGORIES.map((cat) => (
-            <Link
-              key={cat.slug}
-              to={`/bible-studies?category=${encodeURIComponent(cat.name)}`}
-              className="group relative aspect-[4/3] overflow-hidden rounded glow-bronze"
-            >
-              <Image
-                src={cat.image}
-                alt={cat.name}
-                className="w-full h-full transition-transform duration-700 group-hover:scale-110"
-                fittingType="fill"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-              <div className="absolute bottom-0 inset-x-0 p-5">
-                <h3 className="font-heading text-xl md:text-2xl font-semibold text-white group-hover:text-primary transition-colors">
-                  {cat.name}
-                </h3>
-                <span className="text-xs uppercase tracking-wide text-foreground/60 group-hover:text-primary flex items-center gap-1 mt-1">
-                  Explore <ArrowRight className="w-3 h-3" />
-                </span>
-              </div>
-            </Link>
-          ))}
+      <section className="py-20 lg:py-28 bg-brown-dark grain-overlay">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeading
+            eyebrow="The Library"
+            title="Explore the Bible"
+            subtitle="Journey through Scripture across six editorial collections — from ancient texts to unsolved mysteries."
+          />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+            {CATEGORIES.map((cat) => (
+              <Link
+                key={cat.slug}
+                to={`/bible-studies?category=${encodeURIComponent(cat.name)}`}
+                className="group relative aspect-[4/3] overflow-hidden rounded glow-bronze"
+              >
+                <Image
+                  src={cat.image}
+                  alt={cat.name}
+                  className="w-full h-full transition-transform duration-700 group-hover:scale-110"
+                  fittingType="fill"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                <div className="absolute bottom-0 inset-x-0 p-5">
+                  <h3 className="font-heading text-xl md:text-2xl font-semibold text-white group-hover:text-primary transition-colors">
+                    {cat.name}
+                  </h3>
+                  <span className="text-xs uppercase tracking-wide text-foreground/60 group-hover:text-primary flex items-center gap-1 mt-1">
+                    Explore <ArrowRight className="w-3 h-3" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* SECTION 6 — LATEST BIBLE STUDIES */}
-      <section className="py-20 lg:py-28 bg-secondary/30 border-y border-border">
+      <section className="py-20 lg:py-28 bg-brown border-y border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
@@ -204,7 +208,7 @@ export default function Home() {
       </section>
 
       {/* SECTION 7 — FREE RESOURCE / EMAIL */}
-      <section className="py-20 lg:py-28 bg-black border-y border-border grain-overlay">
+      <section className="py-20 lg:py-28 bg-brown-dark border-y border-border/50 grain-overlay">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <Sparkles className="w-10 h-10 text-primary mx-auto mb-5" />
           <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4 text-balance">
@@ -219,31 +223,33 @@ export default function Home() {
       </section>
 
       {/* SECTION 8 — POPULAR VIDEOS */}
-      <section className="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Most Watched</p>
-            <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">Popular Videos</h2>
+      <section className="py-20 lg:py-28 bg-brown">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Most Watched</p>
+              <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">Popular Videos</h2>
+            </div>
+            <Link to="/watch" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
+              Watch All <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
-          <Link to="/watch" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
-            Watch All <ArrowRight className="w-4 h-4" />
-          </Link>
+          {loading ? (
+            <div className="text-center text-muted-foreground py-12">Loading videos…</div>
+          ) : popularToShow.length === 0 ? (
+            <div className="text-center text-muted-foreground py-12">Videos coming soon.</div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {popularToShow.map((v) => (
+                <VideoCard key={v.id} video={v} />
+              ))}
+            </div>
+          )}
         </div>
-        {loading ? (
-          <div className="text-center text-muted-foreground py-12">Loading videos…</div>
-        ) : popularToShow.length === 0 ? (
-          <div className="text-center text-muted-foreground py-12">Videos coming soon.</div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {popularToShow.map((v) => (
-              <VideoCard key={v.id} video={v} />
-            ))}
-          </div>
-        )}
       </section>
 
       {/* SECTION 9 — SOCIAL */}
-      <section className="py-16 bg-secondary/30 border-t border-border">
+      <section className="py-16 bg-brown-dark border-t border-border/50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="font-heading text-3xl md:text-4xl font-bold mb-3">Follow the Journey</h2>
           <p className="text-muted-foreground mb-8">Join hundreds of thousands across the Dark Network channels.</p>
