@@ -10,7 +10,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { getDiscountPercentage } from "@/lib/pricing";
 import { ProductTextPrice } from "@/components/site/ProductTextPrice";
 
-const HOVER_INTENT_MS = 1500;
+const HOVER_INTENT_MS = 1000;
 const CLOSE_GRACE_MS = 200;
 const EXIT_MS = 160;
 
