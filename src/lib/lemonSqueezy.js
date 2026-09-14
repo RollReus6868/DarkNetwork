@@ -37,6 +37,11 @@ export function loadLemonJS() {
 }
 
 export async function openCheckout(url) {
-  await loadLemonJS();
-  window.LemonSqueezy.Url.Open(url);
+  try {
+    await loadLemonJS();
+    window.LemonSqueezy.Url.Open(url);
+  } catch {
+    // Fallback: if Lemon.js fails to load or Url.Open throws, open in a new tab
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
 }
