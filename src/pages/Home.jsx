@@ -3,7 +3,10 @@ import { ArrowRight, BookOpen, Play, Sparkles, Youtube, Facebook, Instagram, Mus
 import Seo from "@/components/site/Seo";
 import YouTubeEmbed from "@/components/site/YouTubeEmbed";
 import EmailCapture from "@/components/site/EmailCapture";
-import { StudyCard, VideoCard, EbookCard, ProductCard, SectionHeading } from "@/components/site/Cards";
+import EbookSlider from "@/components/site/EbookSlider";
+import VideoLibrary from "@/components/site/VideoLibrary";
+import Testimonials from "@/components/site/Testimonials";
+import { StudyCard, VideoCard, ProductCard, SectionHeading } from "@/components/site/Cards";
 import { useSiteData } from "@/hooks/useSiteData";
 import { Image } from "@/components/ui/image";
 
@@ -33,10 +36,11 @@ const SOCIALS = [
 ];
 
 export default function Home() {
-  const { studies, videos, ebooks, products, loading } = useSiteData();
+  const { studies, videos, ebooks, products, testimonials, siteContent, membershipStats, loading } = useSiteData();
 
   const featuredVideo = videos.find((v) => v.featured) || videos[0];
-  const featuredEbook = ebooks.find((e) => e.featured) || ebooks[0];
+  const sliderEbooks = ebooks.length > 0 ? ebooks.slice(0, 8) : [];
+  const videoLibraryContent = siteContent.find((c) => c.section_key === "video_library");
   const latestStudies = studies.slice(0, 6);
   const featuredProducts = products.slice(0, 4);
   const popularVideos = videos.filter((v) => v.popular).slice(0, 4);
@@ -125,57 +129,19 @@ export default function Home() {
         </section>
       )}
 
-      {/* SECTION 3 — FEATURED EBOOK */}
-      {featuredEbook && (
+      {/* SECTION 3 — EBOOK SLIDER */}
+      {sliderEbooks.length > 0 && (
         <section className="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
-            <div className="relative max-w-sm mx-auto md:mx-0">
-              <div className="absolute -inset-4 bg-primary/10 blur-2xl rounded-full" />
-              <div className="relative aspect-[3/4] overflow-hidden rounded shadow-2xl">
-                <Image
-                  src={featuredEbook.cover_image}
-                  alt={featuredEbook.title}
-                  className="w-full h-full"
-                  fittingType="fill"
-                />
-              </div>
-            </div>
+          <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">
-                Featured Ebook
-              </p>
-              <h2 className="font-heading text-4xl md:text-5xl font-bold leading-tight mb-4">
-                {featuredEbook.title}
-              </h2>
-              {featuredEbook.subtitle && (
-                <p className="text-xl text-foreground/70 font-heading italic mb-4">{featuredEbook.subtitle}</p>
-              )}
-              <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                {featuredEbook.description?.replace(/<[^>]+>/g, "").slice(0, 220)}
-                {featuredEbook.description?.length > 220 ? "…" : ""}
-              </p>
-              <div className="flex items-center gap-4 mb-8">
-                <span className="text-3xl font-heading font-bold text-primary">
-                  ${featuredEbook.price.toFixed(2)}
-                </span>
-                <span className="text-sm text-muted-foreground uppercase tracking-wide">Digital Ebook</span>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  to={`/books/${featuredEbook.slug}`}
-                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-colors"
-                >
-                  Get the Ebook <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link
-                  to="/books"
-                  className="inline-flex items-center gap-2 border border-foreground/30 text-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-foreground hover:text-background transition-colors"
-                >
-                  View All Books
-                </Link>
-              </div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Digital Library</p>
+              <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">Featured Ebooks</h2>
             </div>
+            <Link to="/books" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
+              View All Books <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
+          <EbookSlider ebooks={sliderEbooks} />
         </section>
       )}
 
@@ -206,7 +172,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 5 — EXPLORE THE BIBLE */}
+      {/* SECTION 5 — VIDEO LIBRARY */}
+      <VideoLibrary content={videoLibraryContent} stats={membershipStats} />
+
+      {/* SECTION 6 — TESTIMONIALS */}
+      <Testimonials testimonials={testimonials} />
+
+      {/* SECTION 7 — EXPLORE THE BIBLE */}
       <section className="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="The Library"

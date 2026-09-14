@@ -7,18 +7,24 @@ export function useSiteData() {
   const [ebooks, setEbooks] = useState([]);
   const [products, setProducts] = useState([]);
   const [resources, setResources] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
+  const [siteContent, setSiteContent] = useState([]);
+  const [membershipStats, setMembershipStats] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const [s, v, e, p, r] = await Promise.all([
+        const [s, v, e, p, r, t, sc, ms] = await Promise.all([
           base44.entities.BibleStudy.filter({ status: "published" }, "-created_date", 50).catch(() => []),
           base44.entities.Video.filter({ status: "published" }, "-created_date", 50).catch(() => []),
           base44.entities.Ebook.filter({ status: "published" }, "-created_date", 50).catch(() => []),
           base44.entities.Product.filter({ status: "published" }, "-created_date", 50).catch(() => []),
           base44.entities.FreeResource.filter({ status: "published" }, "-created_date", 50).catch(() => []),
+          base44.entities.Testimonial.list("-created_date", 50).catch(() => []),
+          base44.entities.SiteContent.list("-created_date", 50).catch(() => []),
+          base44.entities.MembershipStat.list("sort_order", 50).catch(() => []),
         ]);
         if (!active) return;
         setStudies(s);
@@ -26,6 +32,9 @@ export function useSiteData() {
         setEbooks(e);
         setProducts(p);
         setResources(r);
+        setTestimonials(t);
+        setSiteContent(sc);
+        setMembershipStats(ms);
       } finally {
         if (active) setLoading(false);
       }
@@ -33,5 +42,5 @@ export function useSiteData() {
     return () => { active = false; };
   }, []);
 
-  return { studies, videos, ebooks, products, resources, loading };
+  return { studies, videos, ebooks, products, resources, testimonials, siteContent, membershipStats, loading };
 }

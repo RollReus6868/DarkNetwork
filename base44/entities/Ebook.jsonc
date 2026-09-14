@@ -51,7 +51,13 @@
     "file_url": {
       "type": "string",
       "title": "Downloadable File URL",
-      "format": "url"
+      "format": "url",
+      "description": "Public download URL \u2014 do NOT use this for paid ebooks. Use secure_file_uri instead."
+    },
+    "secure_file_uri": {
+      "type": "string",
+      "title": "Secure Private File URI",
+      "description": "Private file URI (from UploadPrivateFile). Used for paid ebooks \u2014 downloads are gated and served via short-lived signed URLs only."
     },
     "related_video_id": {
       "type": "string",

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, Search, ShoppingBag, ChevronRight } from "lucide-react";
+import { Menu, X, Search, ShoppingBag, ChevronRight, User, LogOut } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 
 const NAV_LINKS = [
   { label: "Home", path: "/" },
@@ -24,6 +25,12 @@ export default function Header({ cartCount = 0 }) {
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const searchRef = useRef(null);
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout(false);
+    window.location.href = "/";
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -107,6 +114,32 @@ export default function Header({ cartCount = 0 }) {
                   </span>
                 )}
               </Link>
+              {isAuthenticated ? (
+                <div className="hidden sm:flex items-center gap-2 ml-1 pl-2 border-l border-border">
+                  <Link
+                    to="/account"
+                    className="flex items-center gap-1.5 text-sm font-medium uppercase tracking-wide text-foreground/80 hover:text-primary transition-colors px-2 py-1"
+                  >
+                    <User className="w-4 h-4" />
+                    My Account
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-1.5 text-sm font-medium uppercase tracking-wide text-foreground/80 hover:text-primary transition-colors px-2 py-1"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Log Out
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  to="/login"
+                  className="hidden sm:flex items-center gap-1.5 text-sm font-medium uppercase tracking-wide text-foreground/80 hover:text-primary transition-colors ml-1 pl-2 border-l border-border px-2 py-1"
+                >
+                  <User className="w-4 h-4" />
+                  Sign Up / Login
+                </Link>
+              )}
             </div>
           </div>
 
@@ -157,6 +190,36 @@ export default function Header({ cartCount = 0 }) {
                   <ChevronRight className="w-4 h-4 text-muted-foreground" />
                 </Link>
               ))}
+              <div className="border-t border-border mt-2 pt-2">
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to="/account"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-5 py-3.5 text-foreground/90 hover:bg-secondary hover:text-primary transition-colors border-b border-border/50"
+                    >
+                      <User className="w-4 h-4" />
+                      <span className="font-medium uppercase tracking-wide text-sm">My Account</span>
+                    </Link>
+                    <button
+                      onClick={() => { handleLogout(); setMobileOpen(false); }}
+                      className="w-full flex items-center gap-3 px-5 py-3.5 text-foreground/90 hover:bg-secondary hover:text-primary transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="font-medium uppercase tracking-wide text-sm">Log Out</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-3 px-5 py-3.5 text-foreground/90 hover:bg-secondary hover:text-primary transition-colors"
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="font-medium uppercase tracking-wide text-sm">Sign Up / Login</span>
+                  </Link>
+                )}
+              </div>
             </nav>
           </div>
         </div>

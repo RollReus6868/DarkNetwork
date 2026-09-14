@@ -1,0 +1,77 @@
+{
+  "name": "EbookPurchase",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "title": "User ID",
+      "description": "The customer who purchased the ebook"
+    },
+    "ebook_id": {
+      "type": "string",
+      "title": "Ebook ID"
+    },
+    "order_id": {
+      "type": "string",
+      "title": "Order ID",
+      "description": "Reference to the order/transaction from the payment provider"
+    },
+    "purchase_date": {
+      "type": "string",
+      "title": "Purchase Date",
+      "format": "date-time"
+    },
+    "payment_status": {
+      "type": "string",
+      "title": "Payment Status",
+      "enum": [
+        "pending",
+        "paid",
+        "refunded",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "download_access": {
+      "type": "boolean",
+      "title": "Download Access Granted",
+      "default": false,
+      "description": "Set to true only after payment is confirmed"
+    }
+  },
+  "required": [
+    "user_id",
+    "ebook_id",
+    "payment_status",
+    "download_access"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
