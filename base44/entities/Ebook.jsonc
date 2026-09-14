@@ -24,6 +24,11 @@
       "title": "Price (USD)",
       "default": 0
     },
+    "original_price": {
+      "type": "number",
+      "title": "Original Price (USD)",
+      "description": "Optional. If set and greater than price, a crossed-out original price and SALE badge with the real discount percentage are shown. If empty, no discount is displayed."
+    },
     "cover_image": {
       "type": "string",
       "title": "Cover Image URL",
@@ -58,6 +63,11 @@
       "type": "string",
       "title": "Secure Private File URI",
       "description": "Private file URI (from UploadPrivateFile). Used for paid ebooks \u2014 downloads are gated and served via short-lived signed URLs only."
+    },
+    "lemon_squeezy_variant_id": {
+      "type": "string",
+      "title": "Lemon Squeezy Variant ID",
+      "description": "The Lemon Squeezy variant ID for this ebook. Required for checkout. Find it in your Lemon Squeezy product dashboard."
     },
     "related_video_id": {
       "type": "string",

@@ -5,16 +5,48 @@
     "user_id": {
       "type": "string",
       "title": "User ID",
-      "description": "The customer who purchased the ebook"
+      "description": "The authenticated customer who purchased the ebook. Null for guest purchases."
     },
     "ebook_id": {
       "type": "string",
       "title": "Ebook ID"
     },
+    "provider": {
+      "type": "string",
+      "title": "Payment Provider",
+      "default": "lemon_squeezy",
+      "description": "Which payment provider processed this purchase (e.g. lemon_squeezy). Modular for future provider swaps."
+    },
     "order_id": {
       "type": "string",
       "title": "Order ID",
       "description": "Reference to the order/transaction from the payment provider"
+    },
+    "provider_order_id": {
+      "type": "string",
+      "title": "Provider Order ID",
+      "description": "The order ID from the payment provider (e.g. Lemon Squeezy order ID). Used for idempotency."
+    },
+    "provider_variant_id": {
+      "type": "string",
+      "title": "Provider Variant ID",
+      "description": "The variant ID from the payment provider"
+    },
+    "customer_email": {
+      "type": "string",
+      "title": "Customer Email",
+      "format": "email",
+      "description": "The email used at checkout. Used to link guest purchases to accounts when the same email is verified."
+    },
+    "amount": {
+      "type": "number",
+      "title": "Amount",
+      "description": "The total amount paid (in the smallest currency unit or as returned by the provider)"
+    },
+    "currency": {
+      "type": "string",
+      "title": "Currency",
+      "default": "USD"
     },
     "purchase_date": {
       "type": "string",
@@ -28,6 +60,7 @@
         "pending",
         "paid",
         "refunded",
+        "partially_refunded",
         "failed"
       ],
       "default": "pending"
@@ -36,11 +69,10 @@
       "type": "boolean",
       "title": "Download Access Granted",
       "default": false,
-      "description": "Set to true only after payment is confirmed"
+      "description": "Set to true only after payment is confirmed. Set to false on full refunds."
     }
   },
   "required": [
-    "user_id",
     "ebook_id",
     "payment_status",
     "download_access"

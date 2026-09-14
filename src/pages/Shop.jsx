@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import Seo from "@/components/site/Seo";
-import { ProductCard, SectionHeading } from "@/components/site/Cards";
+import { EbookCard, ProductCard, SectionHeading } from "@/components/site/Cards";
 import { useSiteData } from "@/hooks/useSiteData";
 
 const CATEGORIES = ["All", "Books", "Apparel", "Wall Art", "Mugs", "Gifts"];
@@ -60,7 +60,11 @@ export default function Shop() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {filtered.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                p.isEbook ? (
+                  <EbookCard key={p.id} ebook={p} />
+                ) : (
+                  <ProductCard key={p.id} product={p} />
+                )
               ))}
             </div>
           )}

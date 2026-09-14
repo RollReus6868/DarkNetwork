@@ -6,6 +6,7 @@ import YouTubeEmbed from "@/components/site/YouTubeEmbed";
 import { useSiteData } from "@/hooks/useSiteData";
 import { Image } from "@/components/ui/image";
 import { addToCart } from "@/lib/cart";
+import { EbookBuyButton } from "@/components/site/EbookBuyButton";
 
 export default function EbookDetail() {
   const { slug } = useParams();
@@ -87,16 +88,14 @@ export default function EbookDetail() {
             {ebook.subtitle && <p className="text-xl text-foreground/60 font-heading italic mt-2">{ebook.subtitle}</p>}
             <div className="flex items-center gap-3 mt-5">
               <span className="text-4xl font-heading font-bold text-primary">${ebook.price.toFixed(2)}</span>
+              {ebook.original_price && Number(ebook.original_price) > Number(ebook.price) && (
+                <span className="text-xl text-muted-foreground line-through">${Number(ebook.original_price).toFixed(2)}</span>
+              )}
               <span className="text-sm text-muted-foreground uppercase tracking-wide">Instant Download</span>
             </div>
 
             <div className="flex flex-col gap-3 mt-6">
-              <button
-                onClick={handleAdd}
-                className="bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-              >
-                {added ? <><Check className="w-5 h-5" /> Added to Cart</> : <>Get the Ebook <Download className="w-5 h-5" /></>}
-              </button>
+              <EbookBuyButton ebook={ebook} variant="detail" />
               <Link to="/cart" className="border border-border text-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:border-primary hover:text-primary transition-colors text-center">
                 View Cart
               </Link>
@@ -211,9 +210,9 @@ export default function EbookDetail() {
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">Ready to Go Deeper?</h2>
           <p className="text-muted-foreground mb-6">Get instant access to {ebook.title} and start reading today.</p>
-          <button onClick={handleAdd} className="bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90">
-            Get the Ebook — ${ebook.price.toFixed(2)}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <EbookBuyButton ebook={ebook} variant="detail" />
+          </div>
         </div>
       </section>
     </>

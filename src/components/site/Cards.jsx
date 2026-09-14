@@ -1,8 +1,10 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Play, ArrowRight, BookOpen, Download, Mail } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import { PriceButton } from "@/components/site/PriceButton";
+import { EbookBuyButton } from "@/components/site/EbookBuyButton";
+import { ProductCardWithPreview } from "@/components/site/QuickPreview";
+import { getDiscountPercentage } from "@/lib/pricing";
 import { stripHtml } from "@/lib/gradients";
 
 export function StudyCard({ study }) {
@@ -63,110 +65,61 @@ export function VideoCard({ video }) {
 }
 
 export function EbookCard({ ebook }) {
-  const discounted = (ebook.price * 0.7).toFixed(2);
+  const discount = getDiscountPercentage(ebook.price, ebook.original_price);
   return (
-    <Link to={`/books/${ebook.slug}`} className="group block">
-      <div className="relative aspect-[3/4] overflow-hidden bg-secondary rounded mb-4 shadow-lg glow-bronze-group border border-border/60 group-hover:border-primary/60 transition-all duration-500">
-        <Image
-          src={ebook.cover_image}
-          alt={ebook.title}
-          className="w-full h-full transition-transform duration-700 group-hover:scale-105"
-          fittingType="fill"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
-        <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
-          Sale 30%
-        </span>
-        <div className="absolute bottom-3 left-3 right-3">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary bg-black/70 backdrop-blur px-2 py-0.5 rounded">
-            Digital Book
-          </span>
-        </div>
-        {/* Hover popup */}
-        <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
-          <p className="text-sm text-foreground/80 line-clamp-3 mb-3">{stripHtml(ebook.description)}</p>
-          {ebook.what_you_learn?.length > 0 && (
-            <div className="mb-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary mb-1.5">What You'll Learn</p>
-              <ul className="space-y-1">
-                {ebook.what_you_learn.slice(0, 3).map((item, i) => (
-                  <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span className="line-clamp-1">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+    <div className="group block">
+      <Link to={`/books/${ebook.slug}`}>
+        <div className="relative aspect-[3/4] overflow-hidden bg-secondary rounded mb-4 shadow-lg glow-bronze-group border border-border/60 group-hover:border-primary/60 transition-all duration-500">
+          <Image
+            src={ebook.cover_image}
+            alt={ebook.title}
+            className="w-full h-full transition-transform duration-700 group-hover:scale-105"
+            fittingType="fill"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+          {discount !== null && (
+            <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
+              SALE {discount}%
+            </span>
           )}
+          <div className="absolute bottom-3 left-3 right-3">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary bg-black/70 backdrop-blur px-2 py-0.5 rounded">
+              Digital Book
+            </span>
+          </div>
+          {/* Hover popup */}
+          <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
+            <p className="text-sm text-foreground/80 line-clamp-3 mb-3">{stripHtml(ebook.description)}</p>
+            {ebook.what_you_learn?.length > 0 && (
+              <div className="mb-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary mb-1.5">What You'll Learn</p>
+                <ul className="space-y-1">
+                  {ebook.what_you_learn.slice(0, 3).map((item, i) => (
+                    <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span className="line-clamp-1">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
+        <h3 className="font-heading text-xl font-semibold leading-tight mb-2 group-hover:text-primary transition-colors">
+          {ebook.title}
+        </h3>
+        {ebook.subtitle && <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{ebook.subtitle}</p>}
+      </Link>
+      <div className="mb-3">
+        <PriceButton id={ebook.id} price={ebook.price} originalPrice={ebook.original_price} />
       </div>
-      <h3 className="font-heading text-xl font-semibold leading-tight mb-2 group-hover:text-primary transition-colors">
-        {ebook.title}
-      </h3>
-      {ebook.subtitle && <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{ebook.subtitle}</p>}
-      <PriceButton id={ebook.id} originalPrice={ebook.price} discountedPrice={discounted} />
-    </Link>
+      <EbookBuyButton ebook={ebook} variant="card" />
+    </div>
   );
 }
 
 export function ProductCard({ product }) {
-  const discounted = (product.price * 0.7).toFixed(2);
-  const [activeImg, setActiveImg] = useState(0);
-  const images = product.images || [];
-
-  return (
-    <Link to={`/shop/${product.slug}`} className="group block">
-      <div className="relative aspect-square overflow-hidden bg-secondary rounded mb-3 glow-bronze-group border border-border/60 group-hover:border-primary/60 transition-all duration-500">
-        {images[0] && (
-          <Image
-            src={images[0]}
-            alt={product.title}
-            className="w-full h-full transition-transform duration-700 group-hover:scale-105"
-            fittingType="fill"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-50" />
-        <span className="absolute top-3 left-3 text-[10px] font-semibold uppercase tracking-[0.15em] bg-black/60 backdrop-blur px-2.5 py-1 rounded text-primary border border-primary/30">
-          {product.category}
-        </span>
-        <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
-          Sale 30%
-        </span>
-        {/* Hover popup — zoom image + thumbnail strip */}
-        <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 flex flex-col">
-          <div className="flex-1 relative overflow-hidden">
-            {images[activeImg] && (
-              <Image
-                src={images[activeImg]}
-                alt={product.title}
-                className="w-full h-full scale-110"
-                fittingType="fill"
-              />
-            )}
-          </div>
-          {images.length > 1 && (
-            <div className="flex gap-1.5 p-2 bg-black/70">
-              {images.slice(0, 5).map((img, i) => (
-                <div
-                  key={i}
-                  onMouseEnter={() => setActiveImg(i)}
-                  className={`w-10 h-10 rounded overflow-hidden border-2 cursor-pointer transition-all ${
-                    activeImg === i ? "border-primary opacity-100" : "border-transparent opacity-50 hover:opacity-90"
-                  }`}
-                >
-                  <Image src={img} alt="" className="w-full h-full" fittingType="fill" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-      <h3 className="font-heading text-xl font-semibold leading-tight mb-2 group-hover:text-primary transition-colors">
-        {product.title}
-      </h3>
-      <PriceButton id={product.id} originalPrice={product.price} discountedPrice={discounted} />
-    </Link>
-  );
+  return <ProductCardWithPreview product={product} />;
 }
 
 export function FreeResourceCard({ resource }) {

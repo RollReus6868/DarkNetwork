@@ -122,26 +122,20 @@ export default function Cart() {
                 </div>
               </div>
 
-              <form onSubmit={checkout} className="space-y-3">
-                <input
-                  type="email"
-                  required
-                  placeholder="Your email (for delivery)"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-secondary border border-border rounded px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
-                />
+              <div className="space-y-3">
                 <button
-                  type="submit"
-                  disabled={status === "loading"}
-                  className="w-full bg-primary text-primary-foreground px-6 py-3.5 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
+                  disabled
+                  className="w-full bg-primary/40 text-primary-foreground/60 px-6 py-3.5 rounded font-semibold uppercase text-sm tracking-wide cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {status === "loading" ? <><Loader2 className="w-5 h-5 animate-spin" /> Processing…</> : <>Purchase — ${total.toFixed(2)}</>}
+                  Checkout — Coming Soon
                 </button>
-              </form>
-              <p className="text-xs text-muted-foreground mt-3 text-center">
-                Secure checkout · Instant download · No shipping needed
-              </p>
+                <p className="text-xs text-muted-foreground text-center">
+                  Use <span className="text-foreground font-medium">Buy Now</span> on any ebook to purchase instantly via Lemon Squeezy.
+                </p>
+                <p className="text-xs text-muted-foreground text-center">
+                  Multi-ebook cart checkout is coming soon.
+                </p>
+              </div>
             </div>
           </div>
         </div>

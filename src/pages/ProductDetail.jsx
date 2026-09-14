@@ -84,7 +84,12 @@ export default function ProductDetail() {
           <div>
             <span className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">{product.category}</span>
             <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold mt-3 leading-tight">{product.title}</h1>
-            <p className="text-3xl font-heading font-bold text-primary mt-5">${product.price.toFixed(2)}</p>
+            <div className="flex items-center gap-3 mt-5">
+              <p className="text-3xl font-heading font-bold text-primary">${product.price.toFixed(2)}</p>
+              {product.original_price && Number(product.original_price) > Number(product.price) && (
+                <p className="text-lg text-muted-foreground line-through">${Number(product.original_price).toFixed(2)}</p>
+              )}
+            </div>
 
             <a
               href={product.spring_url}
@@ -204,7 +209,12 @@ export default function ProductDetail() {
       <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border p-4 flex items-center gap-4">
         <div className="flex-1">
           <p className="text-xs text-muted-foreground">{product.title}</p>
-          <p className="text-primary font-heading text-xl font-bold">${product.price.toFixed(2)}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-primary font-heading text-xl font-bold">${product.price.toFixed(2)}</p>
+            {product.original_price && Number(product.original_price) > Number(product.price) && (
+              <p className="text-sm text-muted-foreground line-through">${Number(product.original_price).toFixed(2)}</p>
+            )}
+          </div>
         </div>
         <a
           href={product.spring_url}

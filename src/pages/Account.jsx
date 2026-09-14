@@ -18,8 +18,12 @@ export default function Account() {
     (async () => {
       if (!user?.id) return;
       try {
+        // Claim guest purchases matching this user's verified email
+        try { await base44.functions.invoke("claimGuestPurchases", {}); } catch {}
+        
         const userPurchases = await base44.entities.EbookPurchase.filter({
           user_id: user.id,
+          payment_status: "paid",
           download_access: true,
         });
         if (!active) return;

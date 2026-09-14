@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import { PriceButton } from "@/components/site/PriceButton";
+import { EbookBuyButton } from "@/components/site/EbookBuyButton";
+import { getDiscountPercentage } from "@/lib/pricing";
 import { stripHtml } from "@/lib/gradients";
 
 export default function EbookSlider({ ebooks = [] }) {
@@ -100,7 +102,7 @@ export default function EbookSlider({ ebooks = [] }) {
 }
 
 function SliderCard({ ebook }) {
-  const discounted = (ebook.price * 0.7).toFixed(2);
+  const discount = getDiscountPercentage(ebook.price, ebook.original_price);
   return (
     <Link
       to={`/books/${ebook.slug}`}
@@ -115,15 +117,17 @@ function SliderCard({ ebook }) {
           fittingType="fill"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-        <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
-          Sale 30%
-        </span>
+        {discount !== null && (
+          <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
+            SALE {discount}%
+          </span>
+        )}
         {/* Default content — fades out on hover */}
         <div className="absolute bottom-0 inset-x-0 p-4 transition-opacity duration-300 group-hover:opacity-0">
           <h3 className="font-heading text-xl lg:text-2xl font-semibold text-white leading-tight line-clamp-2 mb-3">
             {ebook.title}
           </h3>
-          <PriceButton id={ebook.id} originalPrice={ebook.price} discountedPrice={discounted} />
+          <PriceButton id={ebook.id} price={ebook.price} originalPrice={ebook.original_price} />
         </div>
         {/* Hover popup */}
         <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
@@ -144,7 +148,7 @@ function SliderCard({ ebook }) {
               </ul>
             </div>
           )}
-          <PriceButton id={ebook.id} originalPrice={ebook.price} discountedPrice={discounted} />
+          <EbookBuyButton ebook={ebook} variant="card" />
         </div>
       </div>
     </Link>
