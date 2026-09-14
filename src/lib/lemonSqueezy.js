@@ -38,5 +38,5 @@ export function loadLemonJS() {
 
 export async function openCheckout(url) {
   await loadLemonJS();
-  window.LemonSqueezy.UrlOpen(url);
+  window.LemonSqueezy.Url.Open(url);
 }
