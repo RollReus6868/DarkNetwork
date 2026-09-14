@@ -8,8 +8,11 @@ import {
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getDiscountPercentage } from "@/lib/pricing";
-import { stripHtml } from "@/lib/gradients";
 import { ProductTextPrice } from "@/components/site/ProductTextPrice";
+
+const HOVER_INTENT_MS = 1500;
+const CLOSE_GRACE_MS = 200;
+const EXIT_MS = 160;
 
 function CtaButtons({ product }) {
   return (
@@ -38,7 +41,12 @@ function MainImage({ product, activeImg }) {
   return (
     <div className="relative w-full aspect-square overflow-hidden bg-secondary">
       {images[activeImg] ? (
-        <Image src={images[activeImg]} alt={product.title} className="w-full h-full" fittingType="fill" />
+        <Image
+          src={images[activeImg]}
+          alt={product.title}
+          className="w-full h-full"
+          fittingType="fill"
+        />
       ) : (
         <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">No image</div>
       )}
@@ -73,8 +81,6 @@ function Thumbnails({ product, activeImg, setActiveImg }) {
 }
 
 function PreviewBody({ product, activeImg, setActiveImg, layout = "desktop" }) {
-  const desc = stripHtml(product.description);
-
   if (layout === "mobile") {
     return (
       <>
@@ -82,7 +88,6 @@ function PreviewBody({ product, activeImg, setActiveImg, layout = "desktop" }) {
         <Thumbnails product={product} activeImg={activeImg} setActiveImg={setActiveImg} />
         <div className="pt-4">
           <ProductTextPrice
-            category={product.category}
             title={product.title}
             price={product.price}
             originalPrice={product.original_price}
@@ -95,49 +100,44 @@ function PreviewBody({ product, activeImg, setActiveImg, layout = "desktop" }) {
         <div className="mt-3">
           <CtaButtons product={product} />
         </div>
-        {desc && <p className="text-sm text-muted-foreground line-clamp-3 mt-4">{desc}</p>}
       </>
     );
   }
 
+  // Desktop: simplified two-column layout — left = image + thumbnails, right = title + price + CTAs
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden shadow-2xl">
-      <div className="flex">
-        <div className="w-[380px] flex-shrink-0">
-          <MainImage product={product} activeImg={activeImg} />
-        </div>
-        <div className="flex-1 flex flex-col gap-2 p-3 pt-4">
-          <CtaButtons product={product} />
-        </div>
+    <div className="bg-card border border-border rounded-lg overflow-hidden shadow-2xl flex">
+      <div className="w-[62%] flex-shrink-0">
+        <MainImage product={product} activeImg={activeImg} />
+        <Thumbnails product={product} activeImg={activeImg} setActiveImg={setActiveImg} />
       </div>
-      <Thumbnails product={product} activeImg={activeImg} setActiveImg={setActiveImg} />
-      <div className="p-4">
+      <div className="w-[38%] flex flex-col gap-3 p-4 justify-center">
         <ProductTextPrice
-          category={product.category}
           title={product.title}
           price={product.price}
           originalPrice={product.original_price}
-          description={desc}
           compact
           priceVariant="pill"
           id={product.id}
-          showDescription
+          showDescription={false}
         />
+        <CtaButtons product={product} />
       </div>
     </div>
   );
 }
 
-function DesktopHoverPanel({ product, cardRef, onClose, onCancelClose }) {
+function DesktopHoverPanel({ product, cardRef, onClose, onCancelClose, closing }) {
   const [activeImg, setActiveImg] = useState(0);
   const [pos, setPos] = useState(null);
+  const [entered, setEntered] = useState(false);
   const panelRef = useRef(null);
 
   useLayoutEffect(() => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const panelW = 580;
-    const panelH = 640;
+    const panelH = 520;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
@@ -156,7 +156,14 @@ function DesktopHoverPanel({ product, cardRef, onClose, onCancelClose }) {
     if (top < 16) top = 16;
 
     setPos({ top, left, width: panelW });
+    // Trigger entrance animation on next frame
+    requestAnimationFrame(() => setEntered(true));
   }, [cardRef]);
+
+  // Play exit animation when closing flips to true
+  useEffect(() => {
+    if (closing) setEntered(false);
+  }, [closing]);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -169,7 +176,18 @@ function DesktopHoverPanel({ product, cardRef, onClose, onCancelClose }) {
   return createPortal(
     <div
       ref={panelRef}
-      style={{ position: "fixed", top: pos.top, left: pos.left, width: pos.width, zIndex: 60 }}
+      style={{
+        position: "fixed",
+        top: pos.top,
+        left: pos.left,
+        width: pos.width,
+        zIndex: 60,
+        opacity: entered ? 1 : 0,
+        transform: entered
+          ? "translateY(0) scale(1)"
+          : "translateY(10px) scale(0.97)",
+        transition: `opacity ${EXIT_MS}ms ease-out, transform ${EXIT_MS}ms ease-out`,
+      }}
       onMouseEnter={onCancelClose}
       onMouseLeave={onClose}
     >
@@ -199,22 +217,67 @@ function MobilePreviewDrawer({ product, open, onOpenChange }) {
 
 export function ProductCardWithPreview({ product }) {
   const isMobile = useIsMobile();
-  const [hovered, setHovered] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const cardRef = useRef(null);
+  const openTimer = useRef(null);
   const closeTimer = useRef(null);
   const images = product.images || [];
   const discount = getDiscountPercentage(product.price, product.original_price);
 
-  const scheduleClose = () => {
+  const clearOpenTimer = () => {
+    if (openTimer.current) {
+      clearTimeout(openTimer.current);
+      openTimer.current = null;
+    }
+  };
+
+  const clearCloseTimer = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+
+  const handleMouseEnter = () => {
     if (isMobile) return;
-    clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setHovered(false), 200);
+    clearCloseTimer();
+    // If already open (or closing), don't restart the intent timer
+    if (panelOpen || closing) return;
+    clearOpenTimer();
+    openTimer.current = setTimeout(() => {
+      setPanelOpen(true);
+      setClosing(false);
+      openTimer.current = null;
+    }, HOVER_INTENT_MS);
+  };
+
+  const handleMouseLeave = () => {
+    if (isMobile) return;
+    clearOpenTimer();
+    clearCloseTimer();
+    closeTimer.current = setTimeout(() => {
+      // Run exit animation then unmount
+      setClosing(true);
+      setTimeout(() => {
+        setPanelOpen(false);
+        setClosing(false);
+      }, EXIT_MS);
+      closeTimer.current = null;
+    }, CLOSE_GRACE_MS);
   };
 
   const cancelClose = () => {
-    clearTimeout(closeTimer.current);
+    clearCloseTimer();
   };
+
+  useEffect(() => {
+    return () => {
+      clearOpenTimer();
+      clearCloseTimer();
+    };
+  }, []);
 
   const handleCardClick = (e) => {
     if (isMobile) {
@@ -228,8 +291,8 @@ export function ProductCardWithPreview({ product }) {
       <div
         ref={cardRef}
         className="group block"
-        onMouseEnter={() => { if (!isMobile) { cancelClose(); setHovered(true); } }}
-        onMouseLeave={() => { if (!isMobile) scheduleClose(); }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <Link to={`/shop/${product.slug}`} onClick={handleCardClick}>
           <div className="relative aspect-square overflow-hidden bg-secondary rounded mb-3 glow-bronze-group border border-border/60 group-hover:border-primary/60 transition-all duration-500">
@@ -264,9 +327,15 @@ export function ProductCardWithPreview({ product }) {
         </Link>
       </div>
 
-      {/* Desktop hover panel */}
-      {!isMobile && hovered && (
-        <DesktopHoverPanel product={product} cardRef={cardRef} onClose={scheduleClose} onCancelClose={cancelClose} />
+      {/* Desktop hover panel — kept mounted during exit animation */}
+      {!isMobile && panelOpen && (
+        <DesktopHoverPanel
+          product={product}
+          cardRef={cardRef}
+          onClose={handleMouseLeave}
+          onCancelClose={cancelClose}
+          closing={closing}
+        />
       )}
 
       {/* Mobile drawer */}
