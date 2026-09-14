@@ -87,6 +87,8 @@ function PreviewBody({ product, activeImg, setActiveImg, layout = "desktop" }) {
             price={product.price}
             originalPrice={product.original_price}
             compact
+            priceVariant="pill"
+            id={product.id}
             showDescription={false}
           />
         </div>
@@ -117,6 +119,8 @@ function PreviewBody({ product, activeImg, setActiveImg, layout = "desktop" }) {
           originalPrice={product.original_price}
           description={desc}
           compact
+          priceVariant="pill"
+          id={product.id}
           showDescription
         />
       </div>
@@ -252,6 +256,8 @@ export function ProductCardWithPreview({ product }) {
             price={product.price}
             originalPrice={product.original_price}
             compact
+            priceVariant="pill"
+            id={product.id}
             showDescription={false}
             titleClassName="group-hover:text-primary transition-colors"
           />

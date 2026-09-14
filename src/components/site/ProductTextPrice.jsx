@@ -1,4 +1,5 @@
 import { getDiscountPercentage, formatPrice } from "@/lib/pricing";
+import { PriceButton } from "@/components/site/PriceButton";
 
 // Presentation-only component for consistent product text & price hierarchy.
 // Renders category, title, current/original price, SALE %, and short description.
@@ -12,6 +13,8 @@ export function ProductTextPrice({
   originalPrice,
   description,
   compact = false,
+  priceVariant = "bronze",
+  id,
   showSaleBadge = false,
   showDescription = true,
   titleAs = "h3",
@@ -34,21 +37,27 @@ export function ProductTextPrice({
         </TitleTag>
       )}
       {price != null && (
-        <div className={`flex items-center ${compact ? "gap-2" : "gap-3 mt-5"}`}>
-          <span className={`font-heading font-bold text-primary ${compact ? "text-xl" : "text-4xl"}`}>
-            {formatPrice(price)}
-          </span>
-          {discount !== null && (
-            <span className={`text-muted-foreground line-through ${compact ? "text-sm" : "text-xl"}`}>
-              {formatPrice(originalPrice)}
+        priceVariant === "pill" ? (
+          <div className={compact ? "mt-1" : "mt-5"}>
+            <PriceButton id={id} price={price} originalPrice={originalPrice} />
+          </div>
+        ) : (
+          <div className={`flex items-center ${compact ? "gap-2" : "gap-3 mt-5"}`}>
+            <span className={`font-heading font-bold text-primary ${compact ? "text-xl" : "text-4xl"}`}>
+              {formatPrice(price)}
             </span>
-          )}
-          {discount !== null && showSaleBadge && (
-            <span className="bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow">
-              SALE {discount}%
-            </span>
-          )}
-        </div>
+            {discount !== null && (
+              <span className={`text-muted-foreground line-through ${compact ? "text-sm" : "text-xl"}`}>
+                {formatPrice(originalPrice)}
+              </span>
+            )}
+            {discount !== null && showSaleBadge && (
+              <span className="bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow">
+                SALE {discount}%
+              </span>
+            )}
+          </div>
+        )
       )}
       {showDescription && description && (
         <p className={`text-muted-foreground ${compact ? "text-sm mt-3 line-clamp-3" : "text-base mt-4 leading-relaxed"}`}>
