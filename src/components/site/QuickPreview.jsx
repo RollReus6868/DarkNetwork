@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ExternalLink, ArrowRight } from "lucide-react";
 import { Image } from "@/components/ui/image";
@@ -9,11 +8,12 @@ import {
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getDiscountPercentage } from "@/lib/pricing";
+import { stripHtml } from "@/lib/gradients";
 import { ProductTextPrice } from "@/components/site/ProductTextPrice";
 
 function CtaButtons({ product }) {
   return (
-    <div className="flex flex-col gap-2 w-full">
+    <div className="flex flex-col gap-2">
       <a
         href={product.spring_url}
         target="_blank"
@@ -37,22 +37,11 @@ function MainImage({ product, activeImg }) {
   const discount = getDiscountPercentage(product.price, product.original_price);
   return (
     <div className="relative w-full aspect-square overflow-hidden bg-secondary">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeImg}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          className="absolute inset-0"
-        >
-          {images[activeImg] ? (
-            <Image src={images[activeImg]} alt={product.title} className="w-full h-full" fittingType="fill" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">No image</div>
-          )}
-        </motion.div>
-      </AnimatePresence>
+      {images[activeImg] ? (
+        <Image src={images[activeImg]} alt={product.title} className="w-full h-full" fittingType="fill" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">No image</div>
+      )}
       {discount !== null && (
         <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
           SALE {discount}%
@@ -84,6 +73,8 @@ function Thumbnails({ product, activeImg, setActiveImg }) {
 }
 
 function PreviewBody({ product, activeImg, setActiveImg, layout = "desktop" }) {
+  const desc = stripHtml(product.description);
+
   if (layout === "mobile") {
     return (
       <>
@@ -91,6 +82,7 @@ function PreviewBody({ product, activeImg, setActiveImg, layout = "desktop" }) {
         <Thumbnails product={product} activeImg={activeImg} setActiveImg={setActiveImg} />
         <div className="pt-4">
           <ProductTextPrice
+            category={product.category}
             title={product.title}
             price={product.price}
             originalPrice={product.original_price}
@@ -103,42 +95,40 @@ function PreviewBody({ product, activeImg, setActiveImg, layout = "desktop" }) {
         <div className="mt-3">
           <CtaButtons product={product} />
         </div>
+        {desc && <p className="text-sm text-muted-foreground line-clamp-3 mt-4">{desc}</p>}
       </>
     );
   }
 
-  // Desktop: two-column — left ~65% (image + thumbnails), right ~35% (title, price, CTAs)
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden shadow-2xl">
       <div className="flex">
-        <div className="w-[65%] flex-shrink-0">
-          <motion.div
-            initial={{ scale: 1.02, opacity: 0.7 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          >
-            <MainImage product={product} activeImg={activeImg} />
-          </motion.div>
-          <Thumbnails product={product} activeImg={activeImg} setActiveImg={setActiveImg} />
+        <div className="w-[380px] flex-shrink-0">
+          <MainImage product={product} activeImg={activeImg} />
         </div>
-        <div className="w-[35%] flex flex-col justify-center gap-4 p-4 border-l border-border">
-          <ProductTextPrice
-            title={product.title}
-            price={product.price}
-            originalPrice={product.original_price}
-            compact
-            priceVariant="pill"
-            id={product.id}
-            showDescription={false}
-          />
+        <div className="flex-1 flex flex-col gap-2 p-3 pt-4">
           <CtaButtons product={product} />
         </div>
+      </div>
+      <Thumbnails product={product} activeImg={activeImg} setActiveImg={setActiveImg} />
+      <div className="p-4">
+        <ProductTextPrice
+          category={product.category}
+          title={product.title}
+          price={product.price}
+          originalPrice={product.original_price}
+          description={desc}
+          compact
+          priceVariant="pill"
+          id={product.id}
+          showDescription
+        />
       </div>
     </div>
   );
 }
 
-function DesktopHoverPanel({ product, cardRef, onClose, onCancelClose, closing }) {
+function DesktopHoverPanel({ product, cardRef, onClose, onCancelClose }) {
   const [activeImg, setActiveImg] = useState(0);
   const [pos, setPos] = useState(null);
   const panelRef = useRef(null);
@@ -147,7 +137,7 @@ function DesktopHoverPanel({ product, cardRef, onClose, onCancelClose, closing }
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const panelW = 580;
-    const panelH = 470;
+    const panelH = 640;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
@@ -177,17 +167,14 @@ function DesktopHoverPanel({ product, cardRef, onClose, onCancelClose, closing }
   if (!pos) return null;
 
   return createPortal(
-    <motion.div
+    <div
       ref={panelRef}
-      style={{ position: "fixed", top: pos.top, left: pos.left, width: pos.width, zIndex: 60, transformOrigin: "center" }}
-      initial={{ opacity: 0, scale: 0.96, y: 10 }}
-      animate={closing ? { opacity: 0, scale: 0.98, y: 0 } : { opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: closing ? 0.15 : 0.22, ease: "easeOut" }}
+      style={{ position: "fixed", top: pos.top, left: pos.left, width: pos.width, zIndex: 60 }}
       onMouseEnter={onCancelClose}
       onMouseLeave={onClose}
     >
       <PreviewBody product={product} activeImg={activeImg} setActiveImg={setActiveImg} />
-    </motion.div>,
+    </div>,
     document.body
   );
 }
@@ -213,36 +200,20 @@ function MobilePreviewDrawer({ product, open, onOpenChange }) {
 export function ProductCardWithPreview({ product }) {
   const isMobile = useIsMobile();
   const [hovered, setHovered] = useState(false);
-  const [closing, setClosing] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const cardRef = useRef(null);
   const closeTimer = useRef(null);
-  const exitTimer = useRef(null);
   const images = product.images || [];
   const discount = getDiscountPercentage(product.price, product.original_price);
-
-  useEffect(() => () => {
-    clearTimeout(closeTimer.current);
-    clearTimeout(exitTimer.current);
-  }, []);
 
   const scheduleClose = () => {
     if (isMobile) return;
     clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => {
-      setClosing(true);
-      clearTimeout(exitTimer.current);
-      exitTimer.current = setTimeout(() => {
-        setHovered(false);
-        setClosing(false);
-      }, 160);
-    }, 200);
+    closeTimer.current = setTimeout(() => setHovered(false), 200);
   };
 
   const cancelClose = () => {
     clearTimeout(closeTimer.current);
-    clearTimeout(exitTimer.current);
-    if (closing) setClosing(false);
   };
 
   const handleCardClick = (e) => {
@@ -294,14 +265,8 @@ export function ProductCardWithPreview({ product }) {
       </div>
 
       {/* Desktop hover panel */}
-      {!isMobile && (hovered || closing) && (
-        <DesktopHoverPanel
-          product={product}
-          cardRef={cardRef}
-          onClose={scheduleClose}
-          onCancelClose={cancelClose}
-          closing={closing}
-        />
+      {!isMobile && hovered && (
+        <DesktopHoverPanel product={product} cardRef={cardRef} onClose={scheduleClose} onCancelClose={cancelClose} />
       )}
 
       {/* Mobile drawer */}
