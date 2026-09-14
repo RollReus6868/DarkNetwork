@@ -86,7 +86,7 @@ function PreviewBody({ product, activeImg, setActiveImg, compact = false }) {
   );
 }
 
-function DesktopHoverPanel({ product, cardRef, onClose }) {
+function DesktopHoverPanel({ product, cardRef, onClose, onCancelClose }) {
   const [activeImg, setActiveImg] = useState(0);
   const [pos, setPos] = useState(null);
   const panelRef = useRef(null);
@@ -94,14 +94,17 @@ function DesktopHoverPanel({ product, cardRef, onClose }) {
   useLayoutEffect(() => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const panelW = 320;
-    const panelH = 520;
+    const panelW = 380;
+    const panelH = 620;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    let left = rect.right + 12;
+    // Overlap ~1/3 of the card image width
+    const overlap = rect.width / 3;
+
+    let left = rect.right - overlap;
     if (left + panelW > vw - 16) {
-      left = rect.left - panelW - 12;
+      left = rect.left - panelW + overlap;
     }
     if (left < 16) left = 16;
     if (left + panelW > vw - 16) left = vw - panelW - 16;
@@ -125,6 +128,7 @@ function DesktopHoverPanel({ product, cardRef, onClose }) {
     <div
       ref={panelRef}
       style={{ position: "fixed", top: pos.top, left: pos.left, width: pos.width, zIndex: 60 }}
+      onMouseEnter={onCancelClose}
       onMouseLeave={onClose}
     >
       <PreviewBody product={product} activeImg={activeImg} setActiveImg={setActiveImg} />
@@ -156,8 +160,19 @@ export function ProductCardWithPreview({ product }) {
   const [hovered, setHovered] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const cardRef = useRef(null);
+  const closeTimer = useRef(null);
   const images = product.images || [];
   const discount = getDiscountPercentage(product.price, product.original_price);
+
+  const scheduleClose = () => {
+    if (isMobile) return;
+    clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setHovered(false), 200);
+  };
+
+  const cancelClose = () => {
+    clearTimeout(closeTimer.current);
+  };
 
   const handleCardClick = (e) => {
     if (isMobile) {
@@ -171,8 +186,8 @@ export function ProductCardWithPreview({ product }) {
       <div
         ref={cardRef}
         className="group block"
-        onMouseEnter={() => { if (!isMobile) setHovered(true); }}
-        onMouseLeave={() => { if (!isMobile) setHovered(false); }}
+        onMouseEnter={() => { if (!isMobile) { cancelClose(); setHovered(true); } }}
+        onMouseLeave={() => { if (!isMobile) scheduleClose(); }}
       >
         <Link to={`/shop/${product.slug}`} onClick={handleCardClick}>
           <div className="relative aspect-square overflow-hidden bg-secondary rounded mb-3 glow-bronze-group border border-border/60 group-hover:border-primary/60 transition-all duration-500">
@@ -210,7 +225,7 @@ export function ProductCardWithPreview({ product }) {
 
       {/* Desktop hover panel */}
       {!isMobile && hovered && (
-        <DesktopHoverPanel product={product} cardRef={cardRef} onClose={() => setHovered(false)} />
+        <DesktopHoverPanel product={product} cardRef={cardRef} onClose={scheduleClose} onCancelClose={cancelClose} />
       )}
 
       {/* Mobile drawer */}
