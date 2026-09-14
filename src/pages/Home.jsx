@@ -71,7 +71,7 @@ export default function Home() {
             <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.3em] text-primary mb-5">
               Cinematic Bible Discovery
             </p>
-            <h1 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.05] text-white text-balance mb-6">
+            <h1 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.05] text-white text-balance mb-6 drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)]">
               Discover the Bible<br />Like Never Before
             </h1>
             <p className="text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -109,7 +109,7 @@ export default function Home() {
             <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Digital Library</p>
-                <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">Featured Ebooks</h2>
+                <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">Featured Ebooks</h2>
               </div>
               <Link to="/books" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
                 View All Books <ArrowRight className="w-4 h-4" />
@@ -126,7 +126,7 @@ export default function Home() {
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Print-on-Demand</p>
-              <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">Shop the Collection</h2>
+              <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">Shop the Collection</h2>
               <p className="text-muted-foreground mt-3 max-w-xl">Wear your faith. Apparel, wall art, mugs and gifts — designed with the Word, printed and fulfilled through Spring.</p>
             </div>
             <Link to="/shop" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
@@ -192,7 +192,7 @@ export default function Home() {
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Fresh from the archive</p>
-              <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">Latest Bible Studies</h2>
+              <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">Latest Bible Studies</h2>
             </div>
             <Link to="/bible-studies" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
               View All <ArrowRight className="w-4 h-4" />
@@ -216,7 +216,7 @@ export default function Home() {
       <section className="py-20 lg:py-28 border-y border-border/50 grain-overlay">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <Sparkles className="w-10 h-10 text-primary mx-auto mb-5" />
-          <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4 text-balance">
+          <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4 text-balance drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
             Get Your Free Bible Study Guide
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
@@ -233,7 +233,7 @@ export default function Home() {
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Most Watched</p>
-              <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">Popular Videos</h2>
+              <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">Popular Videos</h2>
             </div>
             <Link to="/watch" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
               Watch All <ArrowRight className="w-4 h-4" />
@@ -256,7 +256,7 @@ export default function Home() {
       {/* SECTION 9 — SOCIAL */}
       <section className="py-16 border-t border-border/50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="font-heading text-3xl md:text-4xl font-bold mb-3">Follow the Journey</h2>
+          <h2 className="font-heading text-3xl md:text-4xl font-bold mb-3 drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">Follow the Journey</h2>
           <p className="text-muted-foreground mb-8">Join hundreds of thousands across the Dark Network channels.</p>
           <div className="flex justify-center gap-4">
             {SOCIALS.map((s) => (

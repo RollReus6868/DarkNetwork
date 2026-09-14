@@ -160,7 +160,7 @@ export function SectionHeading({ eyebrow, title, subtitle, center = true }) {
       {eyebrow && (
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">{eyebrow}</p>
       )}
-      <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-balance">
+      <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-balance drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
         {title}
       </h2>
       {subtitle && (
