@@ -1,0 +1,19 @@
+{
+  "name": "Subscriber",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "title": "Email",
+      "format": "email"
+    },
+    "source": {
+      "type": "string",
+      "title": "Capture Source",
+      "default": "Homepage"
+    }
+  },
+  "required": [
+    "email"
+  ]
+}

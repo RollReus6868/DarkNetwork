@@ -1,0 +1,70 @@
+{
+  "name": "FreeResource",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "slug": {
+      "type": "string",
+      "title": "URL Slug"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "cover_image": {
+      "type": "string",
+      "title": "Cover Image URL",
+      "format": "url"
+    },
+    "download_url": {
+      "type": "string",
+      "title": "Download URL",
+      "format": "url"
+    },
+    "resource_type": {
+      "type": "string",
+      "title": "Resource Type",
+      "enum": [
+        "Bible Study PDF",
+        "Reading Plan",
+        "Study Guide",
+        "Bible Timeline",
+        "Character Guide",
+        "Printable"
+      ],
+      "default": "Bible Study PDF"
+    },
+    "requires_email": {
+      "type": "boolean",
+      "title": "Require Email to Download",
+      "default": true
+    },
+    "seo_title": {
+      "type": "string",
+      "title": "SEO Title"
+    },
+    "meta_description": {
+      "type": "string",
+      "title": "Meta Description"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "published",
+        "draft"
+      ],
+      "default": "published"
+    }
+  },
+  "required": [
+    "title",
+    "slug",
+    "description",
+    "cover_image",
+    "resource_type"
+  ]
+}

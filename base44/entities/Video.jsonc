@@ -1,0 +1,89 @@
+{
+  "name": "Video",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "slug": {
+      "type": "string",
+      "title": "URL Slug"
+    },
+    "youtube_id": {
+      "type": "string",
+      "title": "YouTube Video ID"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "Latest",
+        "Old Testament",
+        "New Testament",
+        "Biblical Mysteries",
+        "Bible History",
+        "Prophecy"
+      ],
+      "default": "Latest"
+    },
+    "description": {
+      "type": "string",
+      "title": "Short Description"
+    },
+    "thumbnail_url": {
+      "type": "string",
+      "title": "Custom Thumbnail URL",
+      "format": "url"
+    },
+    "related_study_id": {
+      "type": "string",
+      "title": "Related Bible Study ID"
+    },
+    "related_ebook_id": {
+      "type": "string",
+      "title": "Related Ebook ID"
+    },
+    "related_product_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Related Product IDs"
+    },
+    "seo_title": {
+      "type": "string",
+      "title": "SEO Title"
+    },
+    "meta_description": {
+      "type": "string",
+      "title": "Meta Description"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "published",
+        "draft"
+      ],
+      "default": "published"
+    },
+    "featured": {
+      "type": "boolean",
+      "title": "Featured on Homepage",
+      "default": false
+    },
+    "popular": {
+      "type": "boolean",
+      "title": "Show in Popular Videos",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "slug",
+    "youtube_id",
+    "category",
+    "description"
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "name": "Ebook",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "slug": {
+      "type": "string",
+      "title": "URL Slug"
+    },
+    "subtitle": {
+      "type": "string",
+      "title": "Subtitle"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description",
+      "format": "richtext"
+    },
+    "price": {
+      "type": "number",
+      "title": "Price (USD)",
+      "default": 0
+    },
+    "cover_image": {
+      "type": "string",
+      "title": "Cover Image URL",
+      "format": "url"
+    },
+    "what_you_learn": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "What You Will Learn"
+    },
+    "preview_images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Preview Page Images"
+    },
+    "who_for": {
+      "type": "string",
+      "title": "Who This Book Is For",
+      "format": "richtext"
+    },
+    "file_url": {
+      "type": "string",
+      "title": "Downloadable File URL",
+      "format": "url"
+    },
+    "related_video_id": {
+      "type": "string",
+      "title": "Related Video ID"
+    },
+    "related_study_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Related Bible Study IDs"
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "author": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Reader Reviews"
+    },
+    "faq": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "FAQ"
+    },
+    "seo_title": {
+      "type": "string",
+      "title": "SEO Title"
+    },
+    "meta_description": {
+      "type": "string",
+      "title": "Meta Description"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "published",
+        "draft"
+      ],
+      "default": "published"
+    },
+    "featured": {
+      "type": "boolean",
+      "title": "Featured on Homepage",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "slug",
+    "description",
+    "price",
+    "cover_image"
+  ]
+}
