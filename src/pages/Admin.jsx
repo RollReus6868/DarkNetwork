@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Image } from "@/components/ui/image";
-import { Plus, Pencil, Trash2, X, Loader2, Upload, ChevronUp, ChevronDown, Save } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Loader2, Upload, ChevronUp, ChevronDown, Save, Eye } from "lucide-react";
 import Seo from "@/components/site/Seo";
+import { useToast } from "@/components/ui/use-toast";
 
 const EMPTY = {
   image: "", eyebrow: "", title: "", description: "",
@@ -19,6 +20,8 @@ export default function Admin() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const { toast } = useToast();
 
   const load = async () => {
     setLoading(true);
@@ -30,15 +33,18 @@ export default function Admin() {
 
   useEffect(() => { load(); }, []);
 
-  const startNew = () => { setForm({ ...EMPTY, sort_order: slides.length }); setEditing("new"); };
-  const startEdit = (slide) => { setForm({ ...slide }); setEditing(slide.id); };
+  const startNew = () => { setForm({ ...EMPTY, sort_order: slides.length }); setEditing("new"); setShowPreview(false); };
+  const startEdit = (slide) => { setForm({ ...slide }); setEditing(slide.id); setShowPreview(false); };
 
   const handleUpload = async (file) => {
     setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
       setForm((f) => ({ ...f, image: file_url }));
-    } catch {} finally { setUploading(false); }
+      toast({ title: "Image uploaded", description: "Background image ready." });
+    } catch (err) {
+      toast({ title: "Upload failed", description: err?.message || "Could not upload image.", variant: "destructive" });
+    } finally { setUploading(false); }
   };
 
   const save = async (e) => {
@@ -47,17 +53,27 @@ export default function Admin() {
     try {
       if (editing === "new") {
         await base44.entities.HeroSlide.create(form);
+        toast({ title: "Slide created", description: form.title || "New hero slide added." });
       } else {
         await base44.entities.HeroSlide.update(editing, form);
+        toast({ title: "Slide saved", description: form.title || "Hero slide updated." });
       }
       setEditing(null);
       await load();
-    } catch {} finally { setSaving(false); }
+    } catch (err) {
+      toast({ title: "Save failed", description: err?.message || "Could not save slide.", variant: "destructive" });
+    } finally { setSaving(false); }
   };
 
   const remove = async (id) => {
     if (!window.confirm("Delete this hero slide?")) return;
-    try { await base44.entities.HeroSlide.delete(id); await load(); } catch {}
+    try {
+      await base44.entities.HeroSlide.delete(id);
+      await load();
+      toast({ title: "Slide deleted" });
+    } catch (err) {
+      toast({ title: "Delete failed", description: err?.message || "Could not delete slide.", variant: "destructive" });
+    }
   };
 
   const move = async (slide, dir) => {
@@ -130,9 +146,39 @@ export default function Admin() {
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={() => setEditing(null)}>
           <form onClick={(e) => e.stopPropagation()} onSubmit={save} className="bg-card border border-border rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-heading text-2xl font-bold">{editing === "new" ? "New Hero Slide" : "Edit Hero Slide"}</h2>
+            <h2 className="font-heading text-2xl font-bold">{editing === "new" ? "New Hero Slide" : "Edit Hero Slide"}</h2>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => setShowPreview((v) => !v)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs uppercase tracking-wide border transition-colors ${showPreview ? "border-primary text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
+                <Eye className="w-3.5 h-3.5" /> Preview
+              </button>
               <button type="button" onClick={() => setEditing(null)} className="p-1 text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
             </div>
+            </div>
+
+            {showPreview && (
+            <div className="mb-6">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Live Preview</p>
+              <div className="relative w-full aspect-[16/7] overflow-hidden rounded bg-secondary border border-border">
+                {form.image ? (
+                  <Image src={form.image} alt="Preview" className="w-full h-full" fittingType="fill" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">No image</div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background" />
+                <div className="absolute inset-0 flex items-center justify-center p-4 text-center">
+                  <div className="max-w-md">
+                    {form.eyebrow && <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-primary mb-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">{form.eyebrow}</p>}
+                    <h3 className="font-heading text-xl md:text-2xl font-bold text-white mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">{form.title || "Untitled Slide"}</h3>
+                    {form.description && <p className="text-xs text-foreground/80 mb-3 line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">{form.description}</p>}
+                    <div className="flex gap-2 justify-center">
+                      {form.cta1_label && <span className="bg-primary text-primary-foreground px-3 py-1.5 rounded text-[10px] font-semibold uppercase tracking-wide">{form.cta1_label}</span>}
+                      {form.cta2_label && <span className="border border-foreground/30 text-foreground px-3 py-1.5 rounded text-[10px] font-semibold uppercase tracking-wide">{form.cta2_label}</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            )}
 
             <div className="space-y-4">
               <div>
