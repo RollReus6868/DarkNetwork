@@ -9,7 +9,8 @@ export default function Testimonials({ testimonials = [] }) {
   const avgRounded = Math.round(avg * 10) / 10;
 
   return (
-    <section className="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-20 lg:py-28 bg-brown-dark">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Trust line */}
       <div className="text-center mb-14">
         <div className="flex items-center justify-center gap-1 mb-4">
@@ -29,6 +30,7 @@ export default function Testimonials({ testimonials = [] }) {
         {sorted.map((t) => (
           <TestimonialCard key={t.id} testimonial={t} />
         ))}
+      </div>
       </div>
     </section>
   );
