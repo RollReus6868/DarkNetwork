@@ -25,8 +25,6 @@ const CATEGORIES = [
   { name: "People of the Bible", slug: "people-of-the-bible", image: GEN.figures },
 ];
 
-const SHOP_CATS = ["Books", "Apparel", "Wall Art", "Mugs", "Gifts"];
-
 const SOCIALS = [
   { label: "YouTube", icon: Youtube, href: "https://youtube.com" },
   { label: "Facebook", icon: Facebook, href: "https://facebook.com" },
@@ -40,7 +38,7 @@ export default function Home() {
   const featuredVideo = videos.find((v) => v.featured) || videos[0];
   const featuredEbook = ebooks.find((e) => e.featured) || ebooks[0];
   const latestStudies = studies.slice(0, 6);
-  const shopProducts = products.slice(0, 5);
+  const featuredProducts = products.slice(0, 4);
   const popularVideos = videos.filter((v) => v.popular).slice(0, 4);
   const popularToShow = popularVideos.length >= 4 ? popularVideos : videos.slice(0, 4);
 
@@ -127,43 +125,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* SECTION 3 — EXPLORE THE BIBLE */}
-      <section className="py-20 lg:py-28 bg-secondary/50 border-y border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            eyebrow="The Library"
-            title="Explore the Bible"
-            subtitle="Journey through Scripture across six editorial collections — from ancient texts to unsolved mysteries."
-          />
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-            {CATEGORIES.map((cat) => (
-              <Link
-                key={cat.slug}
-                to={`/bible-studies?category=${encodeURIComponent(cat.name)}`}
-                className="group relative aspect-[4/3] overflow-hidden rounded"
-              >
-                <Image
-                  src={cat.image}
-                  alt={cat.name}
-                  className="w-full h-full transition-transform duration-700 group-hover:scale-110"
-                  fittingType="fill"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                <div className="absolute bottom-0 inset-x-0 p-5">
-                  <h3 className="font-heading text-xl md:text-2xl font-semibold text-white group-hover:text-primary transition-colors">
-                    {cat.name}
-                  </h3>
-                  <span className="text-xs uppercase tracking-wide text-foreground/60 group-hover:text-primary flex items-center gap-1 mt-1">
-                    Explore <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 4 — FEATURED EBOOK */}
+      {/* SECTION 3 — FEATURED EBOOK */}
       {featuredEbook && (
         <section className="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
@@ -198,18 +160,87 @@ export default function Home() {
                 </span>
                 <span className="text-sm text-muted-foreground uppercase tracking-wide">Digital Ebook</span>
               </div>
-              <Link
-                to={`/books/${featuredEbook.slug}`}
-                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-colors"
-              >
-                Discover the Book <ArrowRight className="w-4 h-4" />
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  to={`/books/${featuredEbook.slug}`}
+                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-colors"
+                >
+                  Get the Ebook <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  to="/books"
+                  className="inline-flex items-center gap-2 border border-foreground/30 text-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-foreground hover:text-background transition-colors"
+                >
+                  View All Books
+                </Link>
+              </div>
             </div>
           </div>
         </section>
       )}
 
-      {/* SECTION 5 — LATEST BIBLE STUDIES */}
+      {/* SECTION 4 — FEATURED POD / MERCHANDISE */}
+      <section className="py-20 lg:py-28 bg-secondary/50 border-y border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Print-on-Demand</p>
+              <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">Shop the Collection</h2>
+              <p className="text-muted-foreground mt-3 max-w-xl">Wear your faith. Apparel, wall art, mugs and gifts — designed with the Word, printed and fulfilled through Spring.</p>
+            </div>
+            <Link to="/shop" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
+              Explore the Collection <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          {loading ? (
+            <div className="text-center text-muted-foreground py-12">Loading products…</div>
+          ) : featuredProducts.length === 0 ? (
+            <div className="text-center text-muted-foreground py-12">Products coming soon.</div>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              {featuredProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* SECTION 5 — EXPLORE THE BIBLE */}
+      <section className="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <SectionHeading
+          eyebrow="The Library"
+          title="Explore the Bible"
+          subtitle="Journey through Scripture across six editorial collections — from ancient texts to unsolved mysteries."
+        />
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+          {CATEGORIES.map((cat) => (
+            <Link
+              key={cat.slug}
+              to={`/bible-studies?category=${encodeURIComponent(cat.name)}`}
+              className="group relative aspect-[4/3] overflow-hidden rounded"
+            >
+              <Image
+                src={cat.image}
+                alt={cat.name}
+                className="w-full h-full transition-transform duration-700 group-hover:scale-110"
+                fittingType="fill"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+              <div className="absolute bottom-0 inset-x-0 p-5">
+                <h3 className="font-heading text-xl md:text-2xl font-semibold text-white group-hover:text-primary transition-colors">
+                  {cat.name}
+                </h3>
+                <span className="text-xs uppercase tracking-wide text-foreground/60 group-hover:text-primary flex items-center gap-1 mt-1">
+                  Explore <ArrowRight className="w-3 h-3" />
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* SECTION 6 — LATEST BIBLE STUDIES */}
       <section className="py-20 lg:py-28 bg-secondary/30 border-y border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
@@ -233,41 +264,6 @@ export default function Home() {
             </div>
           )}
         </div>
-      </section>
-
-      {/* SECTION 6 — SHOP */}
-      <section className="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">The Store</p>
-            <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">Shop the Collection</h2>
-          </div>
-          <Link to="/shop" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
-            View All <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="flex flex-wrap gap-2 mb-8">
-          {SHOP_CATS.map((c) => (
-            <Link
-              key={c}
-              to={`/shop?category=${encodeURIComponent(c)}`}
-              className="text-xs uppercase tracking-wide px-4 py-2 rounded border border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-            >
-              {c}
-            </Link>
-          ))}
-        </div>
-        {loading ? (
-          <div className="text-center text-muted-foreground py-12">Loading products…</div>
-        ) : shopProducts.length === 0 ? (
-          <div className="text-center text-muted-foreground py-12">Products coming soon.</div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-            {shopProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        )}
       </section>
 
       {/* SECTION 7 — FREE RESOURCE / EMAIL */}
