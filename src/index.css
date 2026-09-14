@@ -37,7 +37,10 @@
   }
 
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply text-foreground font-body antialiased;
+    background: linear-gradient(to bottom, #1a0f08 0%, #2d1810 50%, #1a0f08 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 
   h1, h2, h3, h4, h5, h6 {

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Play, ArrowRight, BookOpen, Download, Mail } from "lucide-react";
 import { Image } from "@/components/ui/image";
@@ -82,7 +83,7 @@ export function EbookCard({ ebook }) {
           </span>
         </div>
         {/* Hover popup */}
-        <div className="absolute inset-0 bg-black/92 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
+        <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
           <p className="text-sm text-foreground/80 line-clamp-3 mb-3">{stripHtml(ebook.description)}</p>
           {ebook.what_you_learn?.length > 0 && (
             <div className="mb-3">
@@ -110,12 +111,15 @@ export function EbookCard({ ebook }) {
 
 export function ProductCard({ product }) {
   const discounted = (product.price * 0.7).toFixed(2);
+  const [activeImg, setActiveImg] = useState(0);
+  const images = product.images || [];
+
   return (
     <Link to={`/shop/${product.slug}`} className="group block">
       <div className="relative aspect-square overflow-hidden bg-secondary rounded mb-3 glow-bronze-group border border-border/60 group-hover:border-primary/60 transition-all duration-500">
-        {product.images?.[0] && (
+        {images[0] && (
           <Image
-            src={product.images[0]}
+            src={images[0]}
             alt={product.title}
             className="w-full h-full transition-transform duration-700 group-hover:scale-105"
             fittingType="fill"
@@ -128,13 +132,31 @@ export function ProductCard({ product }) {
         <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
           Sale 30%
         </span>
-        {/* Hover popup */}
-        <div className="absolute inset-0 bg-black/92 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
-          <p className="text-sm text-foreground/80 line-clamp-3 mb-3">{stripHtml(product.description)}</p>
-          {product.story_behind_design && (
-            <div className="mb-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary mb-1.5">Story Behind the Design</p>
-              <p className="text-xs text-foreground/70 line-clamp-3">{stripHtml(product.story_behind_design)}</p>
+        {/* Hover popup — zoom image + thumbnail strip */}
+        <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 flex flex-col">
+          <div className="flex-1 relative overflow-hidden">
+            {images[activeImg] && (
+              <Image
+                src={images[activeImg]}
+                alt={product.title}
+                className="w-full h-full scale-110"
+                fittingType="fill"
+              />
+            )}
+          </div>
+          {images.length > 1 && (
+            <div className="flex gap-1.5 p-2 bg-black/70">
+              {images.slice(0, 5).map((img, i) => (
+                <div
+                  key={i}
+                  onMouseEnter={() => setActiveImg(i)}
+                  className={`w-10 h-10 rounded overflow-hidden border-2 cursor-pointer transition-all ${
+                    activeImg === i ? "border-primary opacity-100" : "border-transparent opacity-50 hover:opacity-90"
+                  }`}
+                >
+                  <Image src={img} alt="" className="w-full h-full" fittingType="fill" />
+                </div>
+              ))}
             </div>
           )}
         </div>

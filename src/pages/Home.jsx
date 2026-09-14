@@ -99,7 +99,7 @@ export default function Home() {
 
       {/* SECTION 3 — EBOOK SLIDER */}
       {sliderEbooks.length > 0 && (
-        <section className="py-20 lg:py-28 bg-brown-dark grain-overlay">
+        <section className="py-20 lg:py-28 grain-overlay">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
               <div>
@@ -116,7 +116,7 @@ export default function Home() {
       )}
 
       {/* SECTION 4 — FEATURED POD / MERCHANDISE */}
-      <section className="py-20 lg:py-28 bg-brown border-y border-border/50">
+      <section className="py-20 lg:py-28 border-y border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
@@ -146,7 +146,7 @@ export default function Home() {
       <Testimonials testimonials={testimonials} />
 
       {/* SECTION 7 — EXPLORE THE BIBLE */}
-      <section className="py-20 lg:py-28 bg-brown grain-overlay">
+      <section className="py-20 lg:py-28 grain-overlay">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeading
             eyebrow="The Library"
@@ -182,7 +182,7 @@ export default function Home() {
       </section>
 
       {/* SECTION 6 — LATEST BIBLE STUDIES */}
-      <section className="py-20 lg:py-28 bg-brown-dark border-y border-border/50">
+      <section className="py-20 lg:py-28 border-y border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
@@ -208,7 +208,7 @@ export default function Home() {
       </section>
 
       {/* SECTION 7 — FREE RESOURCE / EMAIL */}
-      <section className="py-20 lg:py-28 bg-brown border-y border-border/50 grain-overlay">
+      <section className="py-20 lg:py-28 border-y border-border/50 grain-overlay">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <Sparkles className="w-10 h-10 text-primary mx-auto mb-5" />
           <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4 text-balance">
@@ -223,7 +223,7 @@ export default function Home() {
       </section>
 
       {/* SECTION 8 — POPULAR VIDEOS */}
-      <section className="py-20 lg:py-28 bg-brown-dark">
+      <section className="py-20 lg:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
@@ -249,7 +249,7 @@ export default function Home() {
       </section>
 
       {/* SECTION 9 — SOCIAL */}
-      <section className="py-16 bg-brown border-t border-border/50">
+      <section className="py-16 border-t border-border/50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="font-heading text-3xl md:text-4xl font-bold mb-3">Follow the Journey</h2>
           <p className="text-muted-foreground mb-8">Join hundreds of thousands across the Dark Network channels.</p>

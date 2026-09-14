@@ -9,7 +9,7 @@ export default function Testimonials({ testimonials = [] }) {
   const avgRounded = Math.round(avg * 10) / 10;
 
   return (
-    <section className="py-20 lg:py-28 bg-brown-dark">
+    <section className="py-20 lg:py-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Trust line */}
       <div className="text-center mb-14">

@@ -126,7 +126,7 @@ function SliderCard({ ebook }) {
           <PriceButton id={ebook.id} originalPrice={ebook.price} discountedPrice={discounted} />
         </div>
         {/* Hover popup */}
-        <div className="absolute inset-0 bg-black/92 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
+        <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
           <h3 className="font-heading text-xl lg:text-2xl font-semibold text-white leading-tight mb-2 line-clamp-2">
             {ebook.title}
           </h3>
