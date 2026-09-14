@@ -7,6 +7,7 @@ import { useSiteData } from "@/hooks/useSiteData";
 import { Image } from "@/components/ui/image";
 import { addToCart } from "@/lib/cart";
 import { EbookBuyButton } from "@/components/site/EbookBuyButton";
+import { ProductTextPrice } from "@/components/site/ProductTextPrice";
 
 export default function EbookDetail() {
   const { slug } = useParams();
@@ -83,8 +84,12 @@ export default function EbookDetail() {
           </div>
 
           <div>
-            <span className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">Digital Ebook</span>
-            <h1 className="font-heading text-4xl md:text-5xl font-bold mt-3 leading-tight">{ebook.title}</h1>
+            <ProductTextPrice
+              category="Digital Ebook"
+              title={ebook.title}
+              titleAs="h1"
+              showDescription={false}
+            />
             {ebook.subtitle && <p className="text-xl text-foreground/60 font-heading italic mt-2">{ebook.subtitle}</p>}
             <div className="flex items-center gap-3 mt-5">
               <span className="text-4xl font-heading font-bold text-primary">${ebook.price.toFixed(2)}</span>

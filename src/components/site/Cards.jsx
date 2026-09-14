@@ -6,6 +6,7 @@ import { EbookBuyButton } from "@/components/site/EbookBuyButton";
 import { ProductCardWithPreview } from "@/components/site/QuickPreview";
 import { getDiscountPercentage } from "@/lib/pricing";
 import { stripHtml } from "@/lib/gradients";
+import { ProductTextPrice } from "@/components/site/ProductTextPrice";
 
 export function StudyCard({ study }) {
   return (
@@ -105,9 +106,12 @@ export function EbookCard({ ebook }) {
             )}
           </div>
         </div>
-        <h3 className="font-heading text-xl font-semibold leading-tight mb-2 group-hover:text-primary transition-colors">
-          {ebook.title}
-        </h3>
+        <ProductTextPrice
+          title={ebook.title}
+          compact
+          showDescription={false}
+          titleClassName="group-hover:text-primary transition-colors"
+        />
         {ebook.subtitle && <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{ebook.subtitle}</p>}
       </Link>
       <div className="mb-3">

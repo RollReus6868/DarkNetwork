@@ -9,78 +9,116 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getDiscountPercentage } from "@/lib/pricing";
 import { stripHtml } from "@/lib/gradients";
+import { ProductTextPrice } from "@/components/site/ProductTextPrice";
 
-function PreviewBody({ product, activeImg, setActiveImg, compact = false }) {
+function CtaButtons({ product }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <a
+        href={product.spring_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-full bg-primary text-primary-foreground px-3 py-2.5 rounded font-semibold uppercase text-xs tracking-wide hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 glow-bronze"
+      >
+        Buy on Spring <ExternalLink className="w-3.5 h-3.5" />
+      </a>
+      <Link
+        to={`/shop/${product.slug}`}
+        className="w-full border border-border text-foreground px-3 py-2.5 rounded font-semibold uppercase text-xs tracking-wide hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1.5"
+      >
+        View Details <ArrowRight className="w-3.5 h-3.5" />
+      </Link>
+    </div>
+  );
+}
+
+function MainImage({ product, activeImg }) {
   const images = product.images || [];
   const discount = getDiscountPercentage(product.price, product.original_price);
+  return (
+    <div className="relative w-full aspect-square overflow-hidden bg-secondary">
+      {images[activeImg] ? (
+        <Image src={images[activeImg]} alt={product.title} className="w-full h-full" fittingType="fill" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">No image</div>
+      )}
+      {discount !== null && (
+        <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
+          SALE {discount}%
+        </span>
+      )}
+    </div>
+  );
+}
+
+function Thumbnails({ product, activeImg, setActiveImg }) {
+  const images = product.images || [];
+  if (images.length <= 1) return null;
+  return (
+    <div className="flex gap-1.5 p-2 bg-black/40 overflow-x-auto scrollbar-hide">
+      {images.slice(0, 8).map((img, i) => (
+        <button
+          key={i}
+          onMouseEnter={() => setActiveImg(i)}
+          onClick={() => setActiveImg(i)}
+          className={`flex-shrink-0 w-12 h-12 rounded overflow-hidden border-2 transition-all ${
+            activeImg === i ? "border-primary opacity-100" : "border-transparent opacity-60 hover:opacity-90"
+          }`}
+        >
+          <Image src={img} alt="" className="w-full h-full" fittingType="fill" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function PreviewBody({ product, activeImg, setActiveImg, layout = "desktop" }) {
+  const desc = stripHtml(product.description);
+
+  if (layout === "mobile") {
+    return (
+      <>
+        <MainImage product={product} activeImg={activeImg} />
+        <Thumbnails product={product} activeImg={activeImg} setActiveImg={setActiveImg} />
+        <div className="pt-4">
+          <ProductTextPrice
+            category={product.category}
+            title={product.title}
+            price={product.price}
+            originalPrice={product.original_price}
+            compact
+            showDescription={false}
+          />
+        </div>
+        <div className="mt-3">
+          <CtaButtons product={product} />
+        </div>
+        {desc && <p className="text-sm text-muted-foreground line-clamp-3 mt-4">{desc}</p>}
+      </>
+    );
+  }
 
   return (
-    <div className={compact ? "" : "bg-card border border-border rounded-lg overflow-hidden shadow-2xl"}>
-      {/* Main image */}
-      <div className="relative aspect-square overflow-hidden bg-secondary">
-        {images[activeImg] ? (
-          <Image src={images[activeImg]} alt={product.title} className="w-full h-full" fittingType="fill" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">No image</div>
-        )}
-        {discount !== null && (
-          <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
-            SALE {discount}%
-          </span>
-        )}
+    <div className="bg-card border border-border rounded-lg overflow-hidden shadow-2xl">
+      <div className="flex">
+        <div className="w-[380px] flex-shrink-0">
+          <MainImage product={product} activeImg={activeImg} />
+        </div>
+        <div className="flex-1 flex flex-col gap-2 p-3 pt-4">
+          <CtaButtons product={product} />
+        </div>
       </div>
-
-      {/* Thumbnail strip */}
-      {images.length > 1 && (
-        <div className="flex gap-1.5 p-2 bg-black/40 overflow-x-auto scrollbar-hide">
-          {images.slice(0, 8).map((img, i) => (
-            <button
-              key={i}
-              onMouseEnter={() => setActiveImg(i)}
-              onClick={() => setActiveImg(i)}
-              className={`flex-shrink-0 w-12 h-12 rounded overflow-hidden border-2 transition-all ${
-                activeImg === i ? "border-primary opacity-100" : "border-transparent opacity-60 hover:opacity-90"
-              }`}
-            >
-              <Image src={img} alt="" className="w-full h-full" fittingType="fill" />
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Info */}
-      <div className={compact ? "pt-4" : "p-4"}>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary">
-          {product.category}
-        </span>
-        <h3 className="font-heading text-lg font-semibold mt-1 mb-2 leading-tight">{product.title}</h3>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-xl font-heading font-bold text-primary">${product.price.toFixed(2)}</span>
-          {discount !== null && (
-            <span className="text-sm text-muted-foreground line-through">
-              ${Number(product.original_price).toFixed(2)}
-            </span>
-          )}
-        </div>
-        <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-          {stripHtml(product.description)}
-        </p>
-        <div className="flex flex-col gap-2">
-          <a
-            href={product.spring_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full bg-primary text-primary-foreground px-4 py-2.5 rounded font-semibold uppercase text-xs tracking-wide hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 glow-bronze"
-          >
-            Buy on Spring <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-          <Link
-            to={`/shop/${product.slug}`}
-            className="w-full border border-border text-foreground px-4 py-2.5 rounded font-semibold uppercase text-xs tracking-wide hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1.5"
-          >
-            View Details <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+      <Thumbnails product={product} activeImg={activeImg} setActiveImg={setActiveImg} />
+      <div className="p-4">
+        <ProductTextPrice
+          category={product.category}
+          title={product.title}
+          price={product.price}
+          originalPrice={product.original_price}
+          description={desc}
+          compact
+          showDescription
+        />
       </div>
     </div>
   );
@@ -94,8 +132,8 @@ function DesktopHoverPanel({ product, cardRef, onClose, onCancelClose }) {
   useLayoutEffect(() => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const panelW = 380;
-    const panelH = 620;
+    const panelW = 580;
+    const panelH = 640;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
@@ -148,7 +186,7 @@ function MobilePreviewDrawer({ product, open, onOpenChange }) {
           <DrawerTitle className="font-heading text-lg">{product.title}</DrawerTitle>
         </DrawerHeader>
         <div className="px-4 pb-6 overflow-y-auto">
-          <PreviewBody product={product} activeImg={activeImg} setActiveImg={setActiveImg} compact />
+          <PreviewBody product={product} activeImg={activeImg} setActiveImg={setActiveImg} layout="mobile" />
         </div>
       </DrawerContent>
     </Drawer>
@@ -209,17 +247,14 @@ export function ProductCardWithPreview({ product }) {
               </span>
             )}
           </div>
-          <h3 className="font-heading text-xl font-semibold leading-tight mb-2 group-hover:text-primary transition-colors">
-            {product.title}
-          </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-heading font-bold text-primary">${product.price.toFixed(2)}</span>
-            {discount !== null && (
-              <span className="text-sm text-muted-foreground line-through">
-                ${Number(product.original_price).toFixed(2)}
-              </span>
-            )}
-          </div>
+          <ProductTextPrice
+            title={product.title}
+            price={product.price}
+            originalPrice={product.original_price}
+            compact
+            showDescription={false}
+            titleClassName="group-hover:text-primary transition-colors"
+          />
         </Link>
       </div>
 

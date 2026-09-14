@@ -4,6 +4,7 @@ import { ChevronRight, ExternalLink, ArrowRight, ShoppingBag } from "lucide-reac
 import Seo from "@/components/site/Seo";
 import { useSiteData } from "@/hooks/useSiteData";
 import { Image } from "@/components/ui/image";
+import { ProductTextPrice } from "@/components/site/ProductTextPrice";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -82,14 +83,15 @@ export default function ProductDetail() {
 
           {/* Info */}
           <div>
-            <span className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">{product.category}</span>
-            <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold mt-3 leading-tight">{product.title}</h1>
-            <div className="flex items-center gap-3 mt-5">
-              <p className="text-3xl font-heading font-bold text-primary">${product.price.toFixed(2)}</p>
-              {product.original_price && Number(product.original_price) > Number(product.price) && (
-                <p className="text-lg text-muted-foreground line-through">${Number(product.original_price).toFixed(2)}</p>
-              )}
-            </div>
+            <ProductTextPrice
+              category={product.category}
+              title={product.title}
+              price={product.price}
+              originalPrice={product.original_price}
+              titleAs="h1"
+              showSaleBadge
+              showDescription={false}
+            />
 
             <a
               href={product.spring_url}
