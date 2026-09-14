@@ -24,9 +24,12 @@ export default async function(req) {
 
     const origin = req.headers.get('origin') || 'https://darknetwork.app';
     const apiKey = secrets.get('LEMON_SQUEEZY_API_KEY');
+    const storeId = secrets.get('LEMON_SQUEEZY_STORE_ID');
     if (!apiKey) return Response.json({ error: 'Payment provider not configured' }, { status: 500 });
+    if (!storeId) return Response.json({ error: 'Store ID not configured' }, { status: 500 });
 
     // Create Lemon Squeezy checkout with server-side data
+    // API format: store + variant must be in relationships, not attributes
     const checkoutResponse = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
       method: 'POST',
       headers: {
@@ -38,7 +41,6 @@ export default async function(req) {
         data: {
           type: 'checkouts',
           attributes: {
-            variant_id: parseInt(ebook.lemon_squeezy_variant_id, 10),
             checkout_options: {
               embed: true,
               dark: true
@@ -51,6 +53,20 @@ export default async function(req) {
             },
             product_options: {
               redirect_url: `${origin}/books/${ebook.slug}`
+            }
+          },
+          relationships: {
+            store: {
+              data: {
+                type: 'stores',
+                id: storeId
+              }
+            },
+            variant: {
+              data: {
+                type: 'variants',
+                id: ebook.lemon_squeezy_variant_id
+              }
             }
           }
         }
