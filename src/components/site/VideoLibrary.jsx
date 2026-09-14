@@ -83,7 +83,7 @@ export default function VideoLibrary({ content, stats }) {
 
         <Link
           to={c.cta_url || "/watch"}
-          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-all glow-bronze focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           {c.cta_label || "Explore the Video Library"}
           <ArrowRight className="w-4 h-4" />

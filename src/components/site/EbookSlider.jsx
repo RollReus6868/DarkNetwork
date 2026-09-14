@@ -98,29 +98,31 @@ export default function EbookSlider({ ebooks = [] }) {
 }
 
 function SliderCard({ ebook }) {
+  const discounted = (ebook.price * 0.7).toFixed(2);
   return (
     <Link
       to={`/books/${ebook.slug}`}
       className="group block h-full"
       aria-label={`View ${ebook.title}`}
     >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-sm bg-secondary border border-border/60 group-hover:border-primary/60 transition-all duration-500 shadow-lg group-hover:shadow-[0_0_30px_-8px] group-hover:shadow-primary/30">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-sm bg-secondary border border-border/60 group-hover:border-primary/60 shadow-lg glow-bronze-group">
         <Image
           src={ebook.cover_image}
           alt={ebook.title}
           className="w-full h-full transition-transform duration-700 group-hover:scale-105"
           fittingType="fill"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
+          Sale 30%
+        </span>
         <div className="absolute bottom-0 inset-x-0 p-4">
-          <h3 className="font-heading text-lg lg:text-xl font-semibold text-white leading-tight group-hover:text-primary transition-colors line-clamp-2">
+          <h3 className="font-heading text-xl lg:text-2xl font-semibold text-white leading-tight group-hover:text-primary transition-colors line-clamp-2 mb-3">
             {ebook.title}
           </h3>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-primary font-semibold text-sm">${ebook.price.toFixed(2)}</span>
-            <span className="text-[10px] uppercase tracking-[0.15em] text-foreground/60 group-hover:text-primary transition-colors">
-              Digital Book
-            </span>
+          <div className="inline-flex items-center gap-2 bg-primary/15 border border-primary/50 rounded px-3 py-1.5 group-hover:bg-primary/25 transition-colors">
+            <span className="text-muted-foreground line-through text-sm">${ebook.price.toFixed(2)}</span>
+            <span className="text-primary font-bold text-lg">${discounted}</span>
           </div>
         </div>
       </div>

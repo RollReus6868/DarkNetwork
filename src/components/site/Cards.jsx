@@ -5,7 +5,7 @@ import { Image } from "@/components/ui/image";
 export function StudyCard({ study }) {
   return (
     <Link to={`/bible-studies/${study.slug}`} className="group block">
-      <div className="relative aspect-[3/2] overflow-hidden bg-secondary rounded">
+      <div className="relative aspect-[3/2] overflow-hidden bg-secondary rounded glow-bronze-group">
         <Image
           src={study.hero_image}
           alt={study.title}
@@ -31,7 +31,7 @@ export function VideoCard({ video }) {
   return (
     <div className="group">
       <Link to={`/watch/${video.slug}`}>
-        <div className="relative aspect-video overflow-hidden bg-secondary rounded mb-3">
+        <div className="relative aspect-video overflow-hidden bg-secondary rounded mb-3 glow-bronze-group">
           <Image
             src={video.thumbnail_url || `https://i.ytimg.com/vi/${video.youtube_id}/maxresdefault.jpg`}
             alt={video.title}
@@ -60,9 +60,10 @@ export function VideoCard({ video }) {
 }
 
 export function EbookCard({ ebook }) {
+  const discounted = (ebook.price * 0.7).toFixed(2);
   return (
     <Link to={`/books/${ebook.slug}`} className="group block">
-      <div className="relative aspect-[3/4] overflow-hidden bg-secondary rounded mb-4 shadow-lg">
+      <div className="relative aspect-[3/4] overflow-hidden bg-secondary rounded mb-4 shadow-lg glow-bronze-group border border-border/60 group-hover:border-primary/60 transition-all duration-500">
         <Image
           src={ebook.cover_image}
           alt={ebook.title}
@@ -70,31 +71,32 @@ export function EbookCard({ ebook }) {
           fittingType="fill"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+        <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
+          Sale 30%
+        </span>
         <div className="absolute bottom-3 left-3 right-3">
           <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary bg-black/70 backdrop-blur px-2 py-0.5 rounded">
             Digital Book
           </span>
         </div>
       </div>
-      <h3 className="font-heading text-lg font-semibold leading-tight mb-1 group-hover:text-primary transition-colors">
+      <h3 className="font-heading text-xl font-semibold leading-tight mb-2 group-hover:text-primary transition-colors">
         {ebook.title}
       </h3>
-      {ebook.subtitle && <p className="text-sm text-muted-foreground mb-2 line-clamp-1">{ebook.subtitle}</p>}
-      <div className="flex items-center justify-between">
-        <span className="text-primary font-semibold">${ebook.price.toFixed(2)}</span>
-        <span className="text-xs uppercase tracking-wide text-foreground/60 group-hover:text-primary flex items-center gap-1">
-          View Book <ArrowRight className="w-3 h-3" />
-        </span>
+      {ebook.subtitle && <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{ebook.subtitle}</p>}
+      <div className="inline-flex items-center gap-2 bg-primary/15 border border-primary/50 rounded px-3 py-1.5 group-hover:bg-primary/25 transition-colors">
+        <span className="text-muted-foreground line-through text-sm">${ebook.price.toFixed(2)}</span>
+        <span className="text-primary font-bold text-lg">${discounted}</span>
       </div>
     </Link>
   );
 }
 
 export function ProductCard({ product }) {
-  const isBook = product.category === "Books";
+  const discounted = (product.price * 0.7).toFixed(2);
   return (
     <Link to={`/shop/${product.slug}`} className="group block">
-      <div className="relative aspect-square overflow-hidden bg-secondary rounded mb-3">
+      <div className="relative aspect-square overflow-hidden bg-secondary rounded mb-3 glow-bronze-group border border-border/60 group-hover:border-primary/60 transition-all duration-500">
         {product.images?.[0] && (
           <Image
             src={product.images[0]}
@@ -107,18 +109,16 @@ export function ProductCard({ product }) {
         <span className="absolute top-3 left-3 text-[10px] font-semibold uppercase tracking-[0.15em] bg-black/60 backdrop-blur px-2.5 py-1 rounded text-primary border border-primary/30">
           {product.category}
         </span>
-        <span className="absolute top-3 right-3 text-[10px] font-semibold uppercase tracking-[0.15em] bg-black/60 backdrop-blur px-2 py-0.5 rounded text-foreground/80">
-          {isBook ? "Digital" : "POD"}
+        <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
+          Sale 30%
         </span>
       </div>
-      <h3 className="font-heading text-lg font-semibold leading-tight mb-1 group-hover:text-primary transition-colors">
+      <h3 className="font-heading text-xl font-semibold leading-tight mb-2 group-hover:text-primary transition-colors">
         {product.title}
       </h3>
-      <div className="flex items-center justify-between">
-        <span className="text-primary font-semibold">${product.price.toFixed(2)}</span>
-        <span className="text-xs uppercase tracking-wide text-foreground/60 group-hover:text-primary flex items-center gap-1">
-          View Product <ArrowRight className="w-3 h-3" />
-        </span>
+      <div className="inline-flex items-center gap-2 bg-primary/15 border border-primary/50 rounded px-3 py-1.5 group-hover:bg-primary/25 transition-colors">
+        <span className="text-muted-foreground line-through text-sm">${product.price.toFixed(2)}</span>
+        <span className="text-primary font-bold text-lg">${discounted}</span>
       </div>
     </Link>
   );
@@ -126,7 +126,7 @@ export function ProductCard({ product }) {
 
 export function FreeResourceCard({ resource }) {
   return (
-    <div className="group bg-card border border-border rounded overflow-hidden hover:border-primary/50 transition-colors">
+    <div className="group bg-card border border-border rounded overflow-hidden hover:border-primary/50 transition-all duration-500 glow-bronze">
       <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
         <Image
           src={resource.cover_image}

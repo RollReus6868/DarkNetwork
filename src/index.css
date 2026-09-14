@@ -74,4 +74,17 @@
 
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .glow-bronze {
+    transition: box-shadow 0.4s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+  .glow-bronze:hover {
+    box-shadow: 0 0 18px 3px hsl(38 35% 55% / 0.5);
+  }
+  .glow-bronze-group {
+    transition: box-shadow 0.4s ease, border-color 0.4s ease;
+  }
+  .group:hover .glow-bronze-group {
+    box-shadow: 0 0 18px 3px hsl(38 35% 55% / 0.5);
+  }
 }

@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, Play, Sparkles, Youtube, Facebook, Instagram, Music2 } from "lucide-react";
+import { ArrowRight, BookOpen, Sparkles, Youtube, Facebook, Instagram, Music2 } from "lucide-react";
 import Seo from "@/components/site/Seo";
-import YouTubeEmbed from "@/components/site/YouTubeEmbed";
 import EmailCapture from "@/components/site/EmailCapture";
 import EbookSlider from "@/components/site/EbookSlider";
 import VideoLibrary from "@/components/site/VideoLibrary";
@@ -38,7 +37,6 @@ const SOCIALS = [
 export default function Home() {
   const { studies, videos, ebooks, products, testimonials, siteContent, membershipStats, loading } = useSiteData();
 
-  const featuredVideo = videos.find((v) => v.featured) || videos[0];
   const sliderEbooks = ebooks.length > 0 ? ebooks.slice(0, 8) : [];
   const videoLibraryContent = siteContent.find((c) => c.section_key === "video_library");
   const latestStudies = studies.slice(0, 6);
@@ -79,14 +77,14 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/bible-studies"
-              className="bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+              className="bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-all flex items-center justify-center gap-2 glow-bronze"
             >
               <BookOpen className="w-5 h-5" />
               Explore Bible Studies
             </Link>
             <Link
               to="/books"
-              className="border border-foreground/30 text-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-foreground hover:text-background transition-colors flex items-center justify-center gap-2"
+              className="border border-foreground/30 text-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-foreground hover:text-background transition-all flex items-center justify-center gap-2 glow-bronze"
             >
               Shop Books
               <ArrowRight className="w-5 h-5" />
@@ -96,38 +94,8 @@ export default function Home() {
         <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-background to-transparent z-[5]" />
       </section>
 
-      {/* SECTION 2 — FEATURED VIDEO */}
-      {featuredVideo && (
-        <section className="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            eyebrow="Featured Story"
-            title="Watch the Latest Story"
-            subtitle="Biblical narratives brought to life through cinematic documentary storytelling."
-          />
-          <div className="max-w-4xl mx-auto">
-            <YouTubeEmbed
-              videoId={featuredVideo.youtube_id}
-              title={featuredVideo.title}
-              thumbnail={featuredVideo.thumbnail_url}
-            />
-            <div className="mt-6 text-center">
-              <span className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">
-                {featuredVideo.category}
-              </span>
-              <h3 className="font-heading text-2xl md:text-3xl font-bold mt-2 mb-3">
-                {featuredVideo.title}
-              </h3>
-              <p className="text-muted-foreground max-w-2xl mx-auto">{featuredVideo.description}</p>
-              <Link
-                to={`/watch/${featuredVideo.slug}`}
-                className="inline-flex items-center gap-2 text-primary font-medium uppercase text-sm tracking-wide mt-4 hover:underline"
-              >
-                Watch Full Video <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
+      {/* SECTION 2 — VIDEO LIBRARY */}
+      <VideoLibrary content={videoLibraryContent} stats={membershipStats} />
 
       {/* SECTION 3 — EBOOK SLIDER */}
       {sliderEbooks.length > 0 && (
@@ -172,10 +140,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 5 — VIDEO LIBRARY */}
-      <VideoLibrary content={videoLibraryContent} stats={membershipStats} />
-
-      {/* SECTION 6 — TESTIMONIALS */}
+      {/* SECTION 5 — TESTIMONIALS */}
       <Testimonials testimonials={testimonials} />
 
       {/* SECTION 7 — EXPLORE THE BIBLE */}
@@ -190,7 +155,7 @@ export default function Home() {
             <Link
               key={cat.slug}
               to={`/bible-studies?category=${encodeURIComponent(cat.name)}`}
-              className="group relative aspect-[4/3] overflow-hidden rounded"
+              className="group relative aspect-[4/3] overflow-hidden rounded glow-bronze"
             >
               <Image
                 src={cat.image}
@@ -290,7 +255,7 @@ export default function Home() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={s.label}
-                className="w-12 h-12 rounded-full border border-border flex items-center justify-center text-foreground/70 hover:text-primary hover:border-primary transition-colors"
+                className="w-12 h-12 rounded-full border border-border flex items-center justify-center text-foreground/70 hover:text-primary hover:border-primary transition-all glow-bronze"
               >
                 <s.icon className="w-5 h-5" />
               </a>

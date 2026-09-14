@@ -26,7 +26,7 @@ export default function YouTubeEmbed({ videoId, title, thumbnail, className = ""
     <button
       ref={containerRef}
       onClick={() => setActivated(true)}
-      className={`group relative aspect-video bg-black overflow-hidden cursor-pointer w-full ${className}`}
+      className={`group relative aspect-video bg-black overflow-hidden cursor-pointer w-full glow-bronze ${className}`}
       aria-label={`Play video: ${title}`}
     >
       <img
