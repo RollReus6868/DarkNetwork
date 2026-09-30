@@ -85,7 +85,7 @@ export function EbookBuyButton({ ebook, variant = "card" }) {
         <button
           onClick={handleBuyNow}
           disabled={loading || verifying}
-          className="bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 glow-bronze"
+          className="btn-gold px-8 py-4 rounded uppercase text-sm tracking-wide flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {loading ? (
             <><Loader2 className="w-5 h-5 animate-spin" /> Creating checkout…</>
@@ -111,7 +111,7 @@ export function EbookBuyButton({ ebook, variant = "card" }) {
       <button
         onClick={handleBuyNow}
         disabled={loading || verifying}
-        className="flex-1 bg-primary text-primary-foreground px-4 py-2.5 rounded font-semibold uppercase text-xs tracking-wide hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 glow-bronze"
+        className="btn-gold flex-1 px-4 py-2.5 rounded uppercase text-xs tracking-wide flex items-center justify-center gap-1.5 disabled:opacity-50"
       >
         {loading || verifying ? (
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -122,9 +122,9 @@ export function EbookBuyButton({ ebook, variant = "card" }) {
       <button
         onClick={handleAddToCart}
         aria-label="Add to cart"
-        className="p-2.5 border border-border rounded text-foreground/80 hover:text-primary hover:border-primary transition-colors glow-bronze"
+        className="p-2.5 border border-[#a87f2e]/50 rounded text-[#5a3a1f] hover:bg-[#a87f2e]/15 hover:border-[#a87f2e] transition-colors"
       >
-        {added ? <Check className="w-4 h-4 text-primary" /> : <ShoppingCart className="w-4 h-4" />}
+        {added ? <Check className="w-4 h-4 text-[#8a6420]" /> : <ShoppingCart className="w-4 h-4" />}
       </button>
     </div>
   );

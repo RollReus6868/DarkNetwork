@@ -1,13 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import AutoScroll from "embla-carousel-auto-scroll";
-import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Image } from "@/components/ui/image";
-import { PriceButton } from "@/components/site/PriceButton";
-import { EbookBuyButton } from "@/components/site/EbookBuyButton";
-import { getDiscountPercentage } from "@/lib/pricing";
-import { stripHtml } from "@/lib/gradients";
+import EbookTile from "@/components/site/EbookTile";
 
 export default function EbookSlider({ ebooks = [] }) {
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -66,7 +61,7 @@ export default function EbookSlider({ ebooks = [] }) {
         onClick={scrollPrev}
         disabled={!canScrollPrev}
         aria-label="Previous books"
-        className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-10 w-11 h-11 rounded-full bg-card/80 backdrop-blur border border-border items-center justify-center text-foreground/80 hover:text-primary hover:border-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-10 w-12 h-12 rounded-full btn-gold items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a87f2e] focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf4e6]"
       >
         <ChevronLeft className="w-5 h-5" />
       </button>
@@ -74,14 +69,14 @@ export default function EbookSlider({ ebooks = [] }) {
         onClick={scrollNext}
         disabled={!canScrollNext}
         aria-label="Next books"
-        className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-10 w-11 h-11 rounded-full bg-card/80 backdrop-blur border border-border items-center justify-center text-foreground/80 hover:text-primary hover:border-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-10 w-12 h-12 rounded-full btn-gold items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-[#a87f2e] focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf4e6]"
       >
         <ChevronRight className="w-5 h-5" />
       </button>
 
       <div
         ref={emblaRef}
-        className="overflow-hidden"
+        className="overflow-hidden py-4 -my-4"
         role="region"
         aria-roledescription="carousel"
         aria-label="Featured ebooks"
@@ -90,7 +85,7 @@ export default function EbookSlider({ ebooks = [] }) {
           {ebooks.map((ebook) => (
             <div
               key={ebook.id}
-              className="flex-[0_0_70%] min-w-0 pl-4 md:flex-[0_0_30%] md:pl-6 lg:flex-[0_0_22%]"
+              className="flex-[0_0_72%] min-w-0 pl-4 sm:flex-[0_0_42%] md:flex-[0_0_31%] md:pl-6 lg:flex-[0_0_23.5%]"
             >
               <SliderCard ebook={ebook} />
             </div>
@@ -102,55 +97,5 @@ export default function EbookSlider({ ebooks = [] }) {
 }
 
 function SliderCard({ ebook }) {
-  const discount = getDiscountPercentage(ebook.price, ebook.original_price);
-  return (
-    <Link
-      to={`/books/${ebook.slug}`}
-      className="group block h-full"
-      aria-label={`View ${ebook.title}`}
-    >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-sm bg-secondary border border-border/60 group-hover:border-primary/60 shadow-lg glow-bronze-group">
-        <Image
-          src={ebook.cover_image}
-          alt={ebook.title}
-          className="w-full h-full transition-transform duration-700 group-hover:scale-105"
-          fittingType="fill"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-        {discount !== null && (
-          <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
-            SALE {discount}%
-          </span>
-        )}
-        {/* Default content — fades out on hover */}
-        <div className="absolute bottom-0 inset-x-0 p-4 transition-opacity duration-300 group-hover:opacity-0">
-          <h3 className="font-heading text-xl lg:text-2xl font-semibold text-white leading-tight line-clamp-2 mb-3">
-            {ebook.title}
-          </h3>
-          <PriceButton id={ebook.id} price={ebook.price} originalPrice={ebook.original_price} />
-        </div>
-        {/* Hover popup */}
-        <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
-          <h3 className="font-heading text-xl lg:text-2xl font-semibold text-white leading-tight mb-2 line-clamp-2">
-            {ebook.title}
-          </h3>
-          <p className="text-sm text-foreground/80 line-clamp-3 mb-3">{stripHtml(ebook.description)}</p>
-          {ebook.what_you_learn?.length > 0 && (
-            <div className="mb-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary mb-1.5">What You'll Learn</p>
-              <ul className="space-y-1">
-                {ebook.what_you_learn.slice(0, 3).map((item, i) => (
-                  <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span className="line-clamp-1">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <EbookBuyButton ebook={ebook} variant="card" />
-        </div>
-      </div>
-    </Link>
-  );
+  return <EbookTile ebook={ebook} />;
 }
