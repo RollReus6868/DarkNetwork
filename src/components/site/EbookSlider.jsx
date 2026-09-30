@@ -85,7 +85,9 @@ export default function EbookSlider({ ebooks = [] }) {
           {ebooks.map((ebook) => (
             <div
               key={ebook.id}
-              className="flex-[0_0_80%] min-w-0 pl-4 sm:flex-[0_0_50%] md:flex-[0_0_44%] md:pl-6 lg:flex-[0_0_33%]"
+              className={`flex-[0_0_80%] min-w-0 pl-4 sm:flex-[0_0_50%] md:flex-[0_0_44%] md:pl-6 lg:flex-[0_0_33%] ${
+                ebook.featured ? "relative z-10 md:scale-[1.05]" : ""
+              }`}
             >
               <SliderCard ebook={ebook} />
             </div>
@@ -97,5 +99,5 @@ export default function EbookSlider({ ebooks = [] }) {
 }
 
 function SliderCard({ ebook }) {
-  return <EbookTile ebook={ebook} />;
+  return <EbookTile ebook={ebook} featured={ebook.featured} />;
 }
