@@ -98,3 +98,15 @@
     background: linear-gradient(160deg, #3d2817 0%, #4a3020 100%);
   }
 }
+/* Rich-text editor (admin) — dark theme */
+.admin-quill .ql-toolbar.ql-snow,
+.admin-quill .ql-container.ql-snow {
+  border-color: hsl(var(--border));
+}
+.admin-quill .ql-toolbar.ql-snow { background: hsl(var(--secondary)); border-radius: 4px 4px 0 0; }
+.admin-quill .ql-container.ql-snow { background: hsl(var(--secondary)); border-radius: 0 0 4px 4px; min-height: 140px; font-size: 14px; }
+.admin-quill .ql-editor { min-height: 140px; color: hsl(var(--foreground)); }
+.admin-quill .ql-editor.ql-blank::before { color: hsl(var(--muted-foreground)); font-style: normal; }
+.admin-quill .ql-snow .ql-stroke { stroke: hsl(var(--foreground) / 0.8); }
+.admin-quill .ql-snow .ql-fill { fill: hsl(var(--foreground) / 0.8); }
+.admin-quill .ql-snow .ql-picker { color: hsl(var(--foreground) / 0.8); }

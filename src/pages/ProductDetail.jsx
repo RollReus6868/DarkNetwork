@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { useParams, Link } from "react-router-dom";
-import { ChevronRight, ExternalLink, ArrowRight, ShoppingBag } from "lucide-react";
+import { ChevronRight, ExternalLink, ShoppingBag } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import { useSiteData } from "@/hooks/useSiteData";
 import { Image } from "@/components/ui/image";
@@ -9,19 +10,12 @@ import { ProductTextPrice } from "@/components/site/ProductTextPrice";
 export default function ProductDetail() {
   const { slug } = useParams();
   const { products, studies, ebooks, loading } = useSiteData();
-  const [product, setProduct] = useState(null);
-  const [notFound, setNotFound] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
 
-  useEffect(() => {
-    if (!loading) {
-      const found = products.find((p) => p.slug === slug);
-      if (found) {
-        setProduct(found);
-        setActiveImage(0);
-      } else setNotFound(true);
-    }
-  }, [slug, products, loading]);
+  const product = useMemo(() => products.find((p) => p.slug === slug) || null, [products, slug]);
+  const notFound = !loading && !product;
+
+  useEffect(() => { setActiveImage(0); }, [slug]);
 
   if (loading) return <div className="pt-32 text-center text-muted-foreground">Loading product…</div>;
   if (notFound || !product) {
@@ -109,13 +103,13 @@ export default function ProductDetail() {
 
             <div className="mt-8 pt-8 border-t border-border">
               <h2 className="font-heading text-xl font-semibold mb-3">Description</h2>
-              <div className="text-foreground/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: product.description }} />
+              <div className="text-foreground/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }} />
             </div>
 
             {product.bible_inspiration && (
               <div className="mt-6 border-l-2 border-primary pl-4">
                 <h3 className="font-heading text-lg font-semibold text-primary mb-2">Bible Inspiration</h3>
-                <div className="text-foreground/80 text-sm" dangerouslySetInnerHTML={{ __html: product.bible_inspiration }} />
+                <div className="text-foreground/80 text-sm" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.bible_inspiration) }} />
               </div>
             )}
           </div>
@@ -127,7 +121,7 @@ export default function ProductDetail() {
         <section className="bg-secondary/30 border-y border-border py-12">
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <h2 className="font-heading text-2xl font-bold mb-4">Story Behind the Design</h2>
-            <div className="text-foreground/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: product.story_behind_design }} />
+            <div className="text-foreground/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.story_behind_design) }} />
           </div>
         </section>
       )}
@@ -137,19 +131,19 @@ export default function ProductDetail() {
         {product.product_info && (
           <div>
             <h2 className="font-heading text-xl font-semibold mb-3">Product Information</h2>
-            <div className="text-foreground/80 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: product.product_info }} />
+            <div className="text-foreground/80 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.product_info) }} />
           </div>
         )}
         {product.size_info && (
           <div>
             <h2 className="font-heading text-xl font-semibold mb-3">Size Information</h2>
-            <div className="text-foreground/80 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: product.size_info }} />
+            <div className="text-foreground/80 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.size_info) }} />
           </div>
         )}
         {product.shipping_info && (
           <div>
             <h2 className="font-heading text-xl font-semibold mb-3">Shipping Information</h2>
-            <div className="text-foreground/80 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: product.shipping_info }} />
+            <div className="text-foreground/80 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.shipping_info) }} />
           </div>
         )}
       </section>
@@ -180,7 +174,7 @@ export default function ProductDetail() {
                   <div>
                     <span className="text-xs uppercase text-primary">Ebook</span>
                     <h3 className="font-heading text-lg font-semibold group-hover:text-primary">{relatedEbook.title}</h3>
-                    <p className="text-primary text-sm">${relatedEbook.price.toFixed(2)}</p>
+                    <p className="text-primary text-sm">${Number(relatedEbook.price).toFixed(2)}</p>
                   </div>
                 </Link>
               )}
@@ -200,19 +194,21 @@ export default function ProductDetail() {
                   {p.images?.[0] && <Image src={p.images[0]} alt={p.title} className="w-full h-full group-hover:scale-105 transition-transform" fittingType="fill" />}
                 </div>
                 <h3 className="font-medium text-sm group-hover:text-primary">{p.title}</h3>
-                <span className="text-primary text-sm">${p.price.toFixed(2)}</span>
+                <span className="text-primary text-sm">${Number(p.price).toFixed(2)}</span>
               </Link>
             ))}
           </div>
         </section>
       )}
 
+      <div className="md:hidden h-24" aria-hidden="true" />
+
       {/* Sticky mobile buy bar */}
       <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border p-4 flex items-center gap-4">
         <div className="flex-1">
           <p className="text-xs text-muted-foreground">{product.title}</p>
           <div className="flex items-center gap-2">
-            <p className="text-primary font-heading text-xl font-bold">${product.price.toFixed(2)}</p>
+            <p className="text-primary font-heading text-xl font-bold">${Number(product.price).toFixed(2)}</p>
             {product.original_price && Number(product.original_price) > Number(product.price) && (
               <p className="text-sm text-muted-foreground line-through">${Number(product.original_price).toFixed(2)}</p>
             )}

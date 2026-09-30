@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { useParams, Link } from "react-router-dom";
-import { ChevronRight, Check, Star, Download, ArrowRight, BookOpen } from "lucide-react";
+import { ChevronRight, Check, Star } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import YouTubeEmbed from "@/components/site/YouTubeEmbed";
 import { useSiteData } from "@/hooks/useSiteData";
@@ -114,7 +115,7 @@ export default function EbookDetail() {
 
             <div className="mt-8 pt-8 border-t border-border">
               <h2 className="font-heading text-xl font-semibold mb-3">Description</h2>
-              <div className="text-foreground/80 leading-relaxed space-y-4" dangerouslySetInnerHTML={{ __html: ebook.description }} />
+              <div className="text-foreground/80 leading-relaxed space-y-4" dangerouslySetInnerHTML={{ __html: sanitizeHtml(ebook.description) }} />
             </div>
           </div>
         </div>
@@ -141,7 +142,7 @@ export default function EbookDetail() {
       {ebook.who_for && (
         <section className="py-14 max-w-3xl mx-auto px-4 sm:px-6">
           <h2 className="font-heading text-2xl font-bold mb-4">Who This Book Is For</h2>
-          <div className="text-foreground/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: ebook.who_for }} />
+          <div className="text-foreground/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(ebook.who_for) }} />
         </section>
       )}
 

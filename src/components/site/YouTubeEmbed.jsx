@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Play, X } from "lucide-react";
+import { useState, useRef } from "react";
+import { Play } from "lucide-react";
 
 export default function YouTubeEmbed({ videoId, title, thumbnail, className = "" }) {
   const [activated, setActivated] = useState(false);

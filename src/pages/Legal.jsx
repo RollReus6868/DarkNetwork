@@ -1,6 +1,5 @@
 import { useParams } from "react-router-dom";
 import Seo from "@/components/site/Seo";
-import { SectionHeading } from "@/components/site/Cards";
 
 const LEGAL = {
   "privacy-policy": {

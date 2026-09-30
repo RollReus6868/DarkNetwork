@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ChevronRight, ArrowRight, BookOpen } from "lucide-react";
+import { ChevronRight, ArrowRight } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import YouTubeEmbed from "@/components/site/YouTubeEmbed";
 import { useSiteData } from "@/hooks/useSiteData";
