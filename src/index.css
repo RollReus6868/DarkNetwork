@@ -161,6 +161,17 @@
     border-color: rgba(168, 127, 46, 0.8);
     box-shadow: 0 28px 50px -20px rgba(60, 35, 8, 0.8), 0 0 0 1px rgba(217, 179, 87, 0.35);
   }
+  /* Featured ebook ("Featured on Homepage" in Admin): brighter gold outline and
+     a deeper halo. The card keeps its normal size — the outline and shadow are
+     drawn inside the carousel's vertical padding so nothing gets clipped. */
+  .dn-book.dn-book-featured {
+    border-color: #d9b357;
+    box-shadow: 0 0 0 2px rgba(217, 179, 87, 0.8), 0 26px 52px -18px rgba(60, 35, 8, 0.85);
+  }
+  .dn-book.dn-book-featured:hover {
+    border-color: #f2d88f;
+    box-shadow: 0 0 0 2px rgba(242, 216, 143, 0.95), 0 32px 60px -20px rgba(60, 35, 8, 0.9);
+  }
   .dn-book-cover {
     background: linear-gradient(135deg, #3d2817 0%, #5a3a1f 100%);
     border-radius: 5px 5px 0 0;

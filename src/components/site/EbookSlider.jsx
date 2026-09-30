@@ -4,6 +4,12 @@ import AutoScroll from "embla-carousel-auto-scroll";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import EbookTile from "@/components/site/EbookTile";
 
+// Featured ebooks keep the roomy slide; when at least one book is featured the
+// rest are rendered smaller so the featured tile reads as the hero of the row.
+const SLIDE_BASE = "min-w-0 pl-4 md:pl-6";
+const SLIDE_FEATURED = "flex-[0_0_80%] sm:flex-[0_0_50%] md:flex-[0_0_44%] lg:flex-[0_0_33%]";
+const SLIDE_COMPACT = "flex-[0_0_62%] sm:flex-[0_0_38%] md:flex-[0_0_32%] lg:flex-[0_0_24%]";
+
 export default function EbookSlider({ ebooks = [] }) {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [emblaRef, emblaApi] = useEmblaCarousel(
@@ -43,12 +49,14 @@ export default function EbookSlider({ ebooks = [] }) {
 
   if (!ebooks || ebooks.length === 0) return null;
 
+  const hasFeatured = ebooks.some((e) => e.featured);
+
   // Reduced motion: static responsive grid, no auto-scroll
   if (reducedMotion) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-sm sm:max-w-none mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-center gap-6 max-w-sm sm:max-w-none mx-auto">
         {ebooks.map((ebook) => (
-          <SliderCard key={ebook.id} ebook={ebook} />
+          <SliderCard key={ebook.id} ebook={ebook} hasFeatured={hasFeatured} />
         ))}
       </div>
     );
@@ -81,13 +89,13 @@ export default function EbookSlider({ ebooks = [] }) {
         aria-roledescription="carousel"
         aria-label="Featured ebooks"
       >
-        <div className="flex">
+        <div className="flex items-center">
           {ebooks.map((ebook) => (
             <div
               key={ebook.id}
-              className="flex-[0_0_80%] min-w-0 pl-4 sm:flex-[0_0_50%] md:flex-[0_0_44%] md:pl-6 lg:flex-[0_0_33%]"
+              className={`${SLIDE_BASE} ${hasFeatured && !ebook.featured ? SLIDE_COMPACT : SLIDE_FEATURED}`}
             >
-              <SliderCard ebook={ebook} />
+              <SliderCard ebook={ebook} hasFeatured={hasFeatured} />
             </div>
           ))}
         </div>
@@ -96,6 +104,6 @@ export default function EbookSlider({ ebooks = [] }) {
   );
 }
 
-function SliderCard({ ebook }) {
-  return <EbookTile ebook={ebook} />;
+function SliderCard({ ebook, hasFeatured }) {
+  return <EbookTile ebook={ebook} compact={hasFeatured && !ebook.featured} />;
 }

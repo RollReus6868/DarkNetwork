@@ -8,13 +8,18 @@ const NEW_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
 // Cream "collector" card for an ebook: cover on a warm brown backdrop, gold SAVE
 // badge, serif title, prominent price and a gold Buy button.
-export default function EbookTile({ ebook, className = "" }) {
+export default function EbookTile({ ebook, className = "", compact = false }) {
   const discount = getDiscountPercentage(ebook.price, ebook.original_price);
   const isNew = ebook.created_date && Date.now() - new Date(ebook.created_date).getTime() < NEW_WINDOW_MS;
   const learn = Array.isArray(ebook.what_you_learn) ? ebook.what_you_learn.filter(Boolean).slice(0, 3) : [];
+  // "Featured on Homepage" in Admin: gold ring + red FEATURED flag, and the
+  // sibling tiles are rendered compact so this one reads as the hero of the row.
+  const isFeatured = !!ebook.featured;
 
   return (
-    <article className={`dn-book group flex flex-col h-full overflow-hidden ${className}`}>
+    <article
+      className={`dn-book group flex flex-col h-full overflow-hidden ${isFeatured ? "dn-book-featured" : ""} ${className}`}
+    >
       <Link to={`/books/${ebook.slug}`} aria-label={`View ${ebook.title}`} className="block">
         <div className="dn-book-cover relative aspect-[5/7] overflow-hidden">
           <Image
@@ -23,6 +28,11 @@ export default function EbookTile({ ebook, className = "" }) {
             className="w-full h-full transition-transform duration-700 group-hover:scale-105"
             fittingType="fill"
           />
+          {isFeatured && (
+            <span className="absolute top-3 left-3 z-10 bg-[#8f1d24] text-white text-[10px] font-bold uppercase tracking-[0.16em] px-2.5 py-1 rounded-sm shadow-md">
+              Featured
+            </span>
+          )}
           {discount !== null && <span className="badge-gold absolute top-3 right-3 z-10">Save {discount}%</span>}
           {isNew && discount === null && <span className="badge-gold absolute top-3 right-3 z-10">New</span>}
 
@@ -42,16 +52,16 @@ export default function EbookTile({ ebook, className = "" }) {
         </div>
       </Link>
 
-      <div className="flex flex-col flex-1 px-4 pt-4 pb-4">
+      <div className={`flex flex-col flex-1 ${compact ? "px-3.5 pt-3.5 pb-3.5" : "px-4 pt-4 pb-4"}`}>
         <Link to={`/books/${ebook.slug}`} className="block">
-          <h3 className="font-heading text-xl leading-tight font-semibold text-[#2b1d0a] group-hover:text-[#8a6420] transition-colors line-clamp-2 min-h-[3.1rem]">
+          <h3 className={`font-heading leading-tight font-semibold text-[#2b1d0a] group-hover:text-[#8a6420] transition-colors line-clamp-2 ${compact ? "text-lg min-h-[2.8rem]" : "text-xl min-h-[3.1rem]"}`}>
             {ebook.title}
           </h3>
-          {ebook.subtitle && <p className="text-sm italic text-[#2b1d0a]/65 mt-1 line-clamp-1">{ebook.subtitle}</p>}
+          {ebook.subtitle && <p className={`${compact ? "text-xs" : "text-sm"} italic text-[#2b1d0a]/65 mt-1 line-clamp-1`}>{ebook.subtitle}</p>}
         </Link>
 
         <div className="flex items-baseline gap-2.5 mt-3 mb-4">
-          <span className="font-heading text-3xl font-bold text-[#8f1d24] leading-none">{formatPrice(ebook.price)}</span>
+          <span className={`font-heading font-bold text-[#8f1d24] leading-none ${compact ? "text-2xl" : "text-3xl"}`}>{formatPrice(ebook.price)}</span>
           {discount !== null && (
             <span className="text-sm text-[#2b1d0a]/50 line-through">{formatPrice(ebook.original_price)}</span>
           )}
