@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
+import BackToTop from "./BackToTop";
 
 export default function Layout() {
   const [cart, setCart] = useState([]);
@@ -32,6 +33,7 @@ export default function Layout() {
         <Outlet context={{ cart, setCart }} />
       </main>
       <Footer />
+      <BackToTop />
     </div>
   );
 }
