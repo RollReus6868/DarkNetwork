@@ -50,5 +50,12 @@ export function sanitizeHtml(html) {
     });
   };
   clean(doc.body);
+
+  // Some editors/back-ends store every space as a non-breaking space. Left as is,
+  // a paragraph can never wrap and blows the page wider than a phone screen.
+  const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    if (n.nodeValue.includes("\u00a0")) n.nodeValue = n.nodeValue.replace(/\u00a0/g, " ");
+  }
   return doc.body.innerHTML;
 }

@@ -68,7 +68,7 @@ export default function EbookDetail() {
       {/* Hero */}
       <section className="py-12 lg:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
-          <div className="relative w-full max-w-[22rem] sm:max-w-[28rem] mx-auto lg:mx-0 lg:sticky lg:top-28">
+          <div className="relative w-full min-w-0 max-w-[22rem] sm:max-w-[28rem] mx-auto lg:mx-0 lg:sticky lg:top-28">
             <div className="absolute -inset-3 sm:-inset-6 bg-primary/10 blur-3xl rounded-full" />
             <div className="relative aspect-[5/7] overflow-hidden rounded shadow-2xl">
               <Image src={ebook.cover_image} alt={ebook.title} className="w-full h-full" fittingType="fill" />
@@ -84,7 +84,7 @@ export default function EbookDetail() {
             )}
           </div>
 
-          <div>
+          <div className="min-w-0">
             <ProductTextPrice
               category="Digital Ebook"
               title={ebook.title}
