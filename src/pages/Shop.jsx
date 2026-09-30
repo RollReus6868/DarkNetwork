@@ -53,26 +53,28 @@ export default function Shop() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <SectionHeading
               eyebrow="The Store"
-              title="Shop the Collection"
+              title="Shop the"
+              accent="Collection"
               subtitle="Digital books and print-on-demand merchandise — all inspired by Scripture and crafted for the Dark Network."
             />
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="dn-cream">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
           <div className="flex flex-col md:flex-row md:items-center gap-4 mb-8">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5a3a1f]/60" />
               <input
                 type="search"
                 value={q}
                 onChange={(e) => update({ q: e.target.value })}
                 placeholder="Search products…"
                 aria-label="Search products"
-                className="w-full bg-secondary border border-border rounded pl-9 pr-9 py-2.5 text-sm focus:outline-none focus:border-primary"
+                className="w-full bg-white/70 border border-[#a87f2e]/40 text-[#2b1d0a] placeholder:text-[#2b1d0a]/45 rounded pl-9 pr-9 py-2.5 text-sm focus:outline-none focus:border-[#a87f2e]"
               />
               {q && (
-                <button onClick={() => update({ q: "" })} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <button onClick={() => update({ q: "" })} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5a3a1f]/60 hover:text-[#2b1d0a]">
                   <X className="w-4 h-4" />
                 </button>
               )}
@@ -81,7 +83,7 @@ export default function Shop() {
               value={sort}
               onChange={(e) => update({ sort: e.target.value === "newest" ? "" : e.target.value })}
               aria-label="Sort products"
-              className="bg-secondary border border-border rounded px-3 py-2.5 text-sm focus:outline-none focus:border-primary"
+              className="bg-white/70 border border-[#a87f2e]/40 text-[#2b1d0a] rounded px-3 py-2.5 text-sm focus:outline-none focus:border-[#a87f2e]"
             >
               <option value="newest">Newest</option>
               <option value="price-asc">Price: Low to High</option>
@@ -96,7 +98,7 @@ export default function Shop() {
                 key={c}
                 onClick={() => update({ category: c === "All" ? "" : c })}
                 className={`text-xs uppercase tracking-wide px-4 py-2 rounded border transition-colors ${
-                  active === c ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+                  active === c ? "btn-gold border-transparent" : "border-[#a87f2e]/40 text-[#5a3a1f] hover:bg-[#a87f2e]/15"
                 }`}
               >
                 {c}
@@ -105,11 +107,11 @@ export default function Shop() {
           </div>
 
           {loading ? (
-            <div className="text-center text-muted-foreground py-20">Loading products…</div>
+            <div className="text-center text-[#2b1d0a]/60 py-20">Loading products…</div>
           ) : filtered.length === 0 ? (
-            <div className="text-center text-muted-foreground py-20">No products match your search yet.</div>
+            <div className="text-center text-[#2b1d0a]/60 py-20">No products match your search yet.</div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 items-start gap-4 md:gap-8">
               {filtered.map((p) => (
                 p.isEbook ? (
                   <EbookCard key={p.id} ebook={p} />
@@ -119,6 +121,7 @@ export default function Shop() {
               ))}
             </div>
           )}
+        </div>
         </div>
       </div>
     </>

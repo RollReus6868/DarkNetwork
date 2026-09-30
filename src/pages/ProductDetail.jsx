@@ -57,7 +57,7 @@ export default function ProductDetail() {
         <div className="grid md:grid-cols-2 gap-10 lg:gap-14">
           {/* Gallery */}
           <div>
-            <div className="aspect-square overflow-hidden rounded bg-secondary mb-4">
+            <div className="dn-book-cover aspect-square overflow-hidden !rounded border border-[#a87f2e]/40 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.8)] mb-4">
               {images[activeImage] && <Image src={images[activeImage]} alt={product.title} className="w-full h-full" fittingType="fill" />}
             </div>
             {images.length > 1 && (
@@ -66,7 +66,7 @@ export default function ProductDetail() {
                   <button
                     key={i}
                     onClick={() => setActiveImage(i)}
-                    className={`w-16 h-16 md:w-20 md:h-20 overflow-hidden rounded border-2 transition-colors ${i === activeImage ? "border-primary" : "border-border"}`}
+                    className={`w-16 h-16 md:w-20 md:h-20 overflow-hidden rounded border-2 transition-colors ${i === activeImage ? "border-[#c9a24a]" : "border-border"}`}
                   >
                     <Image src={img} alt={`View ${i + 1}`} className="w-full h-full" fittingType="fill" />
                   </button>
@@ -91,7 +91,7 @@ export default function ProductDetail() {
               href={product.spring_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-colors w-full sm:w-auto"
+              className="btn-gold mt-6 inline-flex items-center justify-center gap-2 px-8 py-4 rounded uppercase text-sm tracking-wide w-full sm:w-auto"
             >
               <ShoppingBag className="w-5 h-5" />
               Buy on Spring
@@ -218,7 +218,7 @@ export default function ProductDetail() {
           href={product.spring_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-primary text-primary-foreground px-6 py-3 rounded font-semibold uppercase text-sm flex items-center gap-2"
+          className="btn-gold px-6 py-3 rounded uppercase text-sm flex items-center gap-2"
         >
           Buy <ExternalLink className="w-4 h-4" />
         </a>

@@ -145,7 +145,7 @@ export default function Home() {
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Print-on-Demand</p>
-              <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">Shop the Collection</h2>
+              <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-medium drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">Shop the <em className="italic text-primary">Collection</em></h2>
               <p className="text-muted-foreground mt-3 max-w-xl">Wear your faith. Apparel, wall art, mugs and gifts — designed with the Word, printed and fulfilled through Spring.</p>
             </div>
             <Link to="/shop" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
