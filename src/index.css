@@ -166,6 +166,20 @@
     border-radius: 5px 5px 0 0;
   }
 
+  /* Rich text coming from the admin editor (Tailwind's reset strips list/heading styles) */
+  .dn-prose h2, .dn-prose h3, .dn-prose h4 { font-family: var(--font-heading, "Cormorant Garamond", serif); font-weight: 700; line-height: 1.25; margin: 1.6em 0 0.5em; color: hsl(var(--foreground)); }
+  .dn-prose h2 { font-size: 1.6rem; }
+  .dn-prose h3 { font-size: 1.35rem; }
+  .dn-prose h4 { font-size: 1.15rem; }
+  .dn-prose p { margin: 0 0 1em; }
+  .dn-prose ul, .dn-prose ol { margin: 0 0 1.1em; padding-left: 1.4em; }
+  .dn-prose ul { list-style: disc; }
+  .dn-prose ol { list-style: decimal; }
+  .dn-prose li { margin: 0 0 0.55em; padding-left: 0.25em; }
+  .dn-prose li::marker { color: hsl(var(--primary)); }
+  .dn-prose strong { color: hsl(var(--foreground)); font-weight: 700; }
+  .dn-prose a { color: hsl(var(--primary)); text-decoration: underline; }
+
   /* Review cards */
   .dn-tcard {
     --tc: #8a6420;

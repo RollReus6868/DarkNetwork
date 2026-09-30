@@ -46,7 +46,7 @@ export default function EbookSlider({ ebooks = [] }) {
   // Reduced motion: static responsive grid, no auto-scroll
   if (reducedMotion) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-sm sm:max-w-none mx-auto">
         {ebooks.map((ebook) => (
           <SliderCard key={ebook.id} ebook={ebook} />
         ))}
@@ -85,7 +85,7 @@ export default function EbookSlider({ ebooks = [] }) {
           {ebooks.map((ebook) => (
             <div
               key={ebook.id}
-              className="flex-[0_0_72%] min-w-0 pl-4 sm:flex-[0_0_42%] md:flex-[0_0_31%] md:pl-6 lg:flex-[0_0_23.5%]"
+              className="flex-[0_0_80%] min-w-0 pl-4 sm:flex-[0_0_50%] md:flex-[0_0_44%] md:pl-6 lg:flex-[0_0_33%]"
             >
               <SliderCard ebook={ebook} />
             </div>

@@ -16,7 +16,7 @@ export default function EbookTile({ ebook, className = "" }) {
   return (
     <article className={`dn-book group flex flex-col h-full overflow-hidden ${className}`}>
       <Link to={`/books/${ebook.slug}`} aria-label={`View ${ebook.title}`} className="block">
-        <div className="dn-book-cover relative aspect-[3/4] overflow-hidden">
+        <div className="dn-book-cover relative aspect-[5/7] overflow-hidden">
           <Image
             src={ebook.cover_image}
             alt={ebook.title}
@@ -44,7 +44,7 @@ export default function EbookTile({ ebook, className = "" }) {
 
       <div className="flex flex-col flex-1 px-4 pt-4 pb-4">
         <Link to={`/books/${ebook.slug}`} className="block">
-          <h3 className="font-heading text-xl leading-tight font-semibold text-[#2b1d0a] group-hover:text-[#8a6420] transition-colors line-clamp-2 min-h-[2.5rem]">
+          <h3 className="font-heading text-xl leading-tight font-semibold text-[#2b1d0a] group-hover:text-[#8a6420] transition-colors line-clamp-2 min-h-[3.1rem]">
             {ebook.title}
           </h3>
           {ebook.subtitle && <p className="text-sm italic text-[#2b1d0a]/65 mt-1 line-clamp-1">{ebook.subtitle}</p>}

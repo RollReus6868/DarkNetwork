@@ -29,7 +29,7 @@ export default function Books() {
             ) : ebooks.length === 0 ? (
               <div className="text-center text-[#2b1d0a]/60 py-20">Books coming soon.</div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 max-w-sm sm:max-w-3xl lg:max-w-none mx-auto">
                 {ebooks.map((e) => (
                   <EbookCard key={e.id} ebook={e} />
                 ))}
