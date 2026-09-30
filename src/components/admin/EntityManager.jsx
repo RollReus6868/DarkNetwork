@@ -13,7 +13,7 @@ import {
  *
  * fields: [{ key, label, type, required, options, placeholder, hint, half }]
  *   type: text | number | select | boolean | textarea | richtext | url
- *         | image | images | stringlist | privatefile | publicfile
+ *         | image | images | stringlist | faqlist | privatefile | publicfile
  */
 
 export function slugify(str = "") {
@@ -127,6 +127,7 @@ export default function EntityManager({
   const save = async (e) => {
     e.preventDefault();
     const data = { ...form, slug: form.slug?.trim() ? slugify(form.slug) : slugify(form.title) };
+    if (Array.isArray(data.faq)) data.faq = data.faq.filter((q) => q.question?.trim() && q.answer?.trim());
     const problem = validate(data);
     if (problem) {
       toast({ title: "Chưa lưu được", description: problem, variant: "destructive" });
@@ -382,6 +383,28 @@ function FieldInput({ field: f, value, onChange, onUpload, uploading, form }) {
         </div>
       );
     }
+    case "faqlist": {
+      const list = Array.isArray(value) ? value : [];
+      const setItem = (i, patch) => onChange(list.map((it, j) => (j === i ? { ...it, ...patch } : it)));
+      return (
+        <div>
+          {label}
+          <div className="space-y-3">
+            {list.map((it, i) => (
+              <div key={i} className="border border-border rounded p-3 space-y-2 bg-secondary/30">
+                <div className="flex gap-2">
+                  <input type="text" value={it.question || ""} onChange={(e) => setItem(i, { question: e.target.value })} placeholder="Câu hỏi" className={inputCls} />
+                  <button type="button" onClick={() => onChange(list.filter((_, j) => j !== i))} className="px-2 text-muted-foreground hover:text-red-400" aria-label="Xoá câu hỏi"><X className="w-4 h-4" /></button>
+                </div>
+                <textarea rows={3} value={it.answer || ""} onChange={(e) => setItem(i, { answer: e.target.value })} placeholder="Câu trả lời" className={inputCls} />
+              </div>
+            ))}
+          </div>
+          <button type="button" onClick={() => onChange([...list, { question: "", answer: "" }])} className="mt-2 text-sm text-primary hover:underline">+ Thêm câu hỏi</button>
+          {hint}
+        </div>
+      );
+    }
     case "publicfile":
       return (
         <div>
@@ -490,7 +513,7 @@ function ImportModal({ entity, fields, defaults, existingSlugs, example, onClose
     const records = [];
     rawList.forEach((raw, idx) => {
       const rec = normalizeRecord(raw, fields, defaults);
-      const missing = fields.filter((f) => f.required && f.key !== "slug" && isEmptyValue(rec[f.key]));
+      const missing = fields.filter((f) => f.required && f.key !== "slug" && f.type !== "image" && isEmptyValue(rec[f.key]));
       if (missing.length) errors.push(`Dòng ${idx + 1} (${rec.title || "không tên"}): thiếu ${missing.map((f) => f.key).join(", ")}`);
       else if (seen.has(rec.slug)) errors.push(`Dòng ${idx + 1} (${rec.title}): slug "${rec.slug}" bị trùng`);
       else { seen.add(rec.slug); records.push(rec); }
@@ -525,7 +548,7 @@ function ImportModal({ entity, fields, defaults, existingSlugs, example, onClose
           <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
         </div>
         <p className="text-sm text-muted-foreground mb-3">
-          Dán JSON (danh sách) hoặc CSV có dòng đầu là tên cột, hoặc chọn file. Nhiều ảnh trong một ô ngăn cách bằng dấu <code>|</code>. Slug để trống sẽ tự tạo.
+          Dán JSON (danh sách) hoặc CSV có dòng đầu là tên cột, hoặc chọn file. Nhiều ảnh trong một ô ngăn cách bằng dấu <code>|</code>. Slug để trống sẽ tự tạo. Ảnh bìa có thể bỏ trống khi nhập rồi tải lên sau ở nút sửa.
         </p>
         <p className="text-xs text-muted-foreground mb-3">Các cột: <span className="font-mono">{fields.map((f) => f.key).join(", ")}</span></p>
         <label className="inline-flex items-center gap-2 border border-dashed border-border rounded px-3 py-2 cursor-pointer hover:border-primary text-sm text-muted-foreground hover:text-primary mb-3">

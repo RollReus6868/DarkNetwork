@@ -37,6 +37,7 @@ export const EBOOK_FIELDS = [
   { key: "what_you_learn", label: "Bạn sẽ học được gì", type: "stringlist" },
   { key: "who_for", label: "Sách dành cho ai", type: "richtext" },
   { key: "preview_images", label: "Ảnh xem thử các trang", type: "images" },
+  { key: "faq", label: "Câu hỏi thường gặp (FAQ)", type: "faqlist" },
   { key: "secure_file_uri", label: "File ebook (riêng tư)", type: "privatefile", hint: "Chỉ người đã mua mới tải được, qua link tạm thời." },
   { key: "lemon_squeezy_variant_id", label: "Lemon Squeezy Variant ID", type: "text", hint: "Bắt buộc để nút Buy Now hoạt động. Lấy trong dashboard Lemon Squeezy." },
   { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
@@ -45,7 +46,7 @@ export const EBOOK_FIELDS = [
   { key: "featured", label: "Hiển thị nổi bật ở trang chủ", type: "boolean", half: true },
 ];
 
-export const EBOOK_DEFAULTS = { price: 0, status: "draft", featured: false, what_you_learn: [], preview_images: [] };
+export const EBOOK_DEFAULTS = { price: 0, status: "draft", featured: false, what_you_learn: [], preview_images: [], faq: [] };
 
 export const PRODUCT_IMPORT_EXAMPLE = JSON.stringify([
   {
