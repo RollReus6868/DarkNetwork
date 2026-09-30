@@ -6,11 +6,13 @@ import EntityManager from "@/components/admin/EntityManager";
 import {
   PRODUCT_FIELDS, PRODUCT_DEFAULTS, PRODUCT_IMPORT_EXAMPLE,
   EBOOK_FIELDS, EBOOK_DEFAULTS, EBOOK_IMPORT_EXAMPLE,
+  RESOURCE_FIELDS, RESOURCE_DEFAULTS,
 } from "@/components/admin/adminConfig";
 
 const TABS = [
   { id: "products", label: "Sản phẩm (Shop)" },
   { id: "ebooks", label: "Ebook" },
+  { id: "resources", label: "Tài liệu miễn phí" },
   { id: "hero", label: "Hero Slides" },
 ];
 
@@ -81,6 +83,18 @@ export default function Admin() {
           getThumb={(e) => e.cover_image}
           getSubtitle={(e) => `$${Number(e.price || 0).toFixed(2)}${e.lemon_squeezy_variant_id ? "" : " · thiếu Variant ID"}`}
           importExample={EBOOK_IMPORT_EXAMPLE}
+        />
+      )}
+      {tab === "resources" && (
+        <EntityManager
+          key="resources"
+          entity="FreeResource"
+          title="Tài liệu miễn phí"
+          description="Study guide, kế hoạch đọc, tài liệu in… khách tải miễn phí ở trang Free Resources."
+          fields={RESOURCE_FIELDS}
+          defaults={RESOURCE_DEFAULTS}
+          getThumb={(r) => r.cover_image}
+          getSubtitle={(r) => `${r.resource_type}${r.download_url ? "" : " · thiếu file tải"}`}
         />
       )}
       {tab === "hero" && <HeroSlidesManager />}

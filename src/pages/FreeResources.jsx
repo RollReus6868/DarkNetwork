@@ -70,8 +70,20 @@ export default function FreeResources() {
             </button>
             <h3 className="font-heading text-2xl font-bold mb-2">Get Free Access</h3>
             <p className="text-muted-foreground mb-6">Enter your email to download <span className="text-foreground font-medium">{gated.title}</span> and receive future free resources.</p>
-            <EmailCapture source={`Free Resource: ${gated.title}`} variant="compact" />
-            <p className="text-xs text-muted-foreground mt-4 text-center">We'll send your download link by email.</p>
+            <EmailCapture
+              source={`Free Resource: ${gated.title}`}
+              variant="compact"
+              onSuccess={() => gated.download_url && window.open(gated.download_url, "_blank")}
+              successNode={
+                gated.download_url ? (
+                  <span className="font-medium">
+                    Thank you!{" "}
+                    <a href={gated.download_url} target="_blank" rel="noopener noreferrer" className="underline">Download your file</a>
+                  </span>
+                ) : undefined
+              }
+            />
+            <p className="text-xs text-muted-foreground mt-4 text-center">Your download opens right after you subscribe.</p>
           </div>
         </div>
       )}

@@ -37,6 +37,7 @@ export const EBOOK_FIELDS = [
   { key: "what_you_learn", label: "Bạn sẽ học được gì", type: "stringlist" },
   { key: "who_for", label: "Sách dành cho ai", type: "richtext" },
   { key: "preview_images", label: "Ảnh xem thử các trang", type: "images" },
+  { key: "faq", label: "Câu hỏi thường gặp (FAQ)", type: "faqlist" },
   { key: "secure_file_uri", label: "File ebook (riêng tư)", type: "privatefile", hint: "Chỉ người đã mua mới tải được, qua link tạm thời." },
   { key: "lemon_squeezy_variant_id", label: "Lemon Squeezy Variant ID", type: "text", hint: "Bắt buộc để nút Buy Now hoạt động. Lấy trong dashboard Lemon Squeezy." },
   { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
@@ -45,7 +46,7 @@ export const EBOOK_FIELDS = [
   { key: "featured", label: "Hiển thị nổi bật ở trang chủ", type: "boolean", half: true },
 ];
 
-export const EBOOK_DEFAULTS = { price: 0, status: "draft", featured: false, what_you_learn: [], preview_images: [] };
+export const EBOOK_DEFAULTS = { price: 0, status: "draft", featured: false, what_you_learn: [], preview_images: [], faq: [] };
 
 export const PRODUCT_IMPORT_EXAMPLE = JSON.stringify([
   {
@@ -72,3 +73,18 @@ export const EBOOK_IMPORT_EXAMPLE = JSON.stringify([
     status: "draft",
   },
 ], null, 2);
+
+export const RESOURCE_FIELDS = [
+  { key: "title", label: "Tên tài liệu", type: "text", required: true },
+  { key: "slug", label: "Đường dẫn (slug)", type: "text", half: true },
+  { key: "resource_type", label: "Loại", type: "select", options: ["Study Guide", "Bible Study PDF", "Reading Plan", "Bible Timeline", "Character Guide", "Printable"], half: true },
+  { key: "description", label: "Mô tả ngắn", type: "textarea", required: true },
+  { key: "cover_image", label: "Ảnh bìa", type: "image", required: true },
+  { key: "download_url", label: "File tải về (công khai)", type: "publicfile", hint: "Ai cũng tải được nếu biết link. Chỉ dùng cho tài liệu miễn phí." },
+  { key: "requires_email", label: "Yêu cầu nhập email trước khi tải", type: "boolean", half: true },
+  { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
+  { key: "meta_description", label: "Mô tả SEO (≤160 ký tự)", type: "textarea" },
+  status,
+];
+
+export const RESOURCE_DEFAULTS = { resource_type: "Study Guide", requires_email: false, status: "draft" };
