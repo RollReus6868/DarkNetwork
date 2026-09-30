@@ -52,9 +52,7 @@ export function ProductTextPrice({
               </span>
             )}
             {discount !== null && showSaleBadge && (
-              <span className="bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow">
-                SALE {discount}%
-              </span>
+              <span className="badge-gold">Save {discount}%</span>
             )}
           </div>
         )

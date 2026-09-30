@@ -7,27 +7,42 @@ import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle,
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getDiscountPercentage } from "@/lib/pricing";
-import { ProductTextPrice } from "@/components/site/ProductTextPrice";
+import { getDiscountPercentage, formatPrice } from "@/lib/pricing";
 
 const HOVER_INTENT_MS = 1000;
+
+// Price row: big serif price (deep red on cream, gold on dark) + struck-through original.
+function PriceRow({ product, tone = "cream", size = "lg" }) {
+  const discount = getDiscountPercentage(product.price, product.original_price);
+  const main = tone === "cream" ? "text-[#8f1d24]" : "text-[#e6c56a]";
+  const old = tone === "cream" ? "text-[#2b1d0a]/50" : "text-foreground/50";
+  return (
+    <div className="flex items-baseline gap-2.5">
+      <span className={`font-heading font-bold leading-none ${main} ${size === "lg" ? "text-3xl" : "text-2xl"}`}>{formatPrice(product.price)}</span>
+      {discount !== null && <span className={`text-sm line-through ${old}`}>{formatPrice(product.original_price)}</span>}
+    </div>
+  );
+}
 const CLOSE_GRACE_MS = 200;
 const EXIT_MS = 160;
 
-function CtaButtons({ product }) {
+function CtaButtons({ product, tone = "cream" }) {
+  const ghost = tone === "cream"
+    ? "border-[#a87f2e]/60 text-[#5a3a1f] hover:bg-[#a87f2e]/15"
+    : "border-border text-foreground hover:border-primary hover:text-primary";
   return (
     <div className="flex flex-col gap-2">
       <a
         href={product.spring_url}
         target="_blank"
         rel="noopener noreferrer"
-        className="w-full bg-primary text-primary-foreground px-3 py-2.5 rounded font-semibold uppercase text-xs tracking-wide hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 glow-bronze"
+        className="btn-gold w-full px-3 py-2.5 rounded uppercase text-xs tracking-wide flex items-center justify-center gap-1.5"
       >
         Buy on Spring <ExternalLink className="w-3.5 h-3.5" />
       </a>
       <Link
         to={`/shop/${product.slug}`}
-        className="w-full border border-border text-foreground px-3 py-2.5 rounded font-semibold uppercase text-xs tracking-wide hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1.5"
+        className={`w-full border ${ghost} px-3 py-2.5 rounded font-semibold uppercase text-xs tracking-wide transition-colors flex items-center justify-center gap-1.5`}
       >
         View Details <ArrowRight className="w-3.5 h-3.5" />
       </Link>
@@ -39,7 +54,7 @@ function MainImage({ product, activeImg }) {
   const images = product.images || [];
   const discount = getDiscountPercentage(product.price, product.original_price);
   return (
-    <div className="relative w-full aspect-square overflow-hidden bg-secondary">
+    <div className="dn-book-cover relative w-full aspect-square overflow-hidden !rounded-none">
       {images[activeImg] ? (
         <Image
           src={images[activeImg]}
@@ -51,9 +66,7 @@ function MainImage({ product, activeImg }) {
         <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">No image</div>
       )}
       {discount !== null && (
-        <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
-          SALE {discount}%
-        </span>
+        <span className="badge-gold absolute top-3 right-3 z-10">Save {discount}%</span>
       )}
     </div>
   );
@@ -63,14 +76,14 @@ function Thumbnails({ product, activeImg, setActiveImg }) {
   const images = product.images || [];
   if (images.length <= 1) return null;
   return (
-    <div className="flex gap-1.5 p-2 bg-black/40 overflow-x-auto scrollbar-hide">
+    <div className="flex gap-1.5 p-2 bg-[#2b1d0a]/10 overflow-x-auto scrollbar-hide">
       {images.slice(0, 8).map((img, i) => (
         <button
           key={i}
           onMouseEnter={() => setActiveImg(i)}
           onClick={() => setActiveImg(i)}
           className={`flex-shrink-0 w-12 h-12 rounded overflow-hidden border-2 transition-all ${
-            activeImg === i ? "border-primary opacity-100" : "border-transparent opacity-60 hover:opacity-90"
+            activeImg === i ? "border-[#a87f2e] opacity-100" : "border-transparent opacity-60 hover:opacity-90"
           }`}
         >
           <Image src={img} alt="" className="w-full h-full" fittingType="fill" />
@@ -87,40 +100,28 @@ function PreviewBody({ product, activeImg, setActiveImg, layout = "desktop" }) {
         <MainImage product={product} activeImg={activeImg} />
         <Thumbnails product={product} activeImg={activeImg} setActiveImg={setActiveImg} />
         <div className="pt-4">
-          <ProductTextPrice
-            title={product.title}
-            price={product.price}
-            originalPrice={product.original_price}
-            compact
-            priceVariant="pill"
-            id={product.id}
-            showDescription={false}
-          />
+          <PriceRow product={product} tone="dark" />
         </div>
         <div className="mt-3">
-          <CtaButtons product={product} />
+          <CtaButtons product={product} tone="dark" />
         </div>
       </>
     );
   }
 
-  // Desktop: simplified two-column layout — left = image + thumbnails, right = title + price + CTAs
+  // Desktop: left = image + thumbnails, right = title + price + CTAs (cream panel)
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden shadow-2xl flex">
+    <div className="bg-gradient-to-b from-[#fefbf2] to-[#f5ead0] border border-[#a87f2e]/50 rounded-lg overflow-hidden shadow-2xl flex text-[#2b1d0a]">
       <div className="w-[62%] flex-shrink-0">
         <MainImage product={product} activeImg={activeImg} />
         <Thumbnails product={product} activeImg={activeImg} setActiveImg={setActiveImg} />
       </div>
-      <div className="w-[38%] flex flex-col gap-3 p-4 justify-center">
-        <ProductTextPrice
-          title={product.title}
-          price={product.price}
-          originalPrice={product.original_price}
-          compact
-          priceVariant="pill"
-          id={product.id}
-          showDescription={false}
-        />
+      <div className="w-[38%] flex flex-col gap-4 p-5 justify-center">
+        <div>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8a6420]">{product.category}</span>
+          <h3 className="font-heading text-2xl font-semibold leading-tight mt-1 mb-3">{product.title}</h3>
+          <PriceRow product={product} />
+        </div>
         <CtaButtons product={product} />
       </div>
     </div>
@@ -290,41 +291,45 @@ export function ProductCardWithPreview({ product }) {
     <>
       <div
         ref={cardRef}
-        className="group block"
+        className="group block h-full"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <Link to={`/shop/${product.slug}`} onClick={handleCardClick}>
-          <div className="relative aspect-square overflow-hidden bg-secondary rounded mb-3 glow-bronze-group border border-border/60 group-hover:border-primary/60 transition-all duration-500">
-            {images[0] && (
-              <Image
-                src={images[0]}
-                alt={product.title}
-                className="w-full h-full transition-transform duration-700 group-hover:scale-105"
-                fittingType="fill"
-              />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-50" />
-            <span className="absolute top-3 left-3 text-[10px] font-semibold uppercase tracking-[0.15em] bg-black/60 backdrop-blur px-2.5 py-1 rounded text-primary border border-primary/30">
-              {product.category}
-            </span>
-            {discount !== null && (
-              <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
-                SALE {discount}%
+        <article className="dn-book flex flex-col overflow-hidden h-full">
+          <Link to={`/shop/${product.slug}`} onClick={handleCardClick} className="block" aria-label={`View ${product.title}`}>
+            <div className="dn-book-cover relative aspect-square overflow-hidden">
+              {images[0] && (
+                <Image
+                  src={images[0]}
+                  alt={product.title}
+                  className="w-full h-full transition-transform duration-700 group-hover:scale-105"
+                  fittingType="fill"
+                />
+              )}
+              <span className="absolute top-3 left-3 text-[10px] font-semibold uppercase tracking-[0.15em] bg-[#1a0f08]/75 backdrop-blur px-2.5 py-1 rounded text-[#e6c56a] border border-[#e6c56a]/30">
+                {product.category}
               </span>
-            )}
+              {discount !== null && <span className="badge-gold absolute top-3 right-3 z-10">Save {discount}%</span>}
+            </div>
+          </Link>
+          <div className="flex flex-col flex-1 px-4 pt-3.5 pb-4">
+            <Link to={`/shop/${product.slug}`} onClick={handleCardClick} className="block">
+              <h3 className="font-heading text-lg leading-tight font-semibold text-[#2b1d0a] group-hover:text-[#8a6420] transition-colors line-clamp-2 min-h-[2.75rem]">
+                {product.title}
+              </h3>
+            </Link>
+            <div className="flex items-center justify-between gap-3 mt-3">
+              <PriceRow product={product} size="md" />
+              <Link
+                to={`/shop/${product.slug}`}
+                onClick={handleCardClick}
+                className="btn-gold px-3.5 py-2 rounded uppercase text-[11px] tracking-wide flex items-center gap-1"
+              >
+                View <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
           </div>
-          <ProductTextPrice
-            title={product.title}
-            price={product.price}
-            originalPrice={product.original_price}
-            compact
-            priceVariant="pill"
-            id={product.id}
-            showDescription={false}
-            titleClassName="group-hover:text-primary transition-colors"
-          />
-        </Link>
+        </article>
       </div>
 
       {/* Desktop hover panel — kept mounted during exit animation */}
