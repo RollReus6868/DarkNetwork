@@ -67,10 +67,10 @@ export default function EbookDetail() {
 
       {/* Hero */}
       <section className="py-12 lg:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 gap-10 lg:gap-16 items-start">
-          <div className="relative max-w-xs mx-auto md:mx-0 md:sticky md:top-28">
-            <div className="absolute -inset-6 bg-primary/10 blur-3xl rounded-full" />
-            <div className="relative aspect-[3/4] overflow-hidden rounded shadow-2xl">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+          <div className="relative w-full max-w-[22rem] sm:max-w-[28rem] mx-auto lg:mx-0 lg:sticky lg:top-28">
+            <div className="absolute -inset-3 sm:-inset-6 bg-primary/10 blur-3xl rounded-full" />
+            <div className="relative aspect-[5/7] overflow-hidden rounded shadow-2xl">
               <Image src={ebook.cover_image} alt={ebook.title} className="w-full h-full" fittingType="fill" />
             </div>
             {ebook.preview_images?.length > 0 && (
@@ -115,7 +115,7 @@ export default function EbookDetail() {
 
             <div className="mt-8 pt-8 border-t border-border">
               <h2 className="font-heading text-xl font-semibold mb-3">Description</h2>
-              <div className="text-foreground/80 leading-relaxed space-y-4" dangerouslySetInnerHTML={{ __html: sanitizeHtml(ebook.description) }} />
+              <div className="dn-prose text-foreground/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(ebook.description) }} />
             </div>
           </div>
         </div>
@@ -142,7 +142,7 @@ export default function EbookDetail() {
       {ebook.who_for && (
         <section className="py-14 max-w-3xl mx-auto px-4 sm:px-6">
           <h2 className="font-heading text-2xl font-bold mb-4">Who This Book Is For</h2>
-          <div className="text-foreground/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(ebook.who_for) }} />
+          <div className="dn-prose text-foreground/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(ebook.who_for) }} />
         </section>
       )}
 
