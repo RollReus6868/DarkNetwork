@@ -3,7 +3,7 @@ import Seo from "@/components/site/Seo";
 import { FreeResourceCard, SectionHeading } from "@/components/site/Cards";
 import EmailCapture from "@/components/site/EmailCapture";
 import { useSiteData } from "@/hooks/useSiteData";
-import { Download, Mail, X, Loader2 } from "lucide-react";
+import { X } from "lucide-react";
 
 export default function FreeResources() {
   const { resources, loading } = useSiteData();

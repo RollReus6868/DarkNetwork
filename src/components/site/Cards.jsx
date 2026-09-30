@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Play, ArrowRight, BookOpen, Download, Mail } from "lucide-react";
+import { Play, Download, Mail } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import { PriceButton } from "@/components/site/PriceButton";
 import { EbookBuyButton } from "@/components/site/EbookBuyButton";

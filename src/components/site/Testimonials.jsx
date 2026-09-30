@@ -1,4 +1,5 @@
 import { Star, BadgeCheck } from "lucide-react";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 export default function Testimonials({ testimonials = [] }) {
   if (!testimonials || testimonials.length === 0) return null;
@@ -49,7 +50,7 @@ function TestimonialCard({ testimonial }) {
       </div>
       <p
         className="font-heading text-lg leading-relaxed text-foreground/90 mb-6 flex-1"
-        dangerouslySetInnerHTML={{ __html: testimonial.text }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(testimonial.text) }}
       />
       <div className="flex items-center gap-3 pt-4 border-t border-border/50">
         <div className="w-10 h-10 rounded-full bg-secondary border border-border flex items-center justify-center text-primary font-heading text-lg font-semibold">

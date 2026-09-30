@@ -1,15 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Trash2, ArrowRight, ShoppingBag, Check, Loader2, Download } from "lucide-react";
+import { Trash2, ArrowRight, ShoppingBag } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import { Image } from "@/components/ui/image";
-import { getCart, removeFromCart, clearCart, cartTotal } from "@/lib/cart";
+import { getCart, removeFromCart, cartTotal } from "@/lib/cart";
 
 export default function Cart() {
   const [cart, setCart] = useState([]);
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | loading | success
-  const [orderId, setOrderId] = useState("");
 
   useEffect(() => {
     setCart(getCart());
@@ -19,44 +16,6 @@ export default function Cart() {
   }, []);
 
   const total = cartTotal(cart);
-
-  const checkout = async (e) => {
-    e.preventDefault();
-    if (!email.trim() || cart.length === 0) return;
-    setStatus("loading");
-    // Simulated checkout — payment provider integration goes here
-    await new Promise((r) => setTimeout(r, 1500));
-    setOrderId("DN-" + Date.now().toString(36).toUpperCase());
-    setStatus("success");
-    clearCart();
-    setCart([]);
-  };
-
-  if (status === "success") {
-    return (
-      <>
-        <Seo title="Order Confirmed — Dark Network" />
-        <div className="pt-32 pb-20 max-w-2xl mx-auto px-4 sm:px-6 text-center">
-          <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-6">
-            <Check className="w-10 h-10 text-primary" />
-          </div>
-          <h1 className="font-heading text-4xl font-bold mb-4">Your ebook is ready.</h1>
-          <p className="text-muted-foreground mb-2">Order <span className="text-foreground font-mono">{orderId}</span></p>
-          <p className="text-muted-foreground mb-8">We've also sent your download link to <span className="text-foreground">{email}</span></p>
-          <div className="bg-card border border-border rounded-lg p-6 mb-8">
-            <div className="flex items-center justify-center gap-3 text-primary">
-              <Download className="w-6 h-6" />
-              <span className="font-medium">Download Your Ebook</span>
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">Your secure download link is ready below.</p>
-          </div>
-          <Link to="/books" className="inline-flex items-center gap-2 text-primary hover:underline">
-            Browse more books <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </>
-    );
-  }
 
   if (cart.length === 0) {
     return (
@@ -90,7 +49,7 @@ export default function Cart() {
                 <div className="flex-1">
                   <Link to={`/books/${item.slug}`} className="font-heading text-lg font-semibold hover:text-primary">{item.title}</Link>
                   <p className="text-xs text-muted-foreground uppercase tracking-wide mt-1">Digital Ebook</p>
-                  <p className="text-primary font-semibold mt-1">${item.price.toFixed(2)}</p>
+                  <p className="text-primary font-semibold mt-1">${Number(item.price).toFixed(2)}</p>
                 </div>
                 <button
                   onClick={() => { removeFromCart(item.id); setCart(getCart()); }}

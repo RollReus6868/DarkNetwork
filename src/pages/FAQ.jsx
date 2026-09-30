@@ -2,7 +2,6 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import { SectionHeading } from "@/components/site/Cards";
-import EmailCapture from "@/components/site/EmailCapture";
 
 const FAQS = [
   { q: "What is the Dark Network?", a: "The Dark Network is a cinematic Bible discovery platform built around a network of documentary-style YouTube channels — Dark Faith, Dark Logic, Dark History, and Dark Eyes. We explore Scripture through history, archaeology, and mystery." },

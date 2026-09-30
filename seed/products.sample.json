@@ -1,0 +1,133 @@
+[
+  {
+    "title": "Armor of God Hoodie",
+    "category": "Apparel",
+    "price": 49.99,
+    "images": [
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Ephesians+6:11",
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Ephesians+6:11+alt"
+    ],
+    "description": "<p>A heavyweight hoodie printed with the words of Ephesians 6:11. Soft fleece lining, front pouch pocket and a bold chest print designed to be worn every day.</p>",
+    "spring_url": "https://your-store.creator-spring.com/listing/REPLACE-ME",
+    "status": "draft",
+    "featured": true,
+    "sort_order": 0,
+    "original_price": 59.99,
+    "bible_inspiration": "<p>“Put on the whole armour of God, that ye may be able to stand against the wiles of the devil.” — Ephesians 6:11 (KJV)</p>",
+    "size_info": "<p>Unisex sizing, S–3XL. Check the size chart on the Spring listing before ordering.</p>",
+    "shipping_info": "<p>Printed and shipped on demand by Spring. Production usually takes 2–5 business days, plus delivery.</p>"
+  },
+  {
+    "title": "Faith Over Fear Tee",
+    "category": "Apparel",
+    "price": 27.99,
+    "images": [
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Faith+Over+Fear",
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Faith+Over+Fear+alt"
+    ],
+    "description": "<p>Classic unisex tee in soft ring-spun cotton with a minimalist Faith Over Fear design.</p>",
+    "spring_url": "https://your-store.creator-spring.com/listing/REPLACE-ME",
+    "status": "draft",
+    "featured": true,
+    "sort_order": 1,
+    "bible_inspiration": "<p>“For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind.” — 2 Timothy 1:7 (KJV)</p>",
+    "size_info": "<p>Unisex sizing, S–3XL. Check the size chart on the Spring listing before ordering.</p>",
+    "shipping_info": "<p>Printed and shipped on demand by Spring. Production usually takes 2–5 business days, plus delivery.</p>"
+  },
+  {
+    "title": "Lion of Judah Crewneck",
+    "category": "Apparel",
+    "price": 42.99,
+    "images": [
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Lion+of+Judah",
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Lion+of+Judah+alt"
+    ],
+    "description": "<p>Midweight crewneck sweatshirt featuring a bronze-toned Lion of Judah illustration.</p>",
+    "spring_url": "https://your-store.creator-spring.com/listing/REPLACE-ME",
+    "status": "draft",
+    "featured": false,
+    "sort_order": 2,
+    "bible_inspiration": "<p>“Behold, the Lion of the tribe of Juda, the Root of David, hath prevailed.” — Revelation 5:5 (KJV)</p>",
+    "size_info": "<p>Unisex sizing, S–3XL. Check the size chart on the Spring listing before ordering.</p>",
+    "shipping_info": "<p>Printed and shipped on demand by Spring. Production usually takes 2–5 business days, plus delivery.</p>"
+  },
+  {
+    "title": "Psalm 23 Wall Art Print",
+    "category": "Wall Art",
+    "price": 34.99,
+    "images": [
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Psalm+23",
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Psalm+23+alt"
+    ],
+    "description": "<p>Museum-quality matte print with the full text of Psalm 23 in elegant serif lettering. Ready to frame.</p>",
+    "spring_url": "https://your-store.creator-spring.com/listing/REPLACE-ME",
+    "status": "draft",
+    "featured": true,
+    "sort_order": 3,
+    "bible_inspiration": "<p>“The LORD is my shepherd; I shall not want.” — Psalm 23:1 (KJV)</p>",
+    "shipping_info": "<p>Printed and shipped on demand by Spring. Production usually takes 2–5 business days, plus delivery.</p>"
+  },
+  {
+    "title": "Be Strong and Courageous Canvas",
+    "category": "Wall Art",
+    "price": 59.99,
+    "images": [
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Joshua+1:9",
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Joshua+1:9+alt"
+    ],
+    "description": "<p>Gallery-wrapped canvas with Joshua 1:9 over a dark desert landscape.</p>",
+    "spring_url": "https://your-store.creator-spring.com/listing/REPLACE-ME",
+    "status": "draft",
+    "featured": false,
+    "sort_order": 4,
+    "original_price": 74.99,
+    "bible_inspiration": "<p>“Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed.” — Joshua 1:9 (KJV)</p>",
+    "shipping_info": "<p>Printed and shipped on demand by Spring. Production usually takes 2–5 business days, plus delivery.</p>"
+  },
+  {
+    "title": "Wings Like Eagles Mug",
+    "category": "Mugs",
+    "price": 16.99,
+    "images": [
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Isaiah+40:31",
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Isaiah+40:31+alt"
+    ],
+    "description": "<p>11oz ceramic mug, dishwasher and microwave safe, printed on both sides with Isaiah 40:31.</p>",
+    "spring_url": "https://your-store.creator-spring.com/listing/REPLACE-ME",
+    "status": "draft",
+    "featured": true,
+    "sort_order": 5,
+    "bible_inspiration": "<p>“They that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles.” — Isaiah 40:31 (KJV)</p>",
+    "shipping_info": "<p>Printed and shipped on demand by Spring. Production usually takes 2–5 business days, plus delivery.</p>"
+  },
+  {
+    "title": "Morning Prayer Mug",
+    "category": "Mugs",
+    "price": 16.99,
+    "images": [
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Morning+Prayer",
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Morning+Prayer+alt"
+    ],
+    "description": "<p>Start the day in prayer. 11oz ceramic mug with a short morning prayer printed around the wrap.</p>",
+    "spring_url": "https://your-store.creator-spring.com/listing/REPLACE-ME",
+    "status": "draft",
+    "featured": false,
+    "sort_order": 6,
+    "shipping_info": "<p>Printed and shipped on demand by Spring. Production usually takes 2–5 business days, plus delivery.</p>"
+  },
+  {
+    "title": "Scripture Sticker Pack",
+    "category": "Gifts",
+    "price": 9.99,
+    "images": [
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Sticker+Pack",
+      "https://placehold.co/800x800/2d1810/c9a96e/png?text=Sticker+Pack+alt"
+    ],
+    "description": "<p>Set of 6 weatherproof vinyl stickers with short verses. Great for laptops and journals.</p>",
+    "spring_url": "https://your-store.creator-spring.com/listing/REPLACE-ME",
+    "status": "draft",
+    "featured": false,
+    "sort_order": 7,
+    "shipping_info": "<p>Printed and shipped on demand by Spring. Production usually takes 2–5 business days, plus delivery.</p>"
+  }
+]

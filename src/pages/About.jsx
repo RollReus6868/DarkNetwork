@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, Play, FileText, ShoppingBag } from "lucide-react";
+import { BookOpen, Play, FileText, ShoppingBag } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import { Image } from "@/components/ui/image";
 

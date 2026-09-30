@@ -1,0 +1,48 @@
+[
+  {
+    "title": "The Armor of God: A 21-Day Study",
+    "subtitle": "A guided journey through Ephesians 6",
+    "price": 14.99,
+    "cover_image": "https://placehold.co/600x800/2d1810/c9a96e/png?text=The+Armor+of+God:+A+21-Day+Study",
+    "description": "<p>A guided journey through Ephesians 6. Replace this sample description with your own text.</p>",
+    "what_you_learn": [
+      "How each piece of armor applies to daily life",
+      "Historical context of the Roman soldier",
+      "A prayer and reflection plan for 21 days"
+    ],
+    "lemon_squeezy_variant_id": "REPLACE-ME",
+    "status": "draft",
+    "featured": true,
+    "original_price": 19.99
+  },
+  {
+    "title": "Walking with the Prophets",
+    "subtitle": "Understanding Isaiah, Jeremiah and Ezekiel",
+    "price": 12.99,
+    "cover_image": "https://placehold.co/600x800/2d1810/c9a96e/png?text=Walking+with+the+Prophets",
+    "description": "<p>Understanding Isaiah, Jeremiah and Ezekiel. Replace this sample description with your own text.</p>",
+    "what_you_learn": [
+      "The historical setting of the major prophets",
+      "How to read prophecy without confusion",
+      "Key messages of hope and warning"
+    ],
+    "lemon_squeezy_variant_id": "REPLACE-ME",
+    "status": "draft",
+    "featured": false
+  },
+  {
+    "title": "Women of the Bible",
+    "subtitle": "Faith, courage and calling",
+    "price": 9.99,
+    "cover_image": "https://placehold.co/600x800/2d1810/c9a96e/png?text=Women+of+the+Bible",
+    "description": "<p>Faith, courage and calling. Replace this sample description with your own text.</p>",
+    "what_you_learn": [
+      "Stories of Ruth, Esther, Deborah and Mary",
+      "Lessons on courage and trust",
+      "Discussion questions for small groups"
+    ],
+    "lemon_squeezy_variant_id": "REPLACE-ME",
+    "status": "draft",
+    "featured": false
+  }
+]

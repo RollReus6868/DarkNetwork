@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Seo from "@/components/site/Seo";
 import { StudyCard, SectionHeading } from "@/components/site/Cards";

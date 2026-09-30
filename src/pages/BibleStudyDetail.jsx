@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { useParams, Link } from "react-router-dom";
-import { ChevronRight, ArrowRight, BookOpen, Play } from "lucide-react";
+import { ChevronRight, ArrowRight, BookOpen } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import YouTubeEmbed from "@/components/site/YouTubeEmbed";
 import { useSiteData } from "@/hooks/useSiteData";
 import { Image } from "@/components/ui/image";
-import { addToCart } from "@/lib/cart";
 
 export default function BibleStudyDetail() {
   const { slug } = useParams();
@@ -82,7 +82,7 @@ export default function BibleStudyDetail() {
       <article className="max-w-3xl mx-auto px-4 sm:px-6 py-12 lg:py-16">
         <div
           className="prose-content text-foreground/85 leading-relaxed space-y-6 text-lg"
-          dangerouslySetInnerHTML={{ __html: study.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(study.content) }}
         />
 
         {study.bible_verses && (
@@ -90,21 +90,21 @@ export default function BibleStudyDetail() {
             <h3 className="font-heading text-xl font-semibold text-primary mb-3 flex items-center gap-2">
               <BookOpen className="w-5 h-5" /> Bible Verses
             </h3>
-            <div className="text-foreground/80" dangerouslySetInnerHTML={{ __html: study.bible_verses }} />
+            <div className="text-foreground/80" dangerouslySetInnerHTML={{ __html: sanitizeHtml(study.bible_verses) }} />
           </div>
         )}
 
         {study.historical_context && (
           <div className="my-10">
             <h3 className="font-heading text-2xl font-bold mb-4">Historical Context</h3>
-            <div className="text-foreground/85 leading-relaxed" dangerouslySetInnerHTML={{ __html: study.historical_context }} />
+            <div className="text-foreground/85 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(study.historical_context) }} />
           </div>
         )}
 
         {study.conclusion && (
           <div className="my-10">
             <h3 className="font-heading text-2xl font-bold mb-4">Conclusion</h3>
-            <div className="text-foreground/85 leading-relaxed" dangerouslySetInnerHTML={{ __html: study.conclusion }} />
+            <div className="text-foreground/85 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(study.conclusion) }} />
           </div>
         )}
       </article>

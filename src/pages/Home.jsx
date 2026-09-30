@@ -38,10 +38,12 @@ const SOCIALS = [
 export default function Home() {
   const { studies, videos, ebooks, products, testimonials, siteContent, membershipStats, heroSlides, loading } = useSiteData();
 
-  const sliderEbooks = ebooks.length > 0 ? ebooks.slice(0, 8) : [];
+  // Items flagged "featured" in Admin come first; the rest fill remaining slots.
+  const featuredFirst = (list, n) => [...list.filter((i) => i.featured), ...list.filter((i) => !i.featured)].slice(0, n);
+  const sliderEbooks = featuredFirst(ebooks, 8);
   const videoLibraryContent = siteContent.find((c) => c.section_key === "video_library");
   const latestStudies = studies.slice(0, 6);
-  const featuredProducts = products.slice(0, 4);
+  const featuredProducts = featuredFirst(products, 4);
   const popularVideos = videos.filter((v) => v.popular).slice(0, 4);
   const popularToShow = popularVideos.length >= 4 ? popularVideos : videos.slice(0, 4);
 

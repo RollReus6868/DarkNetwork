@@ -20,8 +20,8 @@ export function useSiteData() {
         const [s, v, e, p, r, t, sc, ms, hs] = await Promise.all([
           base44.entities.BibleStudy.filter({ status: "published" }, "-created_date", 50).catch(() => []),
           base44.entities.Video.filter({ status: "published" }, "-created_date", 50).catch(() => []),
-          base44.entities.Ebook.filter({ status: "published" }, "-created_date", 50).catch(() => []),
-          base44.entities.Product.filter({ status: "published" }, "-created_date", 50).catch(() => []),
+          base44.entities.Ebook.filter({ status: "published" }, "-created_date", 200).catch(() => []),
+          base44.entities.Product.filter({ status: "published" }, "-created_date", 200).catch(() => []),
           base44.entities.FreeResource.filter({ status: "published" }, "-created_date", 50).catch(() => []),
           base44.entities.Testimonial.list("-created_date", 50).catch(() => []),
           base44.entities.SiteContent.list("-created_date", 50).catch(() => []),
