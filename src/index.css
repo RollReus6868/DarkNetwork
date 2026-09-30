@@ -171,6 +171,7 @@
   .dn-prose h2 { font-size: 1.6rem; }
   .dn-prose h3 { font-size: 1.35rem; }
   .dn-prose h4 { font-size: 1.15rem; }
+  .dn-prose { overflow-wrap: anywhere; }
   .dn-prose p { margin: 0 0 1em; }
   .dn-prose ul, .dn-prose ol { margin: 0 0 1.1em; padding-left: 1.4em; }
   .dn-prose ul { list-style: disc; }

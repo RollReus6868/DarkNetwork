@@ -127,6 +127,10 @@ export default function EntityManager({
   const save = async (e) => {
     e.preventDefault();
     const data = { ...form, slug: form.slug?.trim() ? slugify(form.slug) : slugify(form.title) };
+    // Pasted text can carry non-breaking spaces that stop paragraphs from wrapping.
+    fields.forEach((f) => {
+      if (f.type === "richtext" && typeof data[f.key] === "string") data[f.key] = data[f.key].replace(/&nbsp;|\u00a0/g, " ");
+    });
     if (Array.isArray(data.faq)) data.faq = data.faq.filter((q) => q.question?.trim() && q.answer?.trim());
     const problem = validate(data);
     if (problem) {
