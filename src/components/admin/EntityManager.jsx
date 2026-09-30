@@ -13,7 +13,7 @@ import {
  *
  * fields: [{ key, label, type, required, options, placeholder, hint, half }]
  *   type: text | number | select | boolean | textarea | richtext | url
- *         | image | images | stringlist | privatefile
+ *         | image | images | stringlist | privatefile | publicfile
  */
 
 export function slugify(str = "") {
@@ -382,6 +382,19 @@ function FieldInput({ field: f, value, onChange, onUpload, uploading, form }) {
         </div>
       );
     }
+    case "publicfile":
+      return (
+        <div>
+          {label}
+          {value && <p className="text-xs text-green-500 mb-2 break-all">Đã có file: {String(value).split("/").pop()}</p>}
+          <label className="flex items-center gap-2 border border-dashed border-border rounded px-4 py-2.5 cursor-pointer hover:border-primary text-sm text-muted-foreground hover:text-primary">
+            {uploading === f.key ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang tải lên…</> : <><Upload className="w-4 h-4" /> {value ? "Thay file" : "Tải file lên (PDF/EPUB/ZIP)"}</>}
+            <input type="file" accept=".pdf,.epub,.zip" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) onUpload(f.key, file); e.target.value = ""; }} />
+          </label>
+          <input type="url" value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder="hoặc dán link tải công khai" className={`${inputCls} mt-2`} />
+          {hint}
+        </div>
+      );
     case "privatefile":
       return (
         <div>

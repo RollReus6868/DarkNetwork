@@ -72,3 +72,18 @@ export const EBOOK_IMPORT_EXAMPLE = JSON.stringify([
     status: "draft",
   },
 ], null, 2);
+
+export const RESOURCE_FIELDS = [
+  { key: "title", label: "Tên tài liệu", type: "text", required: true },
+  { key: "slug", label: "Đường dẫn (slug)", type: "text", half: true },
+  { key: "resource_type", label: "Loại", type: "select", options: ["Study Guide", "Bible Study PDF", "Reading Plan", "Bible Timeline", "Character Guide", "Printable"], half: true },
+  { key: "description", label: "Mô tả ngắn", type: "textarea", required: true },
+  { key: "cover_image", label: "Ảnh bìa", type: "image", required: true },
+  { key: "download_url", label: "File tải về (công khai)", type: "publicfile", hint: "Ai cũng tải được nếu biết link. Chỉ dùng cho tài liệu miễn phí." },
+  { key: "requires_email", label: "Yêu cầu nhập email trước khi tải", type: "boolean", half: true },
+  { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
+  { key: "meta_description", label: "Mô tả SEO (≤160 ký tự)", type: "textarea" },
+  status,
+];
+
+export const RESOURCE_DEFAULTS = { resource_type: "Study Guide", requires_email: false, status: "draft" };

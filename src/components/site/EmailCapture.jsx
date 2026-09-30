@@ -2,7 +2,7 @@ import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Mail, Check, Loader2 } from "lucide-react";
 
-export default function EmailCapture({ source = "Homepage", variant = "full" }) {
+export default function EmailCapture({ source = "Homepage", variant = "full", onSuccess, successNode }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [error, setError] = useState("");
@@ -16,17 +16,25 @@ export default function EmailCapture({ source = "Homepage", variant = "full" }) 
       await base44.entities.Subscriber.create({ email: email.trim(), source });
       setStatus("success");
       setEmail("");
+      onSuccess?.();
     } catch (err) {
+      // Already on the list: still give them what they asked for.
+      if (err?.message?.includes?.("duplicate")) {
+        setStatus("success");
+        setEmail("");
+        onSuccess?.();
+        return;
+      }
       setStatus("error");
-      setError(err?.message?.includes?.("duplicate") ? "You're already subscribed." : "Something went wrong. Please try again.");
+      setError("Something went wrong. Please try again.");
     }
   };
 
   if (status === "success") {
     return (
-      <div className="flex items-center gap-3 text-primary justify-center py-4">
+      <div className="flex items-center gap-3 text-primary justify-center py-4 flex-wrap">
         <Check className="w-5 h-5" />
-        <span className="font-medium">Check your inbox — your free guide is on its way.</span>
+        {successNode || <span className="font-medium">Check your inbox — your free guide is on its way.</span>}
       </div>
     );
   }
