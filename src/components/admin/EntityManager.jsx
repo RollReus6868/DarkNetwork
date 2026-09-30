@@ -513,7 +513,7 @@ function ImportModal({ entity, fields, defaults, existingSlugs, example, onClose
     const records = [];
     rawList.forEach((raw, idx) => {
       const rec = normalizeRecord(raw, fields, defaults);
-      const missing = fields.filter((f) => f.required && f.key !== "slug" && f.type !== "image" && isEmptyValue(rec[f.key]));
+      const missing = fields.filter((f) => f.required && f.key !== "slug" && isEmptyValue(rec[f.key]));
       if (missing.length) errors.push(`Dòng ${idx + 1} (${rec.title || "không tên"}): thiếu ${missing.map((f) => f.key).join(", ")}`);
       else if (seen.has(rec.slug)) errors.push(`Dòng ${idx + 1} (${rec.title}): slug "${rec.slug}" bị trùng`);
       else { seen.add(rec.slug); records.push(rec); }
@@ -548,7 +548,7 @@ function ImportModal({ entity, fields, defaults, existingSlugs, example, onClose
           <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
         </div>
         <p className="text-sm text-muted-foreground mb-3">
-          Dán JSON (danh sách) hoặc CSV có dòng đầu là tên cột, hoặc chọn file. Nhiều ảnh trong một ô ngăn cách bằng dấu <code>|</code>. Slug để trống sẽ tự tạo. Ảnh bìa có thể bỏ trống khi nhập rồi tải lên sau ở nút sửa.
+          Dán JSON (danh sách) hoặc CSV có dòng đầu là tên cột, hoặc chọn file. Nhiều ảnh trong một ô ngăn cách bằng dấu <code>|</code>. Slug để trống sẽ tự tạo. Trường bắt buộc (ví dụ ảnh bìa) phải có giá trị, ảnh dán dưới dạng link.
         </p>
         <p className="text-xs text-muted-foreground mb-3">Các cột: <span className="font-mono">{fields.map((f) => f.key).join(", ")}</span></p>
         <label className="inline-flex items-center gap-2 border border-dashed border-border rounded px-3 py-2 cursor-pointer hover:border-primary text-sm text-muted-foreground hover:text-primary mb-3">
