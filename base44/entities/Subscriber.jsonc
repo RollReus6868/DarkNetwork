@@ -11,6 +11,12 @@
       "type": "string",
       "title": "Capture Source",
       "default": "Homepage"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description",
+      "maxLength": 1000,
+      "description": "Optional notes about this subscriber (e.g. interests, how they joined)."
     }
   },
   "required": [

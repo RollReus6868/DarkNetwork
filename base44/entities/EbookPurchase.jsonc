@@ -70,6 +70,12 @@
       "title": "Download Access Granted",
       "default": false,
       "description": "Set to true only after payment is confirmed. Set to false on full refunds."
+    },
+    "description": {
+      "type": "string",
+      "title": "Description",
+      "maxLength": 1000,
+      "description": "Optional notes about this purchase (e.g. support context, refund reason)."
     }
   },
   "required": [

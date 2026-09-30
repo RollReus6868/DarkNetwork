@@ -16,6 +16,12 @@
       "type": "number",
       "title": "Sort Order",
       "default": 0
+    },
+    "description": {
+      "type": "string",
+      "title": "Description",
+      "maxLength": 1000,
+      "description": "Optional supporting text shown with this statistic."
     }
   },
   "required": [
