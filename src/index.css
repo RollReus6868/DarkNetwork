@@ -166,18 +166,6 @@
     border-radius: 5px 5px 0 0;
   }
 
-  /* Featured (starred in Admin) — stronger gold edge + halo so it reads first */
-  .dn-book-featured {
-    border-color: rgba(217, 179, 87, 0.95);
-    box-shadow: 0 22px 48px -18px rgba(60, 35, 8, 0.85), 0 0 0 2px rgba(217, 179, 87, 0.6),
-      0 0 26px -4px rgba(217, 179, 87, 0.4);
-  }
-  .dn-book-featured:hover {
-    border-color: #e6c56a;
-    box-shadow: 0 30px 56px -20px rgba(60, 35, 8, 0.9), 0 0 0 2px rgba(230, 197, 106, 0.8),
-      0 0 34px -2px rgba(230, 197, 106, 0.5);
-  }
-
   /* Rich text coming from the admin editor (Tailwind's reset strips list/heading styles) */
   .dn-prose h2, .dn-prose h3, .dn-prose h4 { font-family: var(--font-heading, "Cormorant Garamond", serif); font-weight: 700; line-height: 1.25; margin: 1.6em 0 0.5em; color: hsl(var(--foreground)); }
   .dn-prose h2 { font-size: 1.6rem; }
