@@ -5,10 +5,10 @@ import { useAuth } from "@/lib/AuthContext";
 
 const NAV_LINKS = [
   { label: "Home", path: "/" },
-  { label: "Bible Studies", path: "/bible-studies" },
-  { label: "Watch", path: "/watch" },
   { label: "Books", path: "/books" },
   { label: "Shop", path: "/shop" },
+  { label: "Bible Studies", path: "/bible-studies" },
+  { label: "Watch", path: "/watch" },
   { label: "About", path: "/about" },
 ];
 
