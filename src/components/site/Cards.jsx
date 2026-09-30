@@ -1,12 +1,9 @@
 import { Link } from "react-router-dom";
 import { Play, Download, Mail } from "lucide-react";
 import { Image } from "@/components/ui/image";
-import { PriceButton } from "@/components/site/PriceButton";
-import { EbookBuyButton } from "@/components/site/EbookBuyButton";
 import { ProductCardWithPreview } from "@/components/site/QuickPreview";
-import { getDiscountPercentage } from "@/lib/pricing";
-import { stripHtml } from "@/lib/gradients";
-import { ProductTextPrice } from "@/components/site/ProductTextPrice";
+import EbookTile from "@/components/site/EbookTile";
+import Ornament from "@/components/site/Ornament";
 
 export function StudyCard({ study }) {
   return (
@@ -66,60 +63,7 @@ export function VideoCard({ video }) {
 }
 
 export function EbookCard({ ebook }) {
-  const discount = getDiscountPercentage(ebook.price, ebook.original_price);
-  return (
-    <div className="group block">
-      <Link to={`/books/${ebook.slug}`}>
-        <div className="relative aspect-[3/4] overflow-hidden bg-secondary rounded mb-4 shadow-lg glow-bronze-group border border-border/60 group-hover:border-primary/60 transition-all duration-500">
-          <Image
-            src={ebook.cover_image}
-            alt={ebook.title}
-            className="w-full h-full transition-transform duration-700 group-hover:scale-105"
-            fittingType="fill"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
-          {discount !== null && (
-            <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg z-10">
-              SALE {discount}%
-            </span>
-          )}
-          <div className="absolute bottom-3 left-3 right-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary bg-black/70 backdrop-blur px-2 py-0.5 rounded">
-              Digital Book
-            </span>
-          </div>
-          {/* Hover popup */}
-          <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end z-20">
-            <p className="text-sm text-foreground/80 line-clamp-3 mb-3">{stripHtml(ebook.description)}</p>
-            {ebook.what_you_learn?.length > 0 && (
-              <div className="mb-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary mb-1.5">What You'll Learn</p>
-                <ul className="space-y-1">
-                  {ebook.what_you_learn.slice(0, 3).map((item, i) => (
-                    <li key={i} className="text-xs text-foreground/70 flex items-start gap-1.5">
-                      <span className="text-primary mt-0.5">•</span>
-                      <span className="line-clamp-1">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-        <ProductTextPrice
-          title={ebook.title}
-          compact
-          showDescription={false}
-          titleClassName="group-hover:text-primary transition-colors"
-        />
-        {ebook.subtitle && <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{ebook.subtitle}</p>}
-      </Link>
-      <div className="mb-3">
-        <PriceButton id={ebook.id} price={ebook.price} originalPrice={ebook.original_price} />
-      </div>
-      <EbookBuyButton ebook={ebook} variant="card" />
-    </div>
-  );
+  return <EbookTile ebook={ebook} />;
 }
 
 export function ProductCard({ product }) {
@@ -154,17 +98,19 @@ export function FreeResourceCard({ resource }) {
   );
 }
 
-export function SectionHeading({ eyebrow, title, subtitle, center = true }) {
+export function SectionHeading({ eyebrow, title, accent, subtitle, center = true, light = false }) {
   return (
     <div className={`mb-10 ${center ? "text-center" : ""}`}>
+      {center && <Ornament light={light} className="mb-5" />}
       {eyebrow && (
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">{eyebrow}</p>
+        <p className={`text-xs font-semibold uppercase tracking-[0.25em] mb-3 ${light ? "text-[#8a6420]" : "text-primary"}`}>{eyebrow}</p>
       )}
-      <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-balance drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
+      <h2 className={`font-heading text-4xl md:text-5xl lg:text-6xl font-medium leading-[1.1] text-balance ${light ? "text-[#2b1d0a]" : "drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]"}`}>
         {title}
+        {accent && <> <em className={`italic ${light ? "text-[#a87f2e]" : "text-primary"}`}>{accent}</em></>}
       </h2>
       {subtitle && (
-        <p className={`text-muted-foreground mt-4 text-lg ${center ? "max-w-2xl mx-auto" : "max-w-2xl"}`}>
+        <p className={`mt-4 text-lg ${light ? "text-[#2b1d0a]/70" : "text-muted-foreground"} ${center ? "max-w-2xl mx-auto" : "max-w-2xl"}`}>
           {subtitle}
         </p>
       )}

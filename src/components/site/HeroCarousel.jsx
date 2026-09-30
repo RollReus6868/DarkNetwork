@@ -46,10 +46,11 @@ export default function HeroCarousel({ slides = [] }) {
               <Image src={slide.image} alt={slide.title} className="w-full h-full object-cover" fittingType="fill" />
               <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-background" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
+              <div className="absolute inset-0 bg-[radial-gradient(60%_60%_at_50%_35%,rgba(143,29,36,0.45),transparent_70%)]" />
               <div className="absolute inset-0 z-10 flex items-center justify-center">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center pt-20 pb-16">
                   {slide.eyebrow && (
-                    <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.3em] text-primary mb-5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">{slide.eyebrow}</p>
+                    <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.3em] text-[#e6c56a] mb-5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">{slide.eyebrow}</p>
                   )}
                   <h1 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.05] text-white text-balance mb-6 drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)]">
                     {slide.title}
@@ -91,7 +92,7 @@ export default function HeroCarousel({ slides = [] }) {
 function CtaButton({ label, url, primary }) {
   const isInternal = url && url.startsWith("/");
   const cls = primary
-    ? "bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-all flex items-center justify-center gap-2 glow-bronze"
+    ? "btn-gold px-8 py-4 rounded uppercase text-sm tracking-wide flex items-center justify-center gap-2"
     : "border border-foreground/30 text-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-foreground hover:text-background transition-all flex items-center justify-center gap-2 glow-bronze";
   const icon = primary ? <BookOpen className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />;
   if (isInternal) {

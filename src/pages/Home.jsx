@@ -66,31 +66,35 @@ export default function Home() {
               className="w-full h-full object-cover"
               fittingType="fill"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-background" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-background" />
+            <div className="absolute inset-0 bg-[radial-gradient(60%_60%_at_50%_35%,rgba(143,29,36,0.55),transparent_70%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(45%_40%_at_50%_30%,rgba(246,216,115,0.16),transparent_65%)]" />
           </div>
           <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center pt-20 pb-16">
-            <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.3em] text-primary mb-5">
+            <p className="flex items-center justify-center gap-3 text-xs sm:text-sm font-semibold uppercase tracking-[0.3em] text-[#e6c56a] mb-6">
+              <span className="h-px w-8 sm:w-14 bg-[#e6c56a]/60" />
               Cinematic Bible Discovery
+              <span className="h-px w-8 sm:w-14 bg-[#e6c56a]/60" />
             </p>
-            <h1 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.05] text-white text-balance mb-6 drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)]">
-              Discover the Bible<br />Like Never Before
+            <h1 className="font-heading font-semibold text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.05] text-[#fbf1dc] text-balance mb-6 drop-shadow-[0_2px_16px_rgba(0,0,0,0.75)]">
+              Discover the Bible
+              <span className="block italic font-medium bg-gradient-to-b from-[#f0d78a] to-[#b58a30] bg-clip-text text-transparent">Like Never Before</span>
             </h1>
-            <p className="text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-lg md:text-xl text-foreground/85 max-w-2xl mx-auto mb-10 leading-relaxed">
               Explore powerful biblical stories, historical insights, videos, studies and resources
               designed to help you understand Scripture more deeply.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/bible-studies"
-                className="bg-primary text-primary-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 transition-all flex items-center justify-center gap-2 glow-bronze"
+                className="btn-gold px-8 py-4 rounded uppercase text-sm tracking-wide flex items-center justify-center gap-2"
               >
                 <BookOpen className="w-5 h-5" />
                 Explore Bible Studies
               </Link>
               <Link
                 to="/books"
-                className="border border-foreground/30 text-foreground px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-foreground hover:text-background transition-all flex items-center justify-center gap-2 glow-bronze"
+                className="border border-[#e6c56a]/60 text-[#fbf1dc] px-8 py-4 rounded font-semibold uppercase text-sm tracking-wide hover:bg-[#e6c56a] hover:text-[#241406] transition-all flex items-center justify-center gap-2"
               >
                 Shop Books
                 <ArrowRight className="w-5 h-5" />
@@ -106,18 +110,31 @@ export default function Home() {
 
       {/* SECTION 3 — EBOOK SLIDER */}
       {sliderEbooks.length > 0 && (
-        <section className="py-20 lg:py-28 grain-overlay">
+        <section className="dn-cream py-20 lg:py-28 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">Digital Library</p>
-                <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">Featured Ebooks</h2>
-              </div>
-              <Link to="/books" className="text-primary font-medium uppercase text-sm tracking-wide hover:underline flex items-center gap-1">
+            <SectionHeading
+              light
+              eyebrow="Digital Library"
+              title="Featured"
+              accent="Ebooks"
+              subtitle="Deep-dive Bible study guides you can read on any device — yours the moment you check out."
+            />
+
+            <ul className="flex flex-wrap justify-center gap-x-10 gap-y-3 mb-12 text-sm text-[#2b1d0a]/75 font-heading italic text-base">
+              {["Instant download", "Secure checkout", "Read on any device"].map((f) => (
+                <li key={f} className="flex items-center gap-2">
+                  <span className="text-[#c9a24a]" aria-hidden="true">✦</span>{f}
+                </li>
+              ))}
+            </ul>
+
+            <EbookSlider ebooks={sliderEbooks} />
+
+            <div className="text-center mt-12">
+              <Link to="/books" className="btn-gold inline-flex items-center gap-2 px-8 py-3.5 rounded uppercase text-sm tracking-wide">
                 View All Books <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            <EbookSlider ebooks={sliderEbooks} />
           </div>
         </section>
       )}

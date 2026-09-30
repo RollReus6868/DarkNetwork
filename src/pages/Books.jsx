@@ -22,18 +22,20 @@ export default function Books() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {loading ? (
-            <div className="text-center text-muted-foreground py-20">Loading books…</div>
-          ) : ebooks.length === 0 ? (
-            <div className="text-center text-muted-foreground py-20">Books coming soon.</div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-              {ebooks.map((e) => (
-                <EbookCard key={e.id} ebook={e} />
-              ))}
-            </div>
-          )}
+        <div className="dn-cream">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
+            {loading ? (
+              <div className="text-center text-[#2b1d0a]/60 py-20">Loading books…</div>
+            ) : ebooks.length === 0 ? (
+              <div className="text-center text-[#2b1d0a]/60 py-20">Books coming soon.</div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+                {ebooks.map((e) => (
+                  <EbookCard key={e.id} ebook={e} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>
