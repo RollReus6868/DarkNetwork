@@ -88,3 +88,14 @@ export const RESOURCE_FIELDS = [
 ];
 
 export const RESOURCE_DEFAULTS = { resource_type: "Study Guide", requires_email: false, status: "draft" };
+
+export const RESOURCE_IMPORT_EXAMPLE = JSON.stringify([
+  {
+    title: "Ví dụ: 30-Day Psalms Reading Plan",
+    resource_type: "Reading Plan",
+    description: "Mô tả tài liệu.",
+    download_url: "https://example.com/file.pdf",
+    requires_email: false,
+    status: "draft",
+  },
+], null, 2);

@@ -6,7 +6,7 @@ import EntityManager from "@/components/admin/EntityManager";
 import {
   PRODUCT_FIELDS, PRODUCT_DEFAULTS, PRODUCT_IMPORT_EXAMPLE,
   EBOOK_FIELDS, EBOOK_DEFAULTS, EBOOK_IMPORT_EXAMPLE,
-  RESOURCE_FIELDS, RESOURCE_DEFAULTS,
+  RESOURCE_FIELDS, RESOURCE_DEFAULTS, RESOURCE_IMPORT_EXAMPLE,
 } from "@/components/admin/adminConfig";
 
 const TABS = [
@@ -95,6 +95,7 @@ export default function Admin() {
           defaults={RESOURCE_DEFAULTS}
           getThumb={(r) => r.cover_image}
           getSubtitle={(r) => `${r.resource_type}${r.download_url ? "" : " · thiếu file tải"}`}
+          importExample={RESOURCE_IMPORT_EXAMPLE}
         />
       )}
       {tab === "hero" && <HeroSlidesManager />}
