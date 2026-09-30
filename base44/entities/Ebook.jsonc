@@ -64,6 +64,26 @@
       "title": "Secure Private File URI",
       "description": "Private file URI (from UploadPrivateFile). Used for paid ebooks \u2014 downloads are gated and served via short-lived signed URLs only."
     },
+    "bonus_title": {
+      "type": "string",
+      "title": "Bonus Gift Title",
+      "description": "Name of the free mini ebook bundled with this purchase."
+    },
+    "bonus_description": {
+      "type": "string",
+      "title": "Bonus Gift Description",
+      "description": "Short pitch shown with the bonus gift on the ebook page."
+    },
+    "bonus_cover_image": {
+      "type": "string",
+      "title": "Bonus Gift Cover Image URL",
+      "format": "url"
+    },
+    "bonus_secure_file_uri": {
+      "type": "string",
+      "title": "Bonus Gift Private File URI",
+      "description": "Private file URI (from UploadPrivateFile) for the bundled mini ebook. Downloads are gated exactly like the main file."
+    },
     "lemon_squeezy_variant_id": {
       "type": "string",
       "title": "Lemon Squeezy Variant ID",

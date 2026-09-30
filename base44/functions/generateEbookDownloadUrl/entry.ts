@@ -8,6 +8,8 @@ export default async function(req) {
 
     const body = await req.json();
     const ebookId = body?.ebook_id;
+    // "main" = the purchased ebook, "bonus" = the bundled mini ebook gift.
+    const file = body?.file === 'bonus' ? 'bonus' : 'main';
     if (!ebookId) return Response.json({ error: 'Missing ebook_id' }, { status: 400 });
 
     // Verify the authenticated user owns this ebook with download access.
@@ -23,13 +25,14 @@ export default async function(req) {
 
     // Fetch the ebook (service role so we can read the private file URI field).
     const ebook = await base44.asServiceRole.entities.Ebook.get(ebookId);
-    if (!ebook || !ebook.secure_file_uri) {
+    const fileUri = file === 'bonus' ? ebook?.bonus_secure_file_uri : ebook?.secure_file_uri;
+    if (!ebook || !fileUri) {
       return Response.json({ error: 'Download file is not available for this ebook' }, { status: 404 });
     }
 
     // Generate a short-lived signed URL for the private file.
     const result = await base44.asServiceRole.integrations.Core.CreateFileSignedUrl({
-      file_uri: ebook.secure_file_uri,
+      file_uri: fileUri,
       expires_in: 120
     });
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { LogOut, Download, BookOpen, ArrowRight, Loader2 } from "lucide-react";
+import { LogOut, Download, BookOpen, ArrowRight, Loader2, Gift } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import Seo from "@/components/site/Seo";
@@ -48,11 +48,12 @@ export default function Account() {
     return () => { active = false; };
   }, [user?.id]);
 
-  const handleDownload = async (ebookId) => {
-    setDownloadingId(ebookId);
+  const handleDownload = async (ebookId, file = "main") => {
+    setDownloadingId(`${ebookId}:${file}`);
     try {
       const res = await base44.functions.invoke("generateEbookDownloadUrl", {
         ebook_id: ebookId,
+        file,
       });
       const signedUrl = res?.data?.signed_url || res?.signed_url;
       if (signedUrl) {
@@ -156,18 +157,34 @@ export default function Account() {
                         </p>
                       )}
                     </div>
-                    <button
-                      onClick={() => handleDownload(ebook.id)}
-                      disabled={downloadingId === ebook.id}
-                      className="flex items-center gap-2 text-primary border border-primary/40 px-4 py-2.5 rounded text-sm font-medium uppercase tracking-wide hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                    >
-                      {downloadingId === ebook.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Download className="w-4 h-4" />
+                    <div className="flex flex-col gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleDownload(ebook.id)}
+                        disabled={downloadingId === `${ebook.id}:main`}
+                        className="flex items-center justify-center gap-2 text-primary border border-primary/40 px-4 py-2.5 rounded text-sm font-medium uppercase tracking-wide hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      >
+                        {downloadingId === `${ebook.id}:main` ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4" />
+                        )}
+                        Download
+                      </button>
+                      {ebook.bonus_secure_file_uri && (
+                        <button
+                          onClick={() => handleDownload(ebook.id, "bonus")}
+                          disabled={downloadingId === `${ebook.id}:bonus`}
+                          className="flex items-center justify-center gap-2 text-[#e6c56a] border border-[#e6c56a]/50 px-4 py-2.5 rounded text-sm font-medium uppercase tracking-wide hover:bg-[#e6c56a] hover:text-[#241406] transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          {downloadingId === `${ebook.id}:bonus` ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Gift className="w-4 h-4" />
+                          )}
+                          Bonus gift
+                        </button>
                       )}
-                      Download
-                    </button>
+                    </div>
                   </div>
                 );
               })}

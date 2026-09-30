@@ -8,6 +8,7 @@ import { useSiteData } from "@/hooks/useSiteData";
 import { Image } from "@/components/ui/image";
 import { addToCart } from "@/lib/cart";
 import { EbookBuyButton } from "@/components/site/EbookBuyButton";
+import BonusGift from "@/components/site/BonusGift";
 import { ProductTextPrice } from "@/components/site/ProductTextPrice";
 
 export default function EbookDetail() {
@@ -99,6 +100,8 @@ export default function EbookDetail() {
               )}
               <span className="text-sm text-muted-foreground uppercase tracking-wide">Instant Download</span>
             </div>
+
+            <BonusGift ebook={ebook} />
 
             <div className="flex flex-col gap-3 mt-6">
               <EbookBuyButton ebook={ebook} variant="detail" />
