@@ -8,7 +8,7 @@ import EbookTile from "@/components/site/EbookTile";
 // rest are rendered smaller so the featured tile reads as the hero of the row.
 const SLIDE_BASE = "min-w-0 pl-4 md:pl-6";
 const SLIDE_FEATURED = "flex-[0_0_80%] sm:flex-[0_0_50%] md:flex-[0_0_44%] lg:flex-[0_0_33%]";
-const SLIDE_COMPACT = "flex-[0_0_62%] sm:flex-[0_0_38%] md:flex-[0_0_32%] lg:flex-[0_0_24%]";
+const SLIDE_COMPACT = "flex-[0_0_70%] sm:flex-[0_0_44%] md:flex-[0_0_39%] lg:flex-[0_0_29%]";
 
 export default function EbookSlider({ ebooks = [] }) {
   const [reducedMotion, setReducedMotion] = useState(false);

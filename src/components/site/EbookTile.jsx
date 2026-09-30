@@ -29,7 +29,7 @@ export default function EbookTile({ ebook, className = "", compact = false }) {
             fittingType="fill"
           />
           {isFeatured && (
-            <span className="absolute top-3 left-3 z-10 bg-[#8f1d24] text-white text-[10px] font-bold uppercase tracking-[0.16em] px-2.5 py-1 rounded-sm shadow-md">
+            <span className="absolute top-3 left-3 z-10 bg-[#e02424] text-white text-[10px] font-bold uppercase tracking-[0.16em] px-2.5 py-1 rounded-sm shadow-md">
               Featured
             </span>
           )}
