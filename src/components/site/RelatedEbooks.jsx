@@ -1,43 +1,119 @@
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
+import useEmblaCarousel from "embla-carousel-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import { EbookBuyButton } from "@/components/site/EbookBuyButton";
 import { formatPrice, getDiscountPercentage } from "@/lib/pricing";
 
+const SLIDE = "min-w-0 flex-[0_0_72%] sm:flex-[0_0_46%] md:flex-[0_0_34%] lg:flex-[0_0_27%] pl-4 sm:pl-6";
+
 export default function RelatedEbooks({ ebooks = [] }) {
-  if (ebooks.length === 0) return null;
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", containScroll: "trimSnaps" });
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(mq.matches);
+    const handler = () => setReducedMotion(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  const updateButtons = useCallback(() => {
+    if (!emblaApi) return;
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    updateButtons();
+    emblaApi.on("select", updateButtons);
+    emblaApi.on("reInit", updateButtons);
+    return () => {
+      emblaApi.off("select", updateButtons);
+      emblaApi.off("reInit", updateButtons);
+    };
+  }, [emblaApi, updateButtons]);
+
+  if (!ebooks || ebooks.length === 0) return null;
+
+  const arrowCls =
+    "hidden md:flex absolute top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full btn-gold items-center justify-center transition-opacity duration-300 disabled:opacity-0 disabled:pointer-events-none";
 
   return (
     <section className="py-14 bg-secondary/30 border-y border-border">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <h2 className="font-heading text-2xl font-bold mb-1">Các ebook khác</h2>
         <p className="text-sm text-muted-foreground mb-6">Tiếp tục hành trình với những quyển liên quan.</p>
-        <div className="border border-border rounded overflow-hidden divide-y divide-border bg-card/40">
-          {ebooks.map((ebook) => (
-            <RelatedEbookRow key={ebook.id} ebook={ebook} />
-          ))}
-        </div>
+
+        {reducedMotion ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+            {ebooks.map((ebook) => (
+              <RelatedEbookCard key={ebook.id} ebook={ebook} />
+            ))}
+          </div>
+        ) : (
+          <div className="relative">
+            <button
+              onClick={() => emblaApi?.scrollPrev()}
+              disabled={!canScrollPrev}
+              aria-label="Ebook trước"
+              className={`${arrowCls} -left-5`}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => emblaApi?.scrollNext()}
+              disabled={!canScrollNext}
+              aria-label="Ebook tiếp theo"
+              className={`${arrowCls} -right-5`}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+
+            <div
+              ref={emblaRef}
+              className="overflow-hidden py-4 -my-4"
+              role="region"
+              aria-roledescription="carousel"
+              aria-label="Các ebook khác"
+            >
+              <div className="flex items-stretch">
+                {ebooks.map((ebook) => (
+                  <div key={ebook.id} className={SLIDE}>
+                    <RelatedEbookCard ebook={ebook} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
-function RelatedEbookRow({ ebook }) {
+function RelatedEbookCard({ ebook }) {
   const discount = getDiscountPercentage(ebook.price, ebook.original_price);
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 transition-colors hover:bg-secondary/40">
-      <Link to={`/books/${ebook.slug}`} className="group flex gap-4 flex-1 min-w-0">
-        <div className="w-16 h-[5.5rem] sm:w-20 sm:h-28 flex-shrink-0 overflow-hidden rounded border border-border">
+    <div className="flex flex-col h-full border border-border rounded overflow-hidden bg-card/40 transition-colors hover:border-primary/60">
+      <Link to={`/books/${ebook.slug}`} className="group flex flex-col flex-1 min-w-0">
+        <div className="aspect-[5/7] overflow-hidden bg-secondary">
           <Image src={ebook.cover_image} alt={ebook.title} className="w-full h-full" fittingType="fill" />
         </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="font-heading text-lg sm:text-xl font-semibold leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+        <div className="flex flex-col flex-1 p-4">
+          <h3 className="font-heading text-lg font-semibold leading-tight line-clamp-2 group-hover:text-primary transition-colors">
             {ebook.title}
           </h3>
           {ebook.subtitle && (
-            <p className="text-xs italic text-muted-foreground mt-1 line-clamp-1">{ebook.subtitle}</p>
+            <p className="text-xs italic text-muted-foreground mt-1 line-clamp-2">{ebook.subtitle}</p>
           )}
-          <div className="flex items-baseline flex-wrap gap-x-2.5 gap-y-1 mt-2.5">
+          <div className="flex items-baseline flex-wrap gap-x-2.5 gap-y-1 mt-auto pt-3">
             <span className="font-heading text-xl font-bold text-primary leading-none">{formatPrice(ebook.price)}</span>
             {discount !== null && (
               <>
@@ -48,7 +124,7 @@ function RelatedEbookRow({ ebook }) {
           </div>
         </div>
       </Link>
-      <div className="sm:w-44 flex-shrink-0">
+      <div className="px-4 pb-4">
         <EbookBuyButton ebook={ebook} variant="row" />
       </div>
     </div>
