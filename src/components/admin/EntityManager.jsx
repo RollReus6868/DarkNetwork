@@ -423,7 +423,14 @@ function FieldInput({ field: f, value, onChange, onUpload, uploading, form }) {
       return (
         <div>
           {label}
-          {value && <p className="text-xs text-green-500 mb-2 break-all">Đã có file: {String(value).split("/").pop()}</p>}
+          {value && (
+            <div className="flex items-start gap-3 mb-2">
+              <p className="text-xs text-green-500 break-all flex-1">Đã có file: {String(value).split("/").pop()}</p>
+              <button type="button" onClick={() => onChange("")} title="Xoá file đã tải lên" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-400 flex-shrink-0">
+                <Trash2 className="w-3.5 h-3.5" /> Xoá file
+              </button>
+            </div>
+          )}
           <label className="flex items-center gap-2 border border-dashed border-border rounded px-4 py-2.5 cursor-pointer hover:border-primary text-sm text-muted-foreground hover:text-primary">
             {uploading === f.key ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang tải lên…</> : <><Upload className="w-4 h-4" /> {value ? "Thay file" : "Tải file lên (PDF/EPUB/ZIP)"}</>}
             <input type="file" accept=".pdf,.epub,.zip" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) onUpload(f.key, file); e.target.value = ""; }} />
@@ -436,7 +443,14 @@ function FieldInput({ field: f, value, onChange, onUpload, uploading, form }) {
       return (
         <div>
           {label}
-          {value && <p className="text-xs text-green-500 flex items-center gap-1 mb-2 break-all"><Lock className="w-3 h-3 flex-shrink-0" /> Đã có file riêng tư: {String(value).split("/").pop()}</p>}
+          {value && (
+            <div className="flex items-start gap-3 mb-2">
+              <p className="text-xs text-green-500 flex items-center gap-1 break-all flex-1"><Lock className="w-3 h-3 flex-shrink-0" /> Đã có file riêng tư: {String(value).split("/").pop()}</p>
+              <button type="button" onClick={() => onChange("")} title="Xoá file đã tải lên" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-400 flex-shrink-0">
+                <Trash2 className="w-3.5 h-3.5" /> Xoá file
+              </button>
+            </div>
+          )}
           <label className="flex items-center gap-2 border border-dashed border-border rounded px-4 py-2.5 cursor-pointer hover:border-primary text-sm text-muted-foreground hover:text-primary">
             {uploading === f.key ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang tải lên…</> : <><Upload className="w-4 h-4" /> {value ? "Thay file (PDF/EPUB)" : "Tải file ebook (PDF/EPUB)"}</>}
             <input type="file" accept=".pdf,.epub,.zip" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) onUpload(f.key, file, { isPrivate: true }); e.target.value = ""; }} />
