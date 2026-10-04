@@ -105,6 +105,33 @@ export function EbookBuyButton({ ebook, variant = "card" }) {
     );
   }
 
+  // row variant — used in the "Các ebook khác" list on a dark background
+  if (variant === "row") {
+    return (
+      <div className="flex gap-2 w-full">
+        <button
+          onClick={handleBuyNow}
+          disabled={loading || verifying}
+          className="btn-gold flex-1 px-4 py-2.5 rounded uppercase text-xs tracking-wide flex items-center justify-center gap-1.5 disabled:opacity-50"
+        >
+          {loading || verifying ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <><Zap className="w-3.5 h-3.5" /> Buy Now</>
+          )}
+        </button>
+        <button
+          onClick={handleAddToCart}
+          aria-label="Thêm vào giỏ"
+          title="Thêm vào giỏ"
+          className="p-2.5 border border-border rounded text-muted-foreground hover:text-primary hover:border-primary transition-colors glow-bronze"
+        >
+          {added ? <Check className="w-4 h-4 text-primary" /> : <ShoppingCart className="w-4 h-4" />}
+        </button>
+      </div>
+    );
+  }
+
   // card variant — compact
   return (
     <div className="flex items-center gap-2">

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Image } from "@/components/ui/image";
 import { useToast } from "@/components/ui/use-toast";
+import EbookPicker from "@/components/admin/EbookPicker";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import {
@@ -14,6 +15,7 @@ import {
  * fields: [{ key, label, type, required, options, placeholder, hint, half }]
  *   type: text | number | select | boolean | textarea | richtext | url
  *         | image | images | stringlist | faqlist | privatefile | publicfile
+ *         | ebookpicker
  */
 
 export function slugify(str = "") {
@@ -409,6 +411,14 @@ function FieldInput({ field: f, value, onChange, onUpload, uploading, form }) {
         </div>
       );
     }
+    case "ebookpicker":
+      return (
+        <div>
+          {label}
+          <EbookPicker value={value} onChange={onChange} selfId={form?.id} />
+          {hint}
+        </div>
+      );
     case "publicfile":
       return (
         <div>
@@ -485,7 +495,7 @@ function normalizeRecord(raw, fields, defaults) {
     if (v === undefined || v === "") continue;
     if (f.type === "number") v = Number(v);
     else if (f.type === "boolean") v = v === true || /^(true|1|yes|x)$/i.test(String(v));
-    else if (f.type === "images" || f.type === "stringlist") {
+    else if (f.type === "images" || f.type === "stringlist" || f.type === "ebookpicker") {
       v = Array.isArray(v) ? v : String(v).split(/\s*(?:\||\n)\s*/).filter(Boolean);
     } else if (f.type === "richtext" && typeof v === "string" && !/<[a-z][\s\S]*>/i.test(v)) {
       v = v.split(/\n{2,}/).map((p) => `<p>${p.trim().replace(/\n/g, "<br>")}</p>`).join("");

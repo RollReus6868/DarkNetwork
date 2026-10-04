@@ -89,6 +89,14 @@
       "title": "Lemon Squeezy Variant ID",
       "description": "The Lemon Squeezy variant ID for this ebook. Required for checkout. Find it in your Lemon Squeezy product dashboard."
     },
+    "related_ebook_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Related Ebooks",
+      "description": "Ebooks hand-picked in Admin to be recommended at the bottom of this book's page. The chosen order is the priority order. If left empty, books from the same series (same title, different Part/Book/Volume) are suggested first."
+    },
     "related_video_id": {
       "type": "string",
       "title": "Related Video ID"

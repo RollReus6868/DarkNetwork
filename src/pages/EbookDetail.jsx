@@ -9,6 +9,8 @@ import { Image } from "@/components/ui/image";
 import { addToCart } from "@/lib/cart";
 import { EbookBuyButton } from "@/components/site/EbookBuyButton";
 import BonusGift from "@/components/site/BonusGift";
+import RelatedEbooks from "@/components/site/RelatedEbooks";
+import { getRelatedEbooks } from "@/lib/relatedEbooks";
 import { ProductTextPrice } from "@/components/site/ProductTextPrice";
 
 export default function EbookDetail() {
@@ -38,6 +40,7 @@ export default function EbookDetail() {
 
   const relatedVideo = videos.find((v) => v.id === ebook.related_video_id);
   const relatedStudies = studies.filter((s) => ebook.related_study_ids?.includes(s.id)).slice(0, 3);
+  const otherEbooks = getRelatedEbooks(ebook, ebooks);
 
   const handleAdd = () => {
     addToCart({ id: ebook.id, type: "ebook", title: ebook.title, price: ebook.price, image: ebook.cover_image, slug: ebook.slug });
@@ -213,6 +216,9 @@ export default function EbookDetail() {
           </div>
         </section>
       )}
+
+      {/* Other ebooks */}
+      <RelatedEbooks ebooks={otherEbooks} />
 
       {/* Final CTA */}
       <section className="py-16 bg-black border-t border-border text-center">

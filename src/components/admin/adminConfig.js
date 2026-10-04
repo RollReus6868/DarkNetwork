@@ -44,13 +44,14 @@ export const EBOOK_FIELDS = [
   { key: "bonus_description", label: "Mô tả quà tặng kèm", type: "textarea" },
   { key: "bonus_secure_file_uri", label: "File ebook tặng kèm (riêng tư)", type: "privatefile", hint: "Chỉ người đã mua mới tải được. Hiện cùng nút tải trong mục My Account." },
   { key: "lemon_squeezy_variant_id", label: "Lemon Squeezy Variant ID", type: "text", hint: "Bắt buộc để nút Buy Now hoạt động. Lấy trong dashboard Lemon Squeezy." },
+  { key: "related_ebook_ids", label: "Sách liên quan", type: "ebookpicker", hint: "Gợi ý ở cuối trang ebook này. Thứ tự chọn là thứ tự ưu tiên. Để trống thì hệ thống tự gợi ý các quyển cùng bộ (cùng tên, khác Part)." },
   { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
   { key: "meta_description", label: "Mô tả SEO (≤160 ký tự)", type: "textarea" },
   status,
   { key: "featured", label: "Hiển thị nổi bật ở trang chủ", type: "boolean", half: true },
 ];
 
-export const EBOOK_DEFAULTS = { price: 0, status: "draft", featured: false, what_you_learn: [], preview_images: [], faq: [] };
+export const EBOOK_DEFAULTS = { price: 0, status: "draft", featured: false, what_you_learn: [], preview_images: [], faq: [], related_ebook_ids: [] };
 
 export const PRODUCT_IMPORT_EXAMPLE = JSON.stringify([
   {
