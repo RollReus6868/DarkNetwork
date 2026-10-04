@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import AutoScroll from "embla-carousel-auto-scroll";
 import { Image } from "@/components/ui/image";
+import { loopSlides } from "@/lib/carouselLoop";
 import { EbookBuyButton } from "@/components/site/EbookBuyButton";
 import { formatPrice, getDiscountPercentage } from "@/lib/pricing";
 
@@ -10,7 +12,10 @@ const SLIDE = "min-w-0 flex-[0_0_72%] sm:flex-[0_0_46%] md:flex-[0_0_34%] lg:fle
 
 export default function RelatedEbooks({ ebooks = [] }) {
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", containScroll: "trimSnaps" });
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: "start" },
+    [AutoScroll({ playOnInit: true, stopOnInteraction: false, stopOnMouseEnter: true, speed: 0.8 })]
+  );
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
 
@@ -40,6 +45,9 @@ export default function RelatedEbooks({ ebooks = [] }) {
   }, [emblaApi, updateButtons]);
 
   if (!ebooks || ebooks.length === 0) return null;
+
+  // Nhân bản danh sách để vòng lặp không đứt khi chỉ có vài quyển liên quan
+  const slides = loopSlides(ebooks);
 
   const arrowCls =
     "hidden md:flex absolute top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full btn-gold items-center justify-center transition-opacity duration-300 disabled:opacity-0 disabled:pointer-events-none";
@@ -83,8 +91,8 @@ export default function RelatedEbooks({ ebooks = [] }) {
               aria-label="Các ebook khác"
             >
               <div className="flex items-stretch">
-                {ebooks.map((ebook) => (
-                  <div key={ebook.id} className={SLIDE}>
+                {slides.map(({ item: ebook, key }) => (
+                  <div key={key} className={SLIDE}>
                     <RelatedEbookCard ebook={ebook} />
                   </div>
                 ))}

@@ -7,7 +7,8 @@ import { buildEbookRows } from "@/lib/ebookGroups";
 import HeroCarousel from "@/components/site/HeroCarousel";
 import VideoLibrary from "@/components/site/VideoLibrary";
 import Testimonials from "@/components/site/Testimonials";
-import { StudyCard, VideoCard, ProductCard, SectionHeading } from "@/components/site/Cards";
+import { StudyCard, VideoCard, SectionHeading } from "@/components/site/Cards";
+import ProductSlider from "@/components/site/ProductSlider";
 import { useSiteData } from "@/hooks/useSiteData";
 import { Image } from "@/components/ui/image";
 
@@ -164,11 +165,7 @@ export default function Home() {
           ) : featuredProducts.length === 0 ? (
             <div className="text-center text-muted-foreground py-12">Products coming soon.</div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {featuredProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
+            <ProductSlider products={featuredProducts} />
           )}
         </div>
       </section>

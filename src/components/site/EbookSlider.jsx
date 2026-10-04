@@ -3,6 +3,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import AutoScroll from "embla-carousel-auto-scroll";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import EbookTile from "@/components/site/EbookTile";
+import { loopSlides } from "@/lib/carouselLoop";
 
 const SLIDE = "min-w-0 pl-4 md:pl-6 flex-[0_0_80%] sm:flex-[0_0_50%] md:flex-[0_0_44%] lg:flex-[0_0_33%]";
 // Sách lẻ theo từng part hiển thị nhỏ hơn khoảng 30% cho gọn hàng.
@@ -44,6 +45,9 @@ export default function EbookSlider({ title, ebooks = [], compact = false }) {
   }, [emblaApi, updateButtons]);
 
   if (!ebooks || ebooks.length === 0) return null;
+
+  // Nhân bản danh sách để vòng lặp không đứt khi hàng có ít sách
+  const slides = loopSlides(ebooks);
 
   const heading = (
     <div className="flex items-center gap-4 mb-6">
@@ -102,8 +106,8 @@ export default function EbookSlider({ title, ebooks = [], compact = false }) {
           aria-label={title}
         >
           <div className="flex items-center">
-            {ebooks.map((ebook) => (
-              <div key={ebook.id} className={compact ? SLIDE_COMPACT : SLIDE}>
+            {slides.map(({ item: ebook, key }) => (
+              <div key={key} className={compact ? SLIDE_COMPACT : SLIDE}>
                 <EbookTile ebook={ebook} compact={compact} />
               </div>
             ))}
