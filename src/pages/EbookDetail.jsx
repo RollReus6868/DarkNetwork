@@ -127,6 +127,9 @@ export default function EbookDetail() {
         </div>
       </section>
 
+      {/* Other ebooks */}
+      <RelatedEbooks ebooks={otherEbooks} />
+
       {/* What You Will Learn */}
       {ebook.what_you_learn?.length > 0 && (
         <section className="bg-secondary/30 border-y border-border py-14">
@@ -216,9 +219,6 @@ export default function EbookDetail() {
           </div>
         </section>
       )}
-
-      {/* Other ebooks */}
-      <RelatedEbooks ebooks={otherEbooks} />
 
       {/* Final CTA */}
       <section className="py-16 bg-black border-t border-border text-center">
