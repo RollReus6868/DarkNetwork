@@ -52,8 +52,13 @@ export default async function(req) {
               }
             },
             product_options: {
+              // One shared Lemon Squeezy product can serve every ebook: the name shown at
+              // checkout and on the receipt always comes from this site's database.
+              name: ebook.title,
               redirect_url: `${origin}/books/${ebook.slug}`
-            }
+            },
+            // ...and so does the price (in cents), so the amount charged always matches the page.
+            ...(Number(ebook.price) > 0 ? { custom_price: Math.round(Number(ebook.price) * 100) } : {})
           },
           relationships: {
             store: {

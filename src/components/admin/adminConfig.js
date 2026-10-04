@@ -43,7 +43,7 @@ export const EBOOK_FIELDS = [
   { key: "bonus_cover_image", label: "Ảnh bìa quà tặng kèm", type: "image", half: true },
   { key: "bonus_description", label: "Mô tả quà tặng kèm", type: "textarea" },
   { key: "bonus_secure_file_uri", label: "File ebook tặng kèm (riêng tư)", type: "privatefile", hint: "Chỉ người đã mua mới tải được. Hiện cùng nút tải trong mục My Account." },
-  { key: "lemon_squeezy_variant_id", label: "Lemon Squeezy Variant ID", type: "text", hint: "Bắt buộc để nút Buy Now hoạt động. Lấy trong dashboard Lemon Squeezy." },
+  { key: "lemon_squeezy_variant_id", label: "Lemon Squeezy Variant ID", type: "text", hint: "Bắt buộc để nút Buy Now hoạt động. Nhiều ebook có thể dùng chung một Variant ID: tên và giá lúc thanh toán lấy theo ebook này." },
   { key: "related_ebook_ids", label: "Sách liên quan", type: "ebookpicker", hint: "Gợi ý ở cuối trang ebook này. Thứ tự chọn là thứ tự ưu tiên. Để trống thì hệ thống tự gợi ý các quyển cùng bộ (cùng tên, khác Part)." },
   { key: "edition_type", label: "Loại sách", type: "select", options: ["auto", "full", "part"], half: true, hint: "Xếp sách vào hàng nào ở trang chủ. auto: tự đoán theo tên (tên có \"Part N\" là sách theo part). full: bản đầy đủ. part: sách lẻ theo từng part của bộ." },
   { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
