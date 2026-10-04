@@ -1,62 +1,39 @@
-# Base44 Project
+# Dark Network website
 
-Use this repository to run and edit the app locally, then publish changes back through Base44.
+React + Vite site. Backend: **Supabase** (database, sign-in, file storage, edge functions).
+Hosting: any static host (Cloudflare Pages). Payments: Lemon Squeezy. Print on demand: Spring.
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+## Layout
 
-## Prerequisites
+- `src/` — the site. `src/api/base44Client.js` is the only file that talks to the backend.
+- `supabase/migrations/` — database tables and access rules (row level security).
+- `supabase/functions/` — server code: checkout, payment webhook, ebook download links, chat,
+  `toolApi` (entry point of the DN Product Studio desktop tool).
+- `tools/local-stack/` — local stand-in backend + end-to-end tests.
 
-1. Clone the repository using the project's Git URL.
-2. Navigate to the project directory.
-3. Install dependencies: `npm install`.
-4. Install the Base44 CLI: `npm install -g base44@latest`.
-5. Install [Deno](https://docs.deno.com/runtime/getting_started/installation/) — the local Base44 backend runs on it.
-
-Run `base44 --help` (or see the [CLI reference](https://docs.base44.com/developers/references/cli/commands/introduction)) for the full command surface.
-
-## Run Locally
-
-Three commands, from the project root:
+## Run locally
 
 ```bash
-base44 login   # one-time per machine
-base44 link    # one-time per clone
-base44 dev     # local backend + frontend together
+npm install
+cp .env.example .env.local     # fill in the Supabase URL and anon key
+npm run dev
 ```
 
-Open the frontend URL that `base44 dev` prints (typically `http://localhost:5173`).
+## Deploy
 
-Notes:
+- **Site**: Cloudflare Pages builds this repo (`npm run build`, output `dist`) with the three
+  `VITE_…` variables from `.env.example`. `public/_redirects` sends every path to the app.
+- **Database**: apply the files in `supabase/migrations/` in order.
+- **Functions**: deploy every folder in `supabase/functions/` (JWT verification off, see
+  `supabase/config.toml`; each function checks its caller itself).
+- **Secrets** (Supabase > Edge Functions > Secrets): `LEMON_SQUEEZY_API_KEY`,
+  `LEMON_SQUEEZY_STORE_ID`, `LEMON_SQUEEZY_WEBHOOK_SECRET`, `TOOL_API_TOKEN`, `SITE_URL`.
+- **Lemon Squeezy webhook**: `https://<project>.supabase.co/functions/v1/lemonSqueezyWebhook`
+  (events `order_created`, `order_refunded`).
+- **Admin**: sign up on the site, then set `role = 'admin'` for that account in the `profiles` table.
 
-- **Every fresh clone needs `base44 link`.** It writes `base44/.app.jsonc` (the app-id pointer), which is deliberately gitignored. Your app id is in the Builder URL (`app.base44.com/apps/<id>/...`); `base44 link --help` shows the non-interactive flags.
-- **`base44 dev` runs the frontend for you** (via `site.serveCommand` in this repo's `base44/config.jsonc`) — never run `npm run dev` yourself: alone it serves a UI with no backend behind it (`[base44] Proxy not enabled`, every `/api` call fails), and alongside `base44 dev` the second Vite silently takes the next port and you end up looking at the wrong one.
-- **The app must be published at least once for the UI to load under `base44 dev`.** The frontend boots by fetching app settings from the hosted app; before the first publish that fails and every page redirects to login. The local API works regardless.
-- Entities, functions, and auth run locally — entity data is **in-memory only**, wiped when `base44 dev` restarts. Everything else (Core integrations, OAuth login) is forwarded to your deployed app. Full breakdown: [Local development overview](https://docs.base44.com/developers/backend/overview/local-dev/local-development-overview).
-
-## Frontend Only, Hosted Backend
-
-To work on just the frontend against your app's live hosted backend:
+## Checks before committing
 
 ```bash
-base44 dev --remote
+npx eslint src --quiet && npm run build
 ```
-
-⚠️ In this mode writes go to your app's **production data** — plain `base44 dev` keeps everything local.
-
-## Publish Your Changes
-
-After pushing your changes to git, open the Base44 dashboard and publish the app:
-
-```bash
-base44 dashboard open
-```
-
-This repo syncs to Base44 through git, so publish from the dashboard rather than `base44 deploy` — a CLI deploy ships your local tree directly, bypassing the sync, and the deployed state silently diverges from the repo.
-
-## Docs & Support
-
-GitHub integration: [https://docs.base44.com/developers/app-code/local-development/github](https://docs.base44.com/developers/app-code/local-development/github)
-
-Local development: [https://docs.base44.com/developers/backend/overview/local-dev/local-development-overview](https://docs.base44.com/developers/backend/overview/local-dev/local-development-overview)
-
-Support: [https://app.base44.com/support](https://app.base44.com/support)

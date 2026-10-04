@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,8 +8,11 @@ import { Lock, Loader2, AlertTriangle } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 
 export default function ResetPassword() {
-  const [searchParams] = useSearchParams();
-  const resetToken = searchParams.get("token");
+  // The emailed link signs the visitor in; without that session the link is invalid or expired.
+  const [resetToken, setResetToken] = useState(undefined);
+  useEffect(() => {
+    base44.auth.isAuthenticated().then(setResetToken);
+  }, []);
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -33,6 +36,8 @@ export default function ResetPassword() {
       setLoading(false);
     }
   };
+
+  if (resetToken === undefined) return null;
 
   if (!resetToken) {
     return (

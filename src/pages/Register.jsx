@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { base44, GOOGLE_LOGIN } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,8 +29,10 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      await base44.auth.register({ email, password });
-      setShowOtp(true);
+      const result = await base44.auth.register({ email, password });
+      // signed in right away when the site does not ask for an email confirmation code
+      if (result?.access_token) window.location.href = safeReturnTo();
+      else setShowOtp(true);
     } catch (err) {
       setError(err.message || "Registration failed");
     } finally {
@@ -142,6 +144,7 @@ export default function Register() {
         </>
       }
     >
+      {GOOGLE_LOGIN && (<>
       <Button
         variant="outline"
         className="w-full h-12 text-sm font-medium mb-6"
@@ -159,6 +162,7 @@ export default function Register() {
           <span className="bg-card px-3 text-muted-foreground">or</span>
         </div>
       </div>
+      </>)}
 
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">

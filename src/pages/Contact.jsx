@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { getChatGuestKey } from "@/lib/chatGuestKey";
 import { Mail, Loader2, Check, MessageSquare } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import { SectionHeading } from "@/components/site/Cards";
@@ -14,10 +15,11 @@ export default function Contact() {
     setStatus("loading");
     setError("");
     try {
-      await base44.integrations.Core.SendEmail({
-        to: "support@darknetwork.com",
-        subject: `New contact: ${form.subject || form.name}`,
-        text: `Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`,
+      // Lands in the Admin chat inbox, next to the live chat messages.
+      await base44.functions.invoke("chatGuest", {
+        action: "send",
+        guestKey: getChatGuestKey(),
+        body: `[Contact form] ${form.subject || "(no subject)"}\nName: ${form.name}\nEmail: ${form.email}\n\n${form.message}`,
       });
       setStatus("success");
       setForm({ name: "", email: "", subject: "", message: "" });

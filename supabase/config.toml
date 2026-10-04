@@ -1,0 +1,18 @@
+# The functions check the caller themselves (signed-in user, admin role, webhook signature or
+# tool token), so the gateway must not reject requests that carry no user token.
+[functions.chatAdmin]
+verify_jwt = false
+[functions.chatGuest]
+verify_jwt = false
+[functions.claimGuestPurchases]
+verify_jwt = false
+[functions.createEbookCheckout]
+verify_jwt = false
+[functions.generateEbookDownloadUrl]
+verify_jwt = false
+[functions.lemonSqueezyWebhook]
+verify_jwt = false
+[functions.toolApi]
+verify_jwt = false
+[functions.importFromBase44]
+verify_jwt = false
