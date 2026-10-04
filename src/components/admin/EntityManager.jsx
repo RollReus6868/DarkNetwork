@@ -8,6 +8,7 @@ import "react-quill-new/dist/quill.snow.css";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import {
   Plus, Pencil, Trash2, X, Loader2, Upload, Save, Copy, Search, Star, FileUp, Lock, ArrowUp, ArrowDown, GripVertical,
+  Eye, EyeOff,
 } from "lucide-react";
 import { sortByCustomOrder } from "@/lib/displayOrder";
 
@@ -60,6 +61,7 @@ export default function EntityManager({
   getThumb,
   getSubtitle,
   importExample,
+  bulk = false,
 }) {
   const api = base44.entities[entity];
   const { toast } = useToast();
@@ -71,11 +73,14 @@ export default function EntityManager({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState("");
   const [showImport, setShowImport] = useState(false);
+  const [selected, setSelected] = useState(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
       setItems(await api.list("-created_date", 500));
+      setSelected(new Set());
     } catch (err) {
       toast({ title: "Không tải được dữ liệu", description: err?.message, variant: "destructive" });
     } finally {
@@ -174,6 +179,52 @@ export default function EntityManager({
     }
   };
 
+  // ---- Thao tác hàng loạt (chọn nhiều mục rồi đổi trạng thái hoặc xoá) ----
+  const toggleSelect = (id) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const allSelected = filtered.length > 0 && filtered.every((i) => selected.has(i.id));
+  const toggleSelectAll = () => setSelected(allSelected ? new Set() : new Set(filtered.map((i) => i.id)));
+
+  const bulkStatus = async (status) => {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    setBulkBusy(true);
+    try {
+      await api.updateMany({ id: ids }, { $set: { status } });
+      toast({
+        title: status === "published" ? "Đã công bố" : "Đã chuyển thành bản nháp",
+        description: `${ids.length} mục.`,
+      });
+      await load();
+    } catch (err) {
+      toast({ title: "Cập nhật thất bại", description: err?.message, variant: "destructive" });
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const bulkRemove = async () => {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    if (!window.confirm(`Xoá ${ids.length} mục đã chọn? Không thể hoàn tác.`)) return;
+    setBulkBusy(true);
+    try {
+      await api.deleteMany({ id: ids });
+      toast({ title: "Đã xoá", description: `${ids.length} mục.` });
+      await load();
+    } catch (err) {
+      toast({ title: "Xoá thất bại", description: err?.message, variant: "destructive" });
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
   const move = async (item, dir) => {
     const idx = ordered.findIndex((i) => i.id === item.id);
     const target = idx + dir;
@@ -241,6 +292,41 @@ export default function EntityManager({
         <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tìm theo tên, slug hoặc danh mục…" className={`${inputCls} pl-9`} />
       </div>
 
+      {bulk && selected.size > 0 && (
+        <div className="flex items-center justify-between flex-wrap gap-3 border border-primary/50 bg-primary/10 rounded px-4 py-3 mb-4">
+          <p className="text-sm font-semibold">Đã chọn {selected.size} mục</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => bulkStatus("published")}
+              disabled={bulkBusy}
+              className="border border-border px-3.5 py-2 rounded font-semibold uppercase text-xs tracking-wide hover:border-primary hover:text-primary flex items-center gap-2 disabled:opacity-50"
+            >
+              <Eye className="w-4 h-4" /> Published
+            </button>
+            <button
+              type="button"
+              onClick={() => bulkStatus("draft")}
+              disabled={bulkBusy}
+              className="border border-border px-3.5 py-2 rounded font-semibold uppercase text-xs tracking-wide hover:border-primary hover:text-primary flex items-center gap-2 disabled:opacity-50"
+            >
+              <EyeOff className="w-4 h-4" /> Draft
+            </button>
+            <button
+              type="button"
+              onClick={bulkRemove}
+              disabled={bulkBusy}
+              className="border border-border px-3.5 py-2 rounded font-semibold uppercase text-xs tracking-wide text-red-400 hover:border-red-500 hover:text-red-400 flex items-center gap-2 disabled:opacity-50"
+            >
+              {bulkBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Xoá
+            </button>
+            <button type="button" onClick={() => setSelected(new Set())} className="px-2 text-xs text-muted-foreground hover:text-foreground">
+              Bỏ chọn
+            </button>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
       ) : filtered.length === 0 ? (
@@ -252,9 +338,20 @@ export default function EntityManager({
           <Droppable droppableId="admin-row-list">
             {(drop) => (
               <div ref={drop.innerRef} {...drop.droppableProps} className="space-y-2">
-                <p className="text-xs text-muted-foreground">
-                  {filtered.length} mục{canDrag ? " · kéo thả hoặc dùng ▲▼ để sắp xếp" : orderField ? " · xoá ô tìm kiếm để kéo thả sắp xếp" : ""}
-                </p>
+                <div className="flex items-center gap-2">
+                  {bulk && (
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={toggleSelectAll}
+                      aria-label="Chọn tất cả mục trong danh sách"
+                      className="w-4 h-4 accent-[hsl(var(--primary))]"
+                    />
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {filtered.length} mục{canDrag ? " · kéo thả hoặc dùng ▲▼ để sắp xếp" : orderField ? " · xoá ô tìm kiếm để kéo thả sắp xếp" : ""}
+                  </p>
+                </div>
                 {filtered.map((item, index) => (
                   <Draggable key={item.id} draggableId={item.id} index={index} isDragDisabled={!canDrag}>
                     {(drag, snapshot) => (
@@ -267,6 +364,15 @@ export default function EntityManager({
                           <span {...drag.dragHandleProps} title="Kéo để sắp xếp" className="flex-shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-primary">
                             <GripVertical className="w-4 h-4" />
                           </span>
+                        )}
+                        {bulk && (
+                          <input
+                            type="checkbox"
+                            checked={selected.has(item.id)}
+                            onChange={() => toggleSelect(item.id)}
+                            aria-label={`Chọn ${item.title || "mục"}`}
+                            className="w-4 h-4 flex-shrink-0 accent-[hsl(var(--primary))]"
+                          />
                         )}
                         <div className="w-14 h-14 flex-shrink-0 overflow-hidden rounded bg-secondary">
                           {getThumb?.(item) && <Image src={getThumb(item)} alt={item.title} className="w-full h-full" fittingType="fill" />}
@@ -321,12 +427,13 @@ export default function EntityManager({
               ))}
             </div>
 
-            <div className="flex gap-3 mt-6">
-              <button type="submit" disabled={saving || !!uploading} className="flex-1 bg-primary text-primary-foreground px-5 py-3 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 flex items-center justify-center gap-2 disabled:opacity-50">
+            {/* Thanh lưu dính ở đáy khung: luôn thấy nút Lưu bên phải, không phải cuộn xuống cuối. */}
+            <div className="sticky bottom-0 z-10 -mx-5 sm:-mx-6 -mb-5 sm:-mb-6 mt-6 px-5 sm:px-6 py-3 bg-card border-t border-border flex items-center justify-end gap-3">
+              <button type="button" onClick={() => setEditing(null)} className="border border-border px-5 py-3 rounded font-semibold uppercase text-sm tracking-wide hover:border-primary">Huỷ</button>
+              <button type="submit" disabled={saving || !!uploading} className="bg-primary text-primary-foreground px-6 py-3 rounded font-semibold uppercase text-sm tracking-wide hover:bg-primary/90 flex items-center justify-center gap-2 disabled:opacity-50">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 {saving ? "Đang lưu…" : "Lưu"}
               </button>
-              <button type="button" onClick={() => setEditing(null)} className="border border-border px-5 py-3 rounded font-semibold uppercase text-sm tracking-wide hover:border-primary">Huỷ</button>
             </div>
           </form>
         </div>

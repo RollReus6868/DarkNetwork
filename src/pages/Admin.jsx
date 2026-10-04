@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import Seo from "@/components/site/Seo";
 import HeroSlidesManager from "@/components/admin/HeroSlidesManager";
@@ -29,6 +30,24 @@ export default function Admin() {
     try { sessionStorage.setItem("admin_tab", id); } catch { /* ignore */ }
   };
 
+  // Số cuộc trò chuyện khách đã nhắn mà admin chưa đọc — hiện badge ở tab Tin nhắn.
+  const [unread, setUnread] = useState(0);
+  useEffect(() => {
+    if (user?.role !== "admin") return;
+    let alive = true;
+    const check = async () => {
+      try {
+        const n = await base44.entities.ChatConversation.count({ unread_for_admin: true });
+        if (alive) setUnread(Number(n) || 0);
+      } catch {
+        // bỏ qua khi không đếm được
+      }
+    };
+    check();
+    const timer = setInterval(check, 15000);
+    return () => { alive = false; clearInterval(timer); };
+  }, [user, tab]);
+
   if (!user || user.role !== "admin") {
     return (
       <div className="pt-32 max-w-md mx-auto text-center px-4">
@@ -57,6 +76,14 @@ export default function Admin() {
             }`}
           >
             {t.label}
+            {t.id === "messages" && unread > 0 && (
+              <span
+                className="ml-2 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold align-middle"
+                aria-label={`${unread} tin nhắn chờ`}
+              >
+                {unread > 99 ? "99+" : unread}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -72,6 +99,7 @@ export default function Admin() {
           getThumb={(p) => p.images?.[0]}
           getSubtitle={(p) => `${p.category} · $${Number(p.price || 0).toFixed(2)}`}
           importExample={PRODUCT_IMPORT_EXAMPLE}
+          bulk
         />
       )}
       {tab === "ebooks" && (
@@ -85,6 +113,7 @@ export default function Admin() {
           getThumb={(e) => e.cover_image}
           getSubtitle={(e) => `$${Number(e.price || 0).toFixed(2)}${e.lemon_squeezy_variant_id ? "" : " · thiếu Variant ID"}`}
           importExample={EBOOK_IMPORT_EXAMPLE}
+          bulk
         />
       )}
       {tab === "resources" && (
