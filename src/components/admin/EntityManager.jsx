@@ -84,6 +84,11 @@ export default function EntityManager({
 
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Entities that carry a "Thứ tự" field (products) are listed in the same
+  // order the site shows them, so ▲▼ matches what visitors see.
+  const orderField = fields.some((f) => f.key === "sort_order");
+  const ordered = useMemo(() => (orderField ? sortByCustomOrder(items) : items), [items, orderField]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return ordered;
@@ -91,11 +96,6 @@ export default function EntityManager({
   }, [ordered, query]);
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
-
-  // Entities that carry a "Thứ tự" field (products) are listed in the same
-  // order the site shows them, so ▲▼ matches what visitors see.
-  const orderField = fields.some((f) => f.key === "sort_order");
-  const ordered = useMemo(() => (orderField ? sortByCustomOrder(items) : items), [items, orderField]);
 
   const startNew = () => {
     setForm(orderField ? { ...defaults, sort_order: ordered.length + 1 } : { ...defaults });
