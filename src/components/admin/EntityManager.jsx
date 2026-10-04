@@ -5,8 +5,9 @@ import { useToast } from "@/components/ui/use-toast";
 import EbookPicker from "@/components/admin/EbookPicker";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import {
-  Plus, Pencil, Trash2, X, Loader2, Upload, Save, Copy, Search, Star, FileUp, Lock, ArrowUp, ArrowDown,
+  Plus, Pencil, Trash2, X, Loader2, Upload, Save, Copy, Search, Star, FileUp, Lock, ArrowUp, ArrowDown, GripVertical,
 } from "lucide-react";
 import { sortByCustomOrder } from "@/lib/displayOrder";
 
@@ -189,6 +190,26 @@ export default function EntityManager({
     }
   };
 
+  // Kéo thả chỉ bật khi danh sách đang hiển thị đủ mọi mục theo đúng thứ tự
+  // (khi đang tìm kiếm thì thứ tự trên màn hình không còn là thứ tự thật).
+  const canDrag = orderField && !query.trim();
+
+  const onDragEnd = async ({ source, destination }) => {
+    if (!destination || destination.index === source.index) return;
+    const next = [...ordered];
+    const [moved] = next.splice(source.index, 1);
+    next.splice(destination.index, 0, moved);
+    setItems(next);
+    try {
+      // Renumber the whole list so the new order is explicit and keeps its place.
+      await api.bulkUpdate(next.map((it, i) => ({ id: it.id, sort_order: i + 1 })));
+    } catch (err) {
+      toast({ title: "Không đổi được thứ tự", description: err?.message, variant: "destructive" });
+    } finally {
+      await load();
+    }
+  };
+
   const toggle = async (item, key) => {
     try {
       await api.update(item.id, { [key]: !item[key] });
@@ -227,39 +248,61 @@ export default function EntityManager({
           {items.length === 0 ? 'Chưa có mục nào. Bấm "Thêm mới" hoặc "Nhập hàng loạt".' : "Không có kết quả phù hợp."}
         </div>
       ) : (
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">{filtered.length} mục</p>
-          {filtered.map((item) => (
-            <div key={item.id} className="flex items-center gap-3 border border-border rounded p-3 bg-card/40">
-              <div className="w-14 h-14 flex-shrink-0 overflow-hidden rounded bg-secondary">
-                {getThumb?.(item) && <Image src={getThumb(item)} alt={item.title} className="w-full h-full" fittingType="fill" />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-heading font-semibold truncate">{item.title || "Chưa có tên"}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  <span className={item.status === "draft" ? "text-yellow-500" : "text-green-500"}>
-                    {item.status === "draft" ? "Bản nháp" : "Đang hiển thị"}
-                  </span>
-                  {getSubtitle ? ` · ${getSubtitle(item)}` : ""}
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="admin-row-list">
+            {(drop) => (
+              <div ref={drop.innerRef} {...drop.droppableProps} className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  {filtered.length} mục{canDrag ? " · kéo thả hoặc dùng ▲▼ để sắp xếp" : orderField ? " · xoá ô tìm kiếm để kéo thả sắp xếp" : ""}
                 </p>
+                {filtered.map((item, index) => (
+                  <Draggable key={item.id} draggableId={item.id} index={index} isDragDisabled={!canDrag}>
+                    {(drag, snapshot) => (
+                      <div
+                        ref={drag.innerRef}
+                        {...drag.draggableProps}
+                        className={`flex items-center gap-3 border rounded p-3 bg-card/40 ${snapshot.isDragging ? "border-primary ring-1 ring-primary/60 shadow-2xl" : "border-border"}`}
+                      >
+                        {canDrag && (
+                          <span {...drag.dragHandleProps} title="Kéo để sắp xếp" className="flex-shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-primary">
+                            <GripVertical className="w-4 h-4" />
+                          </span>
+                        )}
+                        <div className="w-14 h-14 flex-shrink-0 overflow-hidden rounded bg-secondary">
+                          {getThumb?.(item) && <Image src={getThumb(item)} alt={item.title} className="w-full h-full" fittingType="fill" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-heading font-semibold truncate">{item.title || "Chưa có tên"}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            <span className={item.status === "draft" ? "text-yellow-500" : "text-green-500"}>
+                              {item.status === "draft" ? "Bản nháp" : "Đang hiển thị"}
+                            </span>
+                            {getSubtitle ? ` · ${getSubtitle(item)}` : ""}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-0.5 flex-shrink-0">
+                          {orderField && (
+                            <>
+                              <button onClick={() => move(item, -1)} disabled={ordered[0]?.id === item.id} title="Đưa lên trước" className="p-1.5 text-muted-foreground hover:text-primary disabled:opacity-25"><ArrowUp className="w-4 h-4" /></button>
+                              <button onClick={() => move(item, 1)} disabled={ordered[ordered.length - 1]?.id === item.id} title="Đưa xuống sau" className="p-1.5 text-muted-foreground hover:text-primary disabled:opacity-25"><ArrowDown className="w-4 h-4" /></button>
+                            </>
+                          )}
+                          <button onClick={() => toggle(item, "featured")} title="Nổi bật trên trang chủ" className={`p-1.5 ${item.featured ? "text-primary" : "text-muted-foreground hover:text-primary"}`}>
+                            <Star className={`w-4 h-4 ${item.featured ? "fill-primary" : ""}`} />
+                          </button>
+                          <button onClick={() => duplicate(item)} title="Nhân bản" className="p-1.5 text-muted-foreground hover:text-primary"><Copy className="w-4 h-4" /></button>
+                          <button onClick={() => startEdit(item)} title="Sửa" className="p-1.5 text-muted-foreground hover:text-primary"><Pencil className="w-4 h-4" /></button>
+                          <button onClick={() => remove(item)} title="Xoá" className="p-1.5 text-muted-foreground hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {drop.placeholder}
               </div>
-              <div className="flex items-center gap-0.5 flex-shrink-0">
-                {orderField && (
-                  <>
-                    <button onClick={() => move(item, -1)} disabled={ordered[0]?.id === item.id} title="Đưa lên trước" className="p-1.5 text-muted-foreground hover:text-primary disabled:opacity-25"><ArrowUp className="w-4 h-4" /></button>
-                    <button onClick={() => move(item, 1)} disabled={ordered[ordered.length - 1]?.id === item.id} title="Đưa xuống sau" className="p-1.5 text-muted-foreground hover:text-primary disabled:opacity-25"><ArrowDown className="w-4 h-4" /></button>
-                  </>
-                )}
-                <button onClick={() => toggle(item, "featured")} title="Nổi bật trên trang chủ" className={`p-1.5 ${item.featured ? "text-primary" : "text-muted-foreground hover:text-primary"}`}>
-                  <Star className={`w-4 h-4 ${item.featured ? "fill-primary" : ""}`} />
-                </button>
-                <button onClick={() => duplicate(item)} title="Nhân bản" className="p-1.5 text-muted-foreground hover:text-primary"><Copy className="w-4 h-4" /></button>
-                <button onClick={() => startEdit(item)} title="Sửa" className="p-1.5 text-muted-foreground hover:text-primary"><Pencil className="w-4 h-4" /></button>
-                <button onClick={() => remove(item)} title="Xoá" className="p-1.5 text-muted-foreground hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       )}
 
       {editing && (

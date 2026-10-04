@@ -19,7 +19,7 @@ export const PRODUCT_FIELDS = [
   { key: "shipping_info", label: "Thông tin vận chuyển", type: "richtext" },
   { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
   { key: "meta_description", label: "Mô tả SEO (≤160 ký tự)", type: "textarea" },
-  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước, áp dụng cho cả trang chủ và trang Shop. Bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống sẽ xếp sau các mục đã đánh số, mới nhất trước." },
+  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước, áp dụng cho cả trang chủ và trang Shop. Kéo thả hoặc bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống sẽ xếp sau các mục đã đánh số, mới nhất trước." },
   status,
   { key: "featured", label: "Hiển thị nổi bật ở trang chủ", type: "boolean", half: true },
 ];
@@ -47,7 +47,7 @@ export const EBOOK_FIELDS = [
   { key: "related_ebook_ids", label: "Sách liên quan", type: "ebookpicker", hint: "Gợi ý ở cuối trang ebook này. Thứ tự chọn là thứ tự ưu tiên. Để trống thì hệ thống tự gợi ý các quyển cùng bộ (cùng tên, khác Part)." },
   { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
   { key: "meta_description", label: "Mô tả SEO (≤160 ký tự)", type: "textarea" },
-  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước, áp dụng cho trang Books và mục Ebook ở trang chủ. Bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống sẽ xếp sau các mục đã đánh số, mới nhất trước." },
+  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước, áp dụng cho trang Books và mục Ebook ở trang chủ. Kéo thả hoặc bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống sẽ xếp sau các mục đã đánh số, mới nhất trước." },
   status,
   { key: "featured", label: "Hiển thị nổi bật ở trang chủ", type: "boolean", half: true },
 ];
@@ -90,7 +90,7 @@ export const RESOURCE_FIELDS = [
   { key: "requires_email", label: "Yêu cầu nhập email trước khi tải", type: "boolean", half: true },
   { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
   { key: "meta_description", label: "Mô tả SEO (≤160 ký tự)", type: "textarea" },
-  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước ở trang Tài liệu miễn phí. Bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống sẽ xếp sau các mục đã đánh số, mới nhất trước." },
+  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước ở trang Tài liệu miễn phí. Kéo thả hoặc bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống sẽ xếp sau các mục đã đánh số, mới nhất trước." },
   status,
 ];
 
