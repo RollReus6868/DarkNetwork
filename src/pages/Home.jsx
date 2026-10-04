@@ -133,7 +133,7 @@ export default function Home() {
 
             <div className="space-y-16">
               {ebookRows.map((row) => (
-                <EbookSlider key={row.key} title={row.title} ebooks={row.ebooks} />
+                <EbookSlider key={row.key} title={row.title} ebooks={row.ebooks} compact={row.key !== "full"} />
               ))}
             </div>
 

@@ -5,9 +5,11 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import EbookTile from "@/components/site/EbookTile";
 
 const SLIDE = "min-w-0 pl-4 md:pl-6 flex-[0_0_80%] sm:flex-[0_0_50%] md:flex-[0_0_44%] lg:flex-[0_0_33%]";
+// Sách lẻ theo từng part hiển thị nhỏ hơn khoảng 30% cho gọn hàng.
+const SLIDE_COMPACT = "min-w-0 pl-4 md:pl-6 flex-[0_0_60%] sm:flex-[0_0_40%] md:flex-[0_0_32%] lg:flex-[0_0_24%]";
 
 // Một hàng trượt ebook ở trang chủ: tiêu đề nhóm phía trên, nút qua lại hai đầu.
-export default function EbookSlider({ title, ebooks = [] }) {
+export default function EbookSlider({ title, ebooks = [], compact = false }) {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: "start", dragFree: false },
@@ -57,9 +59,13 @@ export default function EbookSlider({ title, ebooks = [] }) {
     return (
       <div>
         {heading}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-center gap-6 max-w-sm sm:max-w-none mx-auto">
+        <div
+          className={`grid grid-cols-1 items-center gap-6 max-w-sm sm:max-w-none mx-auto ${
+            compact ? "sm:grid-cols-3 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3"
+          }`}
+        >
           {ebooks.map((ebook) => (
-            <EbookTile key={ebook.id} ebook={ebook} />
+            <EbookTile key={ebook.id} ebook={ebook} compact={compact} />
           ))}
         </div>
       </div>
@@ -97,8 +103,8 @@ export default function EbookSlider({ title, ebooks = [] }) {
         >
           <div className="flex items-center">
             {ebooks.map((ebook) => (
-              <div key={ebook.id} className={SLIDE}>
-                <EbookTile ebook={ebook} />
+              <div key={ebook.id} className={compact ? SLIDE_COMPACT : SLIDE}>
+                <EbookTile ebook={ebook} compact={compact} />
               </div>
             ))}
           </div>
