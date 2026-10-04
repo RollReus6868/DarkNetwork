@@ -6,8 +6,8 @@ import EbookTile from "@/components/site/EbookTile";
 import { loopSlides } from "@/lib/carouselLoop";
 
 const SLIDE = "min-w-0 pl-4 md:pl-6 flex-[0_0_80%] sm:flex-[0_0_50%] md:flex-[0_0_44%] lg:flex-[0_0_33%]";
-// Sách lẻ theo từng part hiển thị nhỏ hơn khoảng 58% cho gọn hàng.
-const SLIDE_COMPACT = "min-w-0 pl-4 md:pl-6 flex-[0_0_36%] sm:flex-[0_0_24%] md:flex-[0_0_19%] lg:flex-[0_0_14.5%]";
+// Sách lẻ theo từng part hiển thị nhỏ hơn khoảng 30% cho gọn hàng.
+const SLIDE_COMPACT = "min-w-0 pl-4 md:pl-6 flex-[0_0_60%] sm:flex-[0_0_40%] md:flex-[0_0_32%] lg:flex-[0_0_24%]";
 
 // Một hàng trượt ebook ở trang chủ: tiêu đề nhóm phía trên, nút qua lại hai đầu.
 export default function EbookSlider({ title, ebooks = [], compact = false }) {
@@ -65,7 +65,7 @@ export default function EbookSlider({ title, ebooks = [], compact = false }) {
         {heading}
         <div
           className={`grid grid-cols-1 items-center gap-6 max-w-sm sm:max-w-none mx-auto ${
-            compact ? "sm:grid-cols-4 lg:grid-cols-6" : "sm:grid-cols-2 lg:grid-cols-3"
+            compact ? "sm:grid-cols-3 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3"
           }`}
         >
           {ebooks.map((ebook) => (
