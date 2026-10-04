@@ -6,6 +6,7 @@ import AutoScroll from "embla-carousel-auto-scroll";
 import { Image } from "@/components/ui/image";
 import { loopSlides } from "@/lib/carouselLoop";
 import { EbookBuyButton } from "@/components/site/EbookBuyButton";
+import EbookPartBadge from "@/components/site/EbookPartBadge";
 import { formatPrice, getDiscountPercentage } from "@/lib/pricing";
 
 const SLIDE = "min-w-0 flex-[0_0_72%] sm:flex-[0_0_46%] md:flex-[0_0_34%] lg:flex-[0_0_27%] pl-4 sm:pl-6";
@@ -111,8 +112,9 @@ function RelatedEbookCard({ ebook }) {
   return (
     <div className="flex flex-col h-full border border-border rounded overflow-hidden bg-card/40 transition-colors hover:border-primary/60">
       <Link to={`/books/${ebook.slug}`} className="group flex flex-col flex-1 min-w-0">
-        <div className="aspect-[5/7] overflow-hidden bg-secondary">
+        <div className="relative aspect-[5/7] overflow-hidden bg-secondary">
           <Image src={ebook.cover_image} alt={ebook.title} className="w-full h-full" fittingType="fill" />
+          <EbookPartBadge ebook={ebook} className="absolute top-3 right-3 z-10" />
         </div>
         <div className="flex flex-col flex-1 p-4">
           <h3 className="font-heading text-lg font-semibold leading-tight line-clamp-2 group-hover:text-primary transition-colors">

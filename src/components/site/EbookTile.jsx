@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Image } from "@/components/ui/image";
 import { EbookBuyButton } from "@/components/site/EbookBuyButton";
+import EbookPartBadge from "@/components/site/EbookPartBadge";
 import { getDiscountPercentage, formatPrice } from "@/lib/pricing";
 import { stripHtml } from "@/lib/gradients";
 
@@ -33,8 +34,11 @@ export default function EbookTile({ ebook, className = "", compact = false }) {
               Featured
             </span>
           )}
-          {discount !== null && <span className="badge-gold absolute top-3 right-3 z-10">Save {discount}%</span>}
-          {isNew && discount === null && <span className="badge-gold absolute top-3 right-3 z-10">New</span>}
+          <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
+            <EbookPartBadge ebook={ebook} />
+            {discount !== null && <span className="badge-gold">Save {discount}%</span>}
+            {isNew && discount === null && <span className="badge-gold">New</span>}
+          </div>
 
           <div className="absolute inset-0 z-20 flex flex-col justify-end p-4 bg-[#1a0f08]/85 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300">
             <p className="text-sm text-[#f4ead4]/90 line-clamp-4 mb-3">{stripHtml(ebook.description)}</p>
