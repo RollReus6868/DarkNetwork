@@ -6,8 +6,9 @@ import EbookPicker from "@/components/admin/EbookPicker";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import {
-  Plus, Pencil, Trash2, X, Loader2, Upload, Save, Copy, Search, Star, FileUp, Lock,
+  Plus, Pencil, Trash2, X, Loader2, Upload, Save, Copy, Search, Star, FileUp, Lock, ArrowUp, ArrowDown,
 } from "lucide-react";
+import { sortByCustomOrder } from "@/lib/displayOrder";
 
 /**
  * Generic admin CRUD manager for a Base44 entity.
@@ -85,13 +86,21 @@ export default function EntityManager({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((i) => `${i.title} ${i.slug} ${i.category || ""}`.toLowerCase().includes(q));
-  }, [items, query]);
+    if (!q) return ordered;
+    return ordered.filter((i) => `${i.title} ${i.slug} ${i.category || ""}`.toLowerCase().includes(q));
+  }, [ordered, query]);
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
-  const startNew = () => { setForm({ ...defaults }); setEditing("new"); };
+  // Entities that carry a "Thứ tự" field (products) are listed in the same
+  // order the site shows them, so ▲▼ matches what visitors see.
+  const orderField = fields.some((f) => f.key === "sort_order");
+  const ordered = useMemo(() => (orderField ? sortByCustomOrder(items) : items), [items, orderField]);
+
+  const startNew = () => {
+    setForm(orderField ? { ...defaults, sort_order: ordered.length + 1 } : { ...defaults });
+    setEditing("new");
+  };
   const startEdit = (item) => { setForm({ ...item }); setEditing(item.id); };
   const duplicate = (item) => {
     // eslint-disable-next-line no-unused-vars
@@ -164,6 +173,22 @@ export default function EntityManager({
     }
   };
 
+  const move = async (item, dir) => {
+    const idx = ordered.findIndex((i) => i.id === item.id);
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= ordered.length) return;
+    const next = [...ordered];
+    next[idx] = ordered[target];
+    next[target] = item;
+    try {
+      // Renumber the whole list so the new order is explicit and keeps its place.
+      await api.bulkUpdate(next.map((it, i) => ({ id: it.id, sort_order: i + 1 })));
+      await load();
+    } catch (err) {
+      toast({ title: "Không đổi được thứ tự", description: err?.message, variant: "destructive" });
+    }
+  };
+
   const toggle = async (item, key) => {
     try {
       await api.update(item.id, { [key]: !item[key] });
@@ -219,6 +244,12 @@ export default function EntityManager({
                 </p>
               </div>
               <div className="flex items-center gap-0.5 flex-shrink-0">
+                {orderField && (
+                  <>
+                    <button onClick={() => move(item, -1)} disabled={ordered[0]?.id === item.id} title="Đưa lên trước" className="p-1.5 text-muted-foreground hover:text-primary disabled:opacity-25"><ArrowUp className="w-4 h-4" /></button>
+                    <button onClick={() => move(item, 1)} disabled={ordered[ordered.length - 1]?.id === item.id} title="Đưa xuống sau" className="p-1.5 text-muted-foreground hover:text-primary disabled:opacity-25"><ArrowDown className="w-4 h-4" /></button>
+                  </>
+                )}
                 <button onClick={() => toggle(item, "featured")} title="Nổi bật trên trang chủ" className={`p-1.5 ${item.featured ? "text-primary" : "text-muted-foreground hover:text-primary"}`}>
                   <Star className={`w-4 h-4 ${item.featured ? "fill-primary" : ""}`} />
                 </button>

@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import { EbookCard, ProductCard, SectionHeading } from "@/components/site/Cards";
 import { useSiteData } from "@/hooks/useSiteData";
+import { byCustomOrder } from "@/lib/displayOrder";
 
 const CATEGORIES = ["All", "Books", "Apparel", "Wall Art", "Mugs", "Gifts"];
 
@@ -11,7 +12,7 @@ export default function Shop() {
   const { products, ebooks, loading } = useSiteData();
   const [params, setParams] = useSearchParams();
   const active = params.get("category") || "All";
-  const sort = params.get("sort") || "newest";
+  const sort = params.get("sort") || "recommended";
   const q = params.get("q") || "";
 
   const update = (patch) => {
@@ -32,6 +33,7 @@ export default function Shop() {
       && (!term || `${p.title} ${p.subtitle || ""} ${p.category}`.toLowerCase().includes(term)));
     const byDate = (a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0);
     const sorters = {
+      recommended: byCustomOrder,
       newest: byDate,
       "price-asc": (a, b) => a.price - b.price,
       "price-desc": (a, b) => b.price - a.price,
@@ -81,10 +83,11 @@ export default function Shop() {
             </div>
             <select
               value={sort}
-              onChange={(e) => update({ sort: e.target.value === "newest" ? "" : e.target.value })}
+              onChange={(e) => update({ sort: e.target.value === "recommended" ? "" : e.target.value })}
               aria-label="Sort products"
               className="bg-white/70 border border-[#a87f2e]/40 text-[#2b1d0a] rounded px-3 py-2.5 text-sm focus:outline-none focus:border-[#a87f2e]"
             >
+              <option value="recommended">Recommended</option>
               <option value="newest">Newest</option>
               <option value="price-asc">Price: Low to High</option>
               <option value="price-desc">Price: High to Low</option>

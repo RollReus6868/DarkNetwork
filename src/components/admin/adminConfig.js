@@ -19,7 +19,7 @@ export const PRODUCT_FIELDS = [
   { key: "shipping_info", label: "Thông tin vận chuyển", type: "richtext" },
   { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
   { key: "meta_description", label: "Mô tả SEO (≤160 ký tự)", type: "textarea" },
-  { key: "sort_order", label: "Thứ tự", type: "number", half: true },
+  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước, áp dụng cho cả trang chủ và trang Shop. Bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống sẽ xếp sau các mục đã đánh số, mới nhất trước." },
   status,
   { key: "featured", label: "Hiển thị nổi bật ở trang chủ", type: "boolean", half: true },
 ];

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { sortByCustomOrder } from "@/lib/displayOrder";
 
 export function useSiteData() {
   const [studies, setStudies] = useState([]);
@@ -32,7 +33,7 @@ export function useSiteData() {
         setStudies(s);
         setVideos(v);
         setEbooks(e);
-        setProducts(p);
+        setProducts(sortByCustomOrder(p));
         setResources(r);
         setTestimonials(t);
         setSiteContent(sc);
