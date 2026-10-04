@@ -29,13 +29,15 @@ export default function EbookTile({ ebook, className = "", compact = false }) {
             className="w-full h-full transition-transform duration-700 group-hover:scale-105"
             fittingType="fill"
           />
-          {isFeatured && (
-            <span className="absolute top-3 left-3 z-10 bg-[#e02424] text-white text-[10px] font-bold uppercase tracking-[0.16em] px-2.5 py-1 rounded-sm shadow-md">
-              Featured
-            </span>
-          )}
-          <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
+          <div className="absolute top-3 left-3 z-10 flex flex-col items-start gap-2">
+            {isFeatured && (
+              <span className="bg-[#e02424] text-white text-[10px] font-bold uppercase tracking-[0.16em] px-2.5 py-1 rounded-sm shadow-md">
+                Featured
+              </span>
+            )}
             <EbookPartBadge ebook={ebook} />
+          </div>
+          <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
             {discount !== null && <span className="badge-gold">Save {discount}%</span>}
             {isNew && discount === null && <span className="badge-gold">New</span>}
           </div>

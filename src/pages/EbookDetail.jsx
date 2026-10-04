@@ -77,7 +77,7 @@ export default function EbookDetail() {
             <div className="absolute -inset-3 sm:-inset-6 bg-primary/10 blur-3xl rounded-full" />
             <div className="relative aspect-[5/7] overflow-hidden rounded shadow-2xl">
               <Image src={ebook.cover_image} alt={ebook.title} className="w-full h-full" fittingType="fill" />
-              <EbookPartBadge ebook={ebook} className="absolute top-3 right-3 z-10" />
+              <EbookPartBadge ebook={ebook} className="absolute top-3 left-3 z-10" />
             </div>
             {ebook.preview_images?.length > 0 && (
               <div className="flex gap-2 mt-4">

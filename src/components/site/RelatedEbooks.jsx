@@ -114,7 +114,7 @@ function RelatedEbookCard({ ebook }) {
       <Link to={`/books/${ebook.slug}`} className="group flex flex-col flex-1 min-w-0">
         <div className="relative aspect-[5/7] overflow-hidden bg-secondary">
           <Image src={ebook.cover_image} alt={ebook.title} className="w-full h-full" fittingType="fill" />
-          <EbookPartBadge ebook={ebook} className="absolute top-3 right-3 z-10" />
+          <EbookPartBadge ebook={ebook} className="absolute top-3 left-3 z-10" />
         </div>
         <div className="flex flex-col flex-1 p-4">
           <h3 className="font-heading text-lg font-semibold leading-tight line-clamp-2 group-hover:text-primary transition-colors">
