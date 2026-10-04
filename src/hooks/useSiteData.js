@@ -32,9 +32,9 @@ export function useSiteData() {
         if (!active) return;
         setStudies(s);
         setVideos(v);
-        setEbooks(e);
+        setEbooks(sortByCustomOrder(e));
         setProducts(sortByCustomOrder(p));
-        setResources(r);
+        setResources(sortByCustomOrder(r));
         setTestimonials(t);
         setSiteContent(sc);
         setMembershipStats(ms);
