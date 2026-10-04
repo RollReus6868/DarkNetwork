@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import Seo from "@/components/site/Seo";
 import HeroSlidesManager from "@/components/admin/HeroSlidesManager";
+import ChatInbox from "@/components/admin/ChatInbox";
 import EntityManager from "@/components/admin/EntityManager";
 import {
   PRODUCT_FIELDS, PRODUCT_DEFAULTS, PRODUCT_IMPORT_EXAMPLE,
@@ -14,6 +15,7 @@ const TABS = [
   { id: "ebooks", label: "Ebook" },
   { id: "resources", label: "Tài liệu miễn phí" },
   { id: "hero", label: "Hero Slides" },
+  { id: "messages", label: "Tin nhắn" },
 ];
 
 export default function Admin() {
@@ -99,6 +101,7 @@ export default function Admin() {
         />
       )}
       {tab === "hero" && <HeroSlidesManager />}
+      {tab === "messages" && <ChatInbox />}
     </div>
   );
 }

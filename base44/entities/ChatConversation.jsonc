@@ -1,0 +1,68 @@
+{
+  "name": "ChatConversation",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "title": "User ID",
+      "description": "T\u00e0i kho\u1ea3n \u0111\u0103ng nh\u1eadp c\u1ee7a kh\u00e1ch. \u0110\u1ec3 tr\u1ed1ng n\u1ebfu kh\u00e1ch tr\u00f2 chuy\u1ec7n \u1ea9n danh."
+    },
+    "guest_key": {
+      "type": "string",
+      "title": "Guest Session Key",
+      "description": "\u0110\u1ecbnh danh phi\u00ean tr\u00ecnh duy\u1ec7t c\u1ee7a kh\u00e1ch \u1ea9n danh \u2014 kh\u00f4ng ch\u1ee9a th\u00f4ng tin c\u00e1 nh\u00e2n."
+    },
+    "visitor_name": {
+      "type": "string",
+      "title": "Visitor Name"
+    },
+    "last_message_at": {
+      "type": "string",
+      "title": "Last Message At",
+      "format": "date-time"
+    },
+    "last_message_preview": {
+      "type": "string",
+      "title": "Last Message Preview"
+    },
+    "unread_for_admin": {
+      "type": "boolean",
+      "title": "Unread for Admin",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "open",
+        "closed"
+      ],
+      "default": "open"
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import BackToTop from "./BackToTop";
+import ChatWidget from "./ChatWidget";
 
 export default function Layout() {
   const [cart, setCart] = useState([]);
@@ -34,6 +35,7 @@ export default function Layout() {
       </main>
       <Footer />
       <BackToTop />
+      <ChatWidget />
     </div>
   );
 }

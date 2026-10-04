@@ -1,0 +1,68 @@
+{
+  "name": "ChatMessage",
+  "type": "object",
+  "properties": {
+    "conversation_id": {
+      "type": "string",
+      "title": "Conversation ID"
+    },
+    "sender_role": {
+      "type": "string",
+      "title": "Sender Role",
+      "enum": [
+        "visitor",
+        "admin"
+      ],
+      "default": "visitor"
+    },
+    "sender_user_id": {
+      "type": "string",
+      "title": "Sender User ID"
+    },
+    "sender_name": {
+      "type": "string",
+      "title": "Sender Name"
+    },
+    "body": {
+      "type": "string",
+      "title": "Message"
+    },
+    "read_by_admin": {
+      "type": "boolean",
+      "title": "Read by Admin",
+      "default": false
+    },
+    "read_by_visitor": {
+      "type": "boolean",
+      "title": "Read by Visitor",
+      "default": false
+    }
+  },
+  "required": [
+    "conversation_id",
+    "sender_role",
+    "body"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
