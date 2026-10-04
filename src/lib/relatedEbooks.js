@@ -3,30 +3,7 @@
 // 2) books from the same series detected from the title (so Part 2 sits next to
 // Part 1 and Part 3), 3) the remaining published books as filler.
 
-const PART_RE = /\b(part|book|volume|vol|phần|quyển|tập)\b\.?\s*#?\s*(\d{1,3}|[ivxlcdm]{1,6})\b/i;
-const ROMAN = { i: 1, v: 5, x: 10, l: 50, c: 100, d: 500, m: 1000 };
-
-function toNumber(token) {
-  if (/^\d+$/.test(token)) return Number(token);
-  const s = token.toLowerCase();
-  let total = 0;
-  for (let i = 0; i < s.length; i++) {
-    const cur = ROMAN[s[i]] || 0;
-    const next = ROMAN[s[i + 1]] || 0;
-    total += cur < next ? -cur : cur;
-  }
-  return total || null;
-}
-
-// "Book of Enoch — Part 2" → { base: "book of enoch", part: 2 }
-// No Part/Book marker → same base, part stays null.
-function parseTitle(title) {
-  const text = String(title || "").trim();
-  const match = text.match(PART_RE);
-  const rest = match ? `${text.slice(0, match.index)} ${text.slice(match.index + match[0].length)}` : text;
-  const base = rest.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-  return { base, part: match ? toNumber(match[2]) : null };
-}
+import { parseTitle } from "@/lib/ebookSeries";
 
 // null = not the same series; a smaller score means "closer to the book being read".
 function seriesScore(current, other) {

@@ -45,6 +45,7 @@ export const EBOOK_FIELDS = [
   { key: "bonus_secure_file_uri", label: "File ebook tặng kèm (riêng tư)", type: "privatefile", hint: "Chỉ người đã mua mới tải được. Hiện cùng nút tải trong mục My Account." },
   { key: "lemon_squeezy_variant_id", label: "Lemon Squeezy Variant ID", type: "text", hint: "Bắt buộc để nút Buy Now hoạt động. Lấy trong dashboard Lemon Squeezy." },
   { key: "related_ebook_ids", label: "Sách liên quan", type: "ebookpicker", hint: "Gợi ý ở cuối trang ebook này. Thứ tự chọn là thứ tự ưu tiên. Để trống thì hệ thống tự gợi ý các quyển cùng bộ (cùng tên, khác Part)." },
+  { key: "edition_type", label: "Loại sách", type: "select", options: ["auto", "full", "part"], half: true, hint: "Xếp sách vào hàng nào ở trang chủ. auto: tự đoán theo tên (tên có \"Part N\" là sách theo part). full: bản đầy đủ. part: sách lẻ theo từng part của bộ." },
   { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
   { key: "meta_description", label: "Mô tả SEO (≤160 ký tự)", type: "textarea" },
   { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước, áp dụng cho trang Books và mục Ebook ở trang chủ. Kéo thả hoặc bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống sẽ xếp sau các mục đã đánh số, mới nhất trước." },
@@ -52,7 +53,7 @@ export const EBOOK_FIELDS = [
   { key: "featured", label: "Hiển thị nổi bật ở trang chủ", type: "boolean", half: true },
 ];
 
-export const EBOOK_DEFAULTS = { price: 0, status: "draft", featured: false, sort_order: 0, what_you_learn: [], preview_images: [], faq: [], related_ebook_ids: [] };
+export const EBOOK_DEFAULTS = { price: 0, status: "draft", featured: false, sort_order: 0, edition_type: "auto", what_you_learn: [], preview_images: [], faq: [], related_ebook_ids: [] };
 
 export const PRODUCT_IMPORT_EXAMPLE = JSON.stringify([
   {
@@ -76,6 +77,7 @@ export const EBOOK_IMPORT_EXAMPLE = JSON.stringify([
     description: "Mô tả ebook.",
     what_you_learn: ["Ý 1", "Ý 2", "Ý 3"],
     lemon_squeezy_variant_id: "123456",
+    edition_type: "auto",
     status: "draft",
   },
 ], null, 2);

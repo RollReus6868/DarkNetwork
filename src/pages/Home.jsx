@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen, Sparkles, Youtube, Facebook, Instagram, Music2 } 
 import Seo from "@/components/site/Seo";
 import EmailCapture from "@/components/site/EmailCapture";
 import EbookSlider from "@/components/site/EbookSlider";
+import { buildEbookRows } from "@/lib/ebookGroups";
 import HeroCarousel from "@/components/site/HeroCarousel";
 import VideoLibrary from "@/components/site/VideoLibrary";
 import Testimonials from "@/components/site/Testimonials";
@@ -40,7 +41,9 @@ export default function Home() {
 
   // Items flagged "featured" in Admin come first; the rest fill remaining slots.
   const featuredFirst = (list, n) => [...list.filter((i) => i.featured), ...list.filter((i) => !i.featured)].slice(0, n);
-  const sliderEbooks = featuredFirst(ebooks, 8);
+  // Featured Ebooks tách thành nhiều hàng: hàng bản đầy đủ trước, rồi mỗi bộ
+  // sách theo part một hàng riêng.
+  const ebookRows = buildEbookRows(ebooks);
   const videoLibraryContent = siteContent.find((c) => c.section_key === "video_library");
   const latestStudies = studies.slice(0, 6);
   const featuredProducts = featuredFirst(products, 4);
@@ -109,7 +112,7 @@ export default function Home() {
       <VideoLibrary content={videoLibraryContent} stats={membershipStats} />
 
       {/* SECTION 3 — EBOOK SLIDER */}
-      {sliderEbooks.length > 0 && (
+      {ebookRows.length > 0 && (
         <section className="dn-cream py-20 lg:py-28 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <SectionHeading
@@ -128,7 +131,11 @@ export default function Home() {
               ))}
             </ul>
 
-            <EbookSlider ebooks={sliderEbooks} />
+            <div className="space-y-16">
+              {ebookRows.map((row) => (
+                <EbookSlider key={row.key} title={row.title} ebooks={row.ebooks} />
+              ))}
+            </div>
 
             <div className="text-center mt-12">
               <Link to="/books" className="btn-gold inline-flex items-center gap-2 px-8 py-3.5 rounded uppercase text-sm tracking-wide">

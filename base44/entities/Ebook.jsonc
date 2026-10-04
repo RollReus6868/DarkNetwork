@@ -97,6 +97,17 @@
       "title": "Related Ebooks",
       "description": "Ebooks hand-picked in Admin to be recommended at the bottom of this book's page. The chosen order is the priority order. If left empty, books from the same series (same title, different Part/Book/Volume) are suggested first."
     },
+    "edition_type": {
+      "type": "string",
+      "title": "Edition Type",
+      "enum": [
+        "auto",
+        "full",
+        "part"
+      ],
+      "default": "auto",
+      "description": "Which homepage row this book belongs to. auto = detect from the title (a 'Part N' title is a part book); full = complete edition; part = single part of a series."
+    },
     "related_video_id": {
       "type": "string",
       "title": "Related Video ID"
