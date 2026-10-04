@@ -169,7 +169,8 @@ export default function Home() {
       {/* SECTION 5 — TESTIMONIALS */}
       <Testimonials testimonials={testimonials} />
 
-      {/* SECTION 7 — EXPLORE THE BIBLE */}
+      {/* SECTION 7 — EXPLORE THE BIBLE (tạm ẩn — xoá `false &&` để hiện lại) */}
+      {false && (
       <section className="py-20 lg:py-28 grain-overlay">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeading
@@ -204,8 +205,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
-      {/* SECTION 6 — LATEST BIBLE STUDIES */}
+      {/* SECTION 6 — LATEST BIBLE STUDIES (tạm ẩn — xoá `false &&` để hiện lại) */}
+      {false && (
       <section className="py-20 lg:py-28 border-y border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
@@ -230,6 +233,7 @@ export default function Home() {
           )}
         </div>
       </section>
+      )}
 
       {/* SECTION 7 — FREE RESOURCE / EMAIL */}
       <section className="py-20 lg:py-28 border-y border-border/50 grain-overlay">
