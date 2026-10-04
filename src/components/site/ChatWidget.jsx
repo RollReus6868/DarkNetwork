@@ -85,7 +85,7 @@ export default function ChatWidget() {
   };
 
   return (
-    <div className="fixed left-4 sm:left-6 bottom-4 sm:bottom-6 z-[75] flex flex-col items-start gap-3">
+    <div className="fixed right-4 sm:right-8 bottom-[9.5rem] sm:bottom-[5.5rem] z-[75] flex flex-col items-end gap-3">
       {open && (
         <div className="w-[min(90vw,22rem)] h-[min(66vh,30rem)] flex flex-col rounded overflow-hidden border border-[#e6c56a]/35 bg-[#1a0f08]/97 backdrop-blur shadow-[0_24px_60px_-18px_rgba(0,0,0,0.95)]">
           <div className="flex items-start justify-between gap-3 px-4 py-3.5 border-b border-[#e6c56a]/20 bg-gradient-to-b from-[#2d1810] to-[#1a0f08]">
@@ -150,7 +150,7 @@ export default function ChatWidget() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "Đóng khung chat" : "Mở khung chat"}
-        className="btn-gold w-14 h-14 rounded-full flex items-center justify-center shadow-[0_12px_30px_-8px_rgba(0,0,0,0.9)]"
+        className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center shadow-[0_12px_30px_-8px_rgba(0,0,0,0.9)] transition-colors"
       >
         {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
       </button>
