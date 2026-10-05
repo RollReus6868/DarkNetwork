@@ -14,7 +14,7 @@ export default function About() {
         {/* Hero */}
         <section className="relative min-h-[60vh] flex items-center overflow-hidden">
           <div className="absolute inset-0">
-            <Image src="https://media.base44.com/images/public/6aa80a3918e73ce9a7b4d0f7/b6f3b85c0_generated_image.png" alt="" className="w-full h-full object-cover" fittingType="fill" />
+            <Image src="https://qztnndbhauzawchfhcui.supabase.co/storage/v1/object/public/public-files/458e9bae_b6f3b85c0_generated_image.png" alt="" className="w-full h-full object-cover" fittingType="fill" />
             <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-background" />
           </div>
           <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 text-center py-20">

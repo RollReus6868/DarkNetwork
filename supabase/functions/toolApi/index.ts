@@ -27,7 +27,7 @@ function sameToken(given, expected) {
 
 // Text written through the API can carry non-breaking spaces that stop paragraphs from wrapping.
 function clean(value) {
-  if (typeof value === 'string') return value.replace(/&nbsp;| /g, ' ');
+  if (typeof value === 'string') return value.replace(/&nbsp;|\u00a0/g, ' ');
   if (Array.isArray(value)) return value.map(clean);
   if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, clean(v)]));
   return value;

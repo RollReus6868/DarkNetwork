@@ -39,3 +39,5 @@ base44/.app.jsonc
 # local
 .env.local
 tools/local-stack/node_modules/
+!.env.production
+!.env.example

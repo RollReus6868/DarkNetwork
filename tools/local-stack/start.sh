@@ -10,7 +10,10 @@ SU() { if [ "$(id -u)" = 0 ]; then su postgres -c "$1"; else bash -c "$1"; fi; }
 SU "psql -qc 'drop database if exists dn'" && SU "psql -qc 'drop role if exists dn_gateway' -c 'drop role if exists anon' -c 'drop role if exists authenticated' -c 'drop role if exists service_role'"
 SU "psql -qc 'create database dn'"
 SU "$PSQL -d dn -f '$HERE/setup-db.sql'"
-SU "$PSQL -d dn -f '$ROOT/supabase/migrations/0001_init.sql'"
+for m in "$ROOT"/supabase/migrations/*.sql; do      # storage lives outside this stand-in
+  case "$m" in *storage*) continue;; esac
+  SU "$PSQL -d dn -f '$m'"
+done
 
 jwt() { node --input-type=module -e "
 import crypto from 'node:crypto';

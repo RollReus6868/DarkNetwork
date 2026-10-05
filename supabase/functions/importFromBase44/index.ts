@@ -1,7 +1,7 @@
 import { createClientFromRequest, secrets, serve } from '../_shared/backend.js';
 
 // One-time move of the public content (books, products, studies, videos, slides…) and its
-// images from the old Base44 app into this project. Protected by TOOL_API_TOKEN.
+// images from the old Base44 app into this project. Protected by a one-time key (see below).
 // Safe to run again: records keep their ids, already copied images are skipped.
 // Delete this function once the move is done.
 
@@ -12,13 +12,15 @@ const OLD_FILE = /https:\/\/(?:media\.base44\.com\/images\/public|(?:app\.)?base
 
 async function handler(req) {
   try {
-    const expected = secrets.get('TOOL_API_TOKEN');
-    const given = req.headers.get('x-tool-token') || '';
-    if (!expected || expected.length < 24 || given !== expected) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-
     const api = secrets.get('BASE44_API_URL') || 'https://base44.app';
     const appId = secrets.get('BASE44_APP_ID') || '6aa80a3918e73ce9a7b4d0f7';
     const base44 = createClientFromRequest(req).asServiceRole;
+
+    // The key lives in the table import_key (no access rules = service role only). Dropping
+    // that table switches this function off for good.
+    const given = req.headers.get('x-import-key') || '';
+    const keys = await base44.entities.ImportKey.list().catch(() => []);
+    if (given.length < 24 || !keys.some((k) => k.key === given)) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     const body = await req.json();
 
     // copy one old image into public storage -> its new address

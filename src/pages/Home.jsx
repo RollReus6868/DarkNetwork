@@ -13,10 +13,10 @@ import { useSiteData } from "@/hooks/useSiteData";
 import { Image } from "@/components/ui/image";
 
 const GEN = {
-  jerusalem: "https://media.base44.com/images/public/6aa80a3918e73ce9a7b4d0f7/b6f3b85c0_generated_image.png",
-  ruins: "https://media.base44.com/images/public/6aa80a3918e73ce9a7b4d0f7/a24bcc603_generated_image.png",
-  storm: "https://media.base44.com/images/public/6aa80a3918e73ce9a7b4d0f7/e78d2b614_generated_image.png",
-  figures: "https://media.base44.com/images/public/6aa80a3918e73ce9a7b4d0f7/3791339aa_generated_image.png",
+  jerusalem: "https://qztnndbhauzawchfhcui.supabase.co/storage/v1/object/public/public-files/458e9bae_b6f3b85c0_generated_image.png",
+  ruins: "https://qztnndbhauzawchfhcui.supabase.co/storage/v1/object/public/public-files/ee85b6e2_a24bcc603_generated_image.png",
+  storm: "https://qztnndbhauzawchfhcui.supabase.co/storage/v1/object/public/public-files/9e9183b6_e78d2b614_generated_image.png",
+  figures: "https://qztnndbhauzawchfhcui.supabase.co/storage/v1/object/public/public-files/21a87b96_3791339aa_generated_image.png",
   desert: "https://images.unsplash.com/photo-1564399579883-451a5d44ec08?w=800&q=80",
   scrolls: "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
 };

@@ -6,7 +6,9 @@ import http from "node:http";
 import { createClient } from "@supabase/supabase-js";
 import { entitiesProxy } from "../../supabase/functions/_shared/entities.js";
 
+import pg from "pg";
 const [URL_, ANON, SERVICE] = process.argv.slice(2);
+const pgAdmin = async (sql) => { const c = new pg.Client({ connectionString: process.env.ADMIN_DATABASE_URL }); await c.connect(); await c.query(sql); await c.end(); };
 const opts = { auth: { persistSession: false, autoRefreshToken: false } };
 const client = () => createClient(URL_, ANON, opts);
 const service = entitiesProxy(createClient(URL_, SERVICE, opts));
@@ -186,7 +188,11 @@ assert.equal((await tool({ action: "upsert", entity: "Product", data: { title: "
 
 // ---------------- one-time import from the old Base44 app (its API is played by the server on 54399)
 const imp = async (body) => Promise.resolve().then(() => fetch(`${URL_}/functions/v1/importFromBase44`, { method: "POST", body: JSON.stringify(body),
-  headers: { "X-Tool-Token": "test-token-0123456789abcdefgh", "Content-Type": "application/json" } })).then(async (r) => ({ http: r.status, ...(await r.json()) }));
+  headers: { "X-Import-Key": "import-key-0123456789abcdefgh", "Content-Type": "application/json" } })).then(async (r) => ({ http: r.status, ...(await r.json()) }));
+assert.equal((await imp({ action: "records", entity: "Product" })).http, 401, "off until the key table exists");
+await pgAdmin(`create table public.import_key (key text primary key); alter table public.import_key enable row level security;
+  grant all on public.import_key to service_role; insert into public.import_key values ('import-key-0123456789abcdefgh')`);
+assert.deepEqual(await anon.ImportKey.list(), [], "the key is not readable from outside");
 assert.deepEqual(await imp({ action: "records", entity: "Product" }), { http: 200, entity: "Product", found: 2, created: 2, updated: 0 });
 assert.deepEqual(await imp({ action: "records", entity: "Product" }), { http: 200, entity: "Product", found: 2, created: 0, updated: 2 });
 const old = await anon.Product.get("6aa81b07e8694e59afee18f0");
