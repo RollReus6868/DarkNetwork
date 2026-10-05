@@ -30,7 +30,7 @@ export default function DonateButton() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="btn-gold h-11 px-4 rounded-full flex items-center gap-2 text-sm font-semibold"
+        className={`btn-donate h-11 px-4 rounded-full flex items-center gap-2 text-sm font-semibold ${open ? "" : "btn-donate-nudge"}`}
       >
         <Heart className="w-4 h-4" />
         Donate to Us
