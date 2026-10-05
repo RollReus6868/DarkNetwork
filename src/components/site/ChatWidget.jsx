@@ -23,8 +23,8 @@ function Bubble({ message }) {
   );
 }
 
-export default function ChatWidget() {
-  const [open, setOpen] = useState(false);
+// open/onToggle come from FloatingActions, which shows one panel at a time
+export default function ChatWidget({ open, onToggle }) {
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
@@ -85,9 +85,9 @@ export default function ChatWidget() {
   };
 
   return (
-    <div className="fixed right-4 sm:right-8 bottom-[9.5rem] sm:bottom-[5.5rem] z-[75] flex flex-col items-end gap-3">
+    <>
       {open && (
-        <div className="w-[min(90vw,22rem)] h-[min(66vh,30rem)] flex flex-col rounded overflow-hidden border border-[#e6c56a]/35 bg-[#1a0f08]/97 backdrop-blur shadow-[0_24px_60px_-18px_rgba(0,0,0,0.95)]">
+        <div className="absolute bottom-full left-0 mb-3 w-[min(90vw,22rem)] h-[min(60vh,30rem)] flex flex-col rounded overflow-hidden border border-[#e6c56a]/35 bg-[#1a0f08]/97 backdrop-blur shadow-[0_24px_60px_-18px_rgba(0,0,0,0.95)]">
           <div className="flex items-start justify-between gap-3 px-4 py-3.5 border-b border-[#e6c56a]/20 bg-gradient-to-b from-[#2d1810] to-[#1a0f08]">
             <div>
               <p className="font-heading text-lg font-semibold text-[#fbf1dc]">Trò chuyện với Dark Network</p>
@@ -95,7 +95,7 @@ export default function ChatWidget() {
             </div>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={onToggle}
               aria-label="Đóng khung chat"
               className="text-foreground/60 hover:text-primary transition-colors mt-0.5"
             >
@@ -148,12 +148,12 @@ export default function ChatWidget() {
 
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={onToggle}
         aria-label={open ? "Đóng khung chat" : "Mở khung chat"}
-        className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center shadow-[0_12px_30px_-8px_rgba(0,0,0,0.9)] transition-colors"
+        className="btn-chat-glow w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-colors"
       >
         {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
       </button>
-    </div>
+    </>
   );
 }
