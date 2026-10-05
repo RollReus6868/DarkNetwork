@@ -4,6 +4,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import BackToTop from "./BackToTop";
 import ChatWidget from "./ChatWidget";
+import DonateButton from "./DonateButton";
 
 export default function Layout() {
   const [cart, setCart] = useState([]);
@@ -36,6 +37,7 @@ export default function Layout() {
       <Footer />
       <BackToTop />
       <ChatWidget />
+      <DonateButton />
     </div>
   );
 }
