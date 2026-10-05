@@ -1,7 +1,7 @@
 # Dark Network website
 
 React + Vite site. Backend: **Supabase** (database, sign-in, file storage, edge functions).
-Hosting: any static host (Cloudflare Pages). Payments: Lemon Squeezy. Print on demand: Spring.
+Hosting: Cloudflare Workers (static assets). Payments: Lemon Squeezy. Print on demand: Spring.
 
 ## Layout
 
@@ -21,8 +21,8 @@ npm run dev
 
 ## Deploy
 
-- **Site**: Cloudflare Pages builds this repo (`npm run build`, output `dist`) with the three
-  `VITE_…` variables from `.env.example`. `public/_redirects` sends every path to the app.
+- **Site**: the Cloudflare Worker `darknetwork` builds this repo (`npm run build`, then
+  `npx wrangler deploy`). `wrangler.jsonc` serves `dist` and sends every path to the app.
 - **Database**: apply the files in `supabase/migrations/` in order.
 - **Functions**: deploy every folder in `supabase/functions/` (JWT verification off, see
   `supabase/config.toml`; each function checks its caller itself).
