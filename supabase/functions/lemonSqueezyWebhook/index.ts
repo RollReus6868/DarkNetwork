@@ -54,7 +54,8 @@ async function handler(req) {
       const customerEmail = orderData?.attributes?.user_email;
       const amount = orderData?.attributes?.total;
       const currency = orderData?.attributes?.currency || 'USD';
-      const customData = orderData?.attributes?.custom_data || {};
+      // Lemon Squeezy sends the checkout's custom data in meta.custom_data
+      const customData = body?.meta?.custom_data || orderData?.attributes?.custom_data || {};
       const ebookId = customData.ebook_id;
       const userId = customData.user_id && customData.user_id !== 'guest' ? customData.user_id : null;
       const variantId = orderData?.attributes?.first_order_item?.variant_id;

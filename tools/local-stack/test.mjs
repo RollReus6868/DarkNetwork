@@ -118,8 +118,8 @@ const hook = async (payload, secret = "whsec") => {
     headers: { "Content-Type": "application/json", "X-Signature": crypto.createHmac("sha256", secret).update(raw).digest("hex") } });
   return { http: r.status, ...(await r.json()) };
 };
-const order = (id, custom, status = "paid", email = "buyer@example.com") => ({ meta: { event_name: "order_created" },
-  data: { id, attributes: { status, user_email: email, total: 2699, currency: "USD", custom_data: custom, first_order_item: { variant_id: 2204367 } } } });
+const order = (id, custom, status = "paid", email = "buyer@example.com") => ({ meta: { event_name: "order_created", custom_data: custom },   // where Lemon Squeezy really puts it
+  data: { id, attributes: { status, user_email: email, total: 2699, currency: "USD", first_order_item: { variant_id: 2204367 } } } });
 assert.equal((await hook(order("1001", { ebook_id: e1.id, user_id: buyer.id }), "wrong")).http, 401);
 assert.equal((await hook(order("1001", { ebook_id: e1.id, user_id: buyer.id }))).http, 200);
 await hook(order("1001", { ebook_id: e1.id, user_id: buyer.id }));   // Lemon Squeezy retries: no duplicate
