@@ -33,7 +33,7 @@ export default function DonateButton() {
         className="btn-gold h-11 px-4 rounded-full flex items-center gap-2 text-sm font-semibold"
       >
         <Heart className="w-4 h-4" />
-        Support us
+        Donate to Us
       </button>
     </div>
   );
