@@ -112,9 +112,9 @@ const [dl] = await Promise.all([
 ]);
 assert.equal(await (await fetch((await dl.json()).signed_url)).text(), "%PDF-1.4 the book");
 
-await page.getByLabel("Mở khung chat").click();
-await page.getByPlaceholder("Nhập tin nhắn…").fill("Is the Enoch book a new translation?");
-await page.getByLabel("Gửi tin nhắn").click();
+await page.getByLabel("Open chat").click();
+await page.getByPlaceholder("Type a message…").fill("Is the Enoch book a new translation?");
+await page.getByLabel("Send message").click();
 await page.getByText("Is the Enoch book a new translation?").first().waitFor();
 await page.shot("chat");
 await page.goto(`${SITE}/contact`);

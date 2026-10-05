@@ -56,8 +56,8 @@ export default function RelatedEbooks({ ebooks = [] }) {
   return (
     <section className="py-14 bg-secondary/30 border-y border-border">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        <h2 className="font-heading text-2xl font-bold mb-1">Các ebook khác</h2>
-        <p className="text-sm text-muted-foreground mb-6">Tiếp tục hành trình với những quyển liên quan.</p>
+        <h2 className="font-heading text-2xl font-bold mb-1">More ebooks</h2>
+        <p className="text-sm text-muted-foreground mb-6">Continue the journey with these related titles.</p>
 
         {reducedMotion ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
@@ -70,7 +70,7 @@ export default function RelatedEbooks({ ebooks = [] }) {
             <button
               onClick={() => emblaApi?.scrollPrev()}
               disabled={!canScrollPrev}
-              aria-label="Ebook trước"
+              aria-label="Previous ebook"
               className={`${arrowCls} -left-5`}
             >
               <ChevronLeft className="w-5 h-5" />
@@ -78,7 +78,7 @@ export default function RelatedEbooks({ ebooks = [] }) {
             <button
               onClick={() => emblaApi?.scrollNext()}
               disabled={!canScrollNext}
-              aria-label="Ebook tiếp theo"
+              aria-label="Next ebook"
               className={`${arrowCls} -right-5`}
             >
               <ChevronRight className="w-5 h-5" />
@@ -89,7 +89,7 @@ export default function RelatedEbooks({ ebooks = [] }) {
               className="overflow-hidden py-4 -my-4"
               role="region"
               aria-roledescription="carousel"
-              aria-label="Các ebook khác"
+              aria-label="More ebooks"
             >
               <div className="flex items-stretch">
                 {slides.map(({ item: ebook, key }) => (

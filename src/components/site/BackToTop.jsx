@@ -37,8 +37,8 @@ export default function BackToTop() {
     <button
       type="button"
       onClick={scrollToTop}
-      aria-label="Về đầu trang"
-      title="Về đầu trang"
+      aria-label="Back to top"
+      title="Back to top"
       className={`fixed right-4 sm:right-8 bottom-24 sm:bottom-8 z-[80] w-11 h-11 rounded-full flex items-center justify-center
         bg-[#1a0f08]/90 backdrop-blur border-2 border-[#e6c56a]/70 text-[#e6c56a]
         shadow-[0_8px_24px_-6px_rgba(0,0,0,0.85)] opacity-90 hover:opacity-100

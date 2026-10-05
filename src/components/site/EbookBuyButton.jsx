@@ -122,8 +122,8 @@ export function EbookBuyButton({ ebook, variant = "card" }) {
         </button>
         <button
           onClick={handleAddToCart}
-          aria-label="Thêm vào giỏ"
-          title="Thêm vào giỏ"
+          aria-label="Add to cart"
+          title="Add to cart"
           className="p-2.5 border border-border rounded text-muted-foreground hover:text-primary hover:border-primary transition-colors glow-bronze"
         >
           {added ? <Check className="w-4 h-4 text-primary" /> : <ShoppingCart className="w-4 h-4" />}

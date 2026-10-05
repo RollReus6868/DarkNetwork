@@ -78,7 +78,7 @@ export default function ChatWidget({ open, onToggle }) {
       setMessages((prev) => [...prev, saved]);
       setDraft("");
     } catch {
-      setError("Không gửi được tin nhắn. Vui lòng thử lại.");
+      setError("Your message could not be sent. Please try again.");
     } finally {
       setSending(false);
     }
@@ -90,13 +90,13 @@ export default function ChatWidget({ open, onToggle }) {
         <div className="absolute bottom-full left-0 mb-3 w-[min(90vw,22rem)] h-[min(60vh,30rem)] flex flex-col rounded overflow-hidden border border-[#e6c56a]/35 bg-[#1a0f08]/97 backdrop-blur shadow-[0_24px_60px_-18px_rgba(0,0,0,0.95)]">
           <div className="flex items-start justify-between gap-3 px-4 py-3.5 border-b border-[#e6c56a]/20 bg-gradient-to-b from-[#2d1810] to-[#1a0f08]">
             <div>
-              <p className="font-heading text-lg font-semibold text-[#fbf1dc]">Trò chuyện với Dark Network</p>
-              <p className="text-[11px] text-foreground/60">Gửi câu hỏi, chúng tôi sẽ trả lời ngay tại đây.</p>
+              <p className="font-heading text-lg font-semibold text-[#fbf1dc]">Chat with Dark Network</p>
+              <p className="text-[11px] text-foreground/60">Send us a question and we will reply right here.</p>
             </div>
             <button
               type="button"
               onClick={onToggle}
-              aria-label="Đóng khung chat"
+              aria-label="Close chat"
               className="text-foreground/60 hover:text-primary transition-colors mt-0.5"
             >
               <X className="w-5 h-5" />
@@ -110,7 +110,7 @@ export default function ChatWidget({ open, onToggle }) {
               </div>
             ) : messages.length === 0 ? (
               <div className="rounded border border-[#e6c56a]/25 bg-secondary px-3.5 py-3 text-sm text-foreground/80 leading-relaxed">
-                Xin chào! Bạn cần hỗ trợ điều gì? Hãy để lại tin nhắn, chúng tôi sẽ phản hồi ngay trong cuộc trò chuyện này.
+                Hello! How can we help? Leave a message and we will reply in this conversation.
               </div>
             ) : (
               messages.map((message) => <Bubble key={message.id} message={message} />)
@@ -131,13 +131,13 @@ export default function ChatWidget({ open, onToggle }) {
               }}
               rows={1}
               maxLength={MAX_BODY}
-              placeholder="Nhập tin nhắn…"
+              placeholder="Type a message…"
               className="flex-1 resize-none max-h-24 bg-secondary border border-border rounded px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60"
             />
             <button
               type="submit"
               disabled={sending || !draft.trim()}
-              aria-label="Gửi tin nhắn"
+              aria-label="Send message"
               className="btn-gold w-10 h-10 rounded flex items-center justify-center disabled:opacity-50"
             >
               {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -149,7 +149,7 @@ export default function ChatWidget({ open, onToggle }) {
       <button
         type="button"
         onClick={onToggle}
-        aria-label={open ? "Đóng khung chat" : "Mở khung chat"}
+        aria-label={open ? "Close chat" : "Open chat"}
         className="btn-chat-glow w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-colors"
       >
         {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
