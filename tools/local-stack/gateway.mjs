@@ -156,10 +156,30 @@ async function auth(req, res, url, body, claims) {
 
 // ---- /storage/v1: files on disk; the same rule as the storage policy (admin or service role writes)
 async function storage(req, res, url, raw, claims) {
-  const parts = url.pathname.split("/").slice(3);   // object, [public|sign], bucket, ...path
-  const mode = ["public", "sign"].includes(parts[1]) ? parts[1] : "";
+  let parts = url.pathname.split("/").slice(3);   // object, [public|sign|upload/sign], bucket, ...path
+  const signedUpload = parts[1] === "upload" && parts[2] === "sign";
+  if (signedUpload) parts = ["object", "upload-sign", ...parts.slice(3)];
+  const mode = ["public", "sign", "upload-sign"].includes(parts[1]) ? parts[1] : "";
   const [bucket, ...rest] = parts.slice(mode ? 2 : 1);
   const file = path.join(FILES, bucket, rest.join("/").replace(/\.\./g, ""));
+  if (signedUpload) {
+    const key = `up:${bucket}/${rest.join("/")}`;
+    if (req.method === "POST") {      // create the one-time upload address (service role only)
+      if (claims?.role !== "service_role") return json(res, 403, { message: "new row violates row-level security policy" });
+      return json(res, 200, { url: `/object/upload/sign/${bucket}/${rest.join("/")}?token=${sign({ url: key })}` });
+    }
+    if (req.method === "PUT") {       // the upload itself: raw body or multipart, no other auth
+      if (verify(url.searchParams.get("token"))?.url !== key) return json(res, 400, { message: "invalid upload token" });
+      let bytes = raw;
+      if ((req.headers["content-type"] || "").startsWith("multipart/")) {
+        const form = await new Request("http://x", { method: "POST", headers: { "content-type": req.headers["content-type"] }, body: raw }).formData();
+        bytes = Buffer.from(await [...form.values()].find((v) => typeof v !== "string").arrayBuffer());
+      }
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, bytes);
+      return json(res, 200, { Key: `${bucket}/${rest.join("/")}` });
+    }
+  }
   if (req.method === "POST" && mode === "sign") {
     if (claims?.role !== "service_role") return json(res, 403, { message: "new row violates row-level security policy" });
     if (!fs.existsSync(file)) return json(res, 404, { message: "Object not found" });

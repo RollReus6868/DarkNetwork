@@ -50,6 +50,16 @@ export function createClientFromRequest(req) {
             const path = await upload("public-files", file);
             return { file_url: admin.storage.from("public-files").getPublicUrl(path).data.publicUrl };
           },
+          // A one-time address a trusted client uploads one file to, straight into storage
+          // (large PDFs never pass through a function). ref = what to store on the record.
+          async CreateUploadUrl({ name, isPrivate }) {
+            const bucket = isPrivate ? "private-files" : "public-files";
+            const path = `${crypto.randomUUID().slice(0, 8)}_${safeName(name)}`;
+            const { data, error } = await admin.storage.from(bucket).createSignedUploadUrl(path);
+            if (error) throw new Error(error.message);
+            const ref = isPrivate ? path : admin.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+            return { upload_url: data.signedUrl, ref };
+          },
           async CreateFileSignedUrl({ file_uri, expires_in = 120 }) {
             const { data, error } = await admin.storage.from("private-files").createSignedUrl(file_uri, expires_in);
             if (error) throw new Error(error.message);

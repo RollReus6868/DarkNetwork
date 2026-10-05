@@ -163,17 +163,32 @@ const synced = await fn(client(), "chatGuest", { action: "sync", ...guest });
 assert.deepEqual(synced.messages.map((m) => [m.sender_role, m.body]), [["visitor", "Hello there"], ["admin", "Hi!"]]);
 
 // ---------------- the desktop tool's entry point
-const tool = async (body, token = "test-token-0123456789abcdefgh", form) => {
-  const r = await fetch(`${URL_}/functions/v1/toolApi`, { method: "POST", body: form || JSON.stringify(body),
-    headers: { "X-Tool-Token": token, ...(form ? {} : { "Content-Type": "application/json" }) } });
+const tool = async (body, token = "test-token-0123456789abcdefgh") => {
+  const r = await fetch(`${URL_}/functions/v1/toolApi`, { method: "POST", body: JSON.stringify(body),
+    headers: { "X-Tool-Token": token, "Content-Type": "application/json" } });
   return { http: r.status, ...(await r.json()) };
 };
 assert.equal((await tool({ action: "ping" }, "wrong-token-0123456789abcdef")).http, 401);
 assert.deepEqual(await tool({ action: "ping" }), { http: 200, ok: true, site: "Dark Network" });
-const form = (name, priv) => { const f = new FormData(); f.append("file", new File(["%PDF tool"], name)); f.append("private", priv ? "1" : "0"); return f; };
-const up1 = await tool(null, undefined, form("tool-book.pdf", true));
-const up2 = await tool(null, undefined, form("tool-book.jpg", false));
-assert.match(up1.file_uri, /^[0-9a-f]{8}_tool-book\.pdf$/); assert.equal(await (await fetch(up2.file_url)).text(), "%PDF tool");
+const put = async (name, priv, bytes) => {
+  const u = await tool({ action: "upload_url", name, private: priv });
+  assert.equal(u.http, 200, JSON.stringify(u));
+  assert.equal((await fetch(u.upload_url, { method: "PUT", body: bytes, headers: { "Content-Type": "application/pdf" } })).status, 200);
+  return u.ref;
+};
+assert.equal((await tool({ action: "upload_url", name: "virus.exe" })).http, 400);
+const up1 = { file_uri: await put("Tool Book (1).pdf", true, "%PDF tool") };
+const up2 = { file_url: await put("tool-book.jpg", false, "%PDF tool") };
+assert.match(up1.file_uri, /^[0-9a-f]{8}_Tool-Book-1-\.pdf$/); assert.equal(await (await fetch(up2.file_url)).text(), "%PDF tool");
+assert.notEqual((await fetch(`${URL_}/storage/v1/object/public/private-files/${up1.file_uri}`)).status, 200);
+// a book copied from the old site gets its PDF back by the original file name
+await admin.db.Ebook.update(e2.id, { secure_file_uri: "mp/private/6aa80a3918e73ce9a7b4d0f7/2ee2042ac_Jubilees_0-Start-Here.pdf", lemon_squeezy_variant_id: "1", status: "published" });
+assert.deepEqual((await tool({ action: "pending_pdfs" })).items, [{ title: "Book 2", file_name: "Jubilees_0-Start-Here.pdf" }]);
+assert.equal((await tool({ action: "attach_pdf", file_name: "Jubilees_0-Start-Here.pdf", file_uri: "../../etc/passwd" })).http, 400);
+assert.deepEqual((await tool({ action: "attach_pdf", file_name: "jubilees_0-start-here.PDF", file_uri: up1.file_uri })).attached, ["Book 2"]);
+assert.deepEqual((await tool({ action: "pending_pdfs" })).items, []);
+await hook(order("1003", { ebook_id: e2.id, user_id: buyer.id }));
+assert.equal(await (await fetch((await fn(buyer.sb, "generateEbookDownloadUrl", { ebook_id: e2.id })).signed_url)).text(), "%PDF tool");
 const data = { title: "Tool Book", slug: "tool-book", description: "<p>x&nbsp;y</p>", price: 4.99, cover_image: up2.file_url, secure_file_uri: up1.file_uri, status: "published" };
 const made = await tool({ action: "upsert", entity: "Ebook", data });
 assert.deepEqual([made.http, made.status, made.created], [200, "draft", true]);

@@ -2,8 +2,8 @@ import { createClientFromRequest, secrets, serve } from '../_shared/backend.js';
 
 // Entry point for the desktop tool "DN Product Studio".
 // The tool sends the secret TOOL_API_TOKEN in the X-Tool-Token header.
-// It can: check the connection, list records, upload a file, and create or
-// update an Ebook / Product. New records are ALWAYS drafts; the tool can never
+// It can: check the connection, list records, get a one-time upload address, re-attach the PDF
+// of a book copied from the old site, and create or update an Ebook / Product. New records are ALWAYS drafts; the tool can never
 // publish, unpublish or delete anything.
 
 const FIELDS = {
@@ -47,21 +47,30 @@ async function handler(req) {
 
     const db = createClientFromRequest(req).asServiceRole;
 
-    // ---- file upload (multipart): cover / product photos are public, ebook PDFs are private
-    if ((req.headers.get('content-type') || '').includes('multipart/form-data')) {
-      const form = await req.formData();
-      const file = form.get('file');
-      if (!(file instanceof File)) return Response.json({ error: 'Missing file' }, { status: 400 });
-      if (form.get('private') === '1') {
-        const { file_uri } = await db.integrations.Core.UploadPrivateFile({ file });
-        return Response.json({ file_uri });
-      }
-      const { file_url } = await db.integrations.Core.UploadPublicFile({ file });
-      return Response.json({ file_url });
-    }
-
     const body = await req.json();
     if (body?.action === 'ping') return Response.json({ ok: true, site: 'Dark Network' });
+
+    // ---- files go straight to storage: covers / product photos public, ebook PDFs private
+    if (body?.action === 'upload_url') {
+      const name = String(body.name || '');
+      if (!/\.(pdf|jpe?g|png|webp)$/i.test(name)) return Response.json({ error: 'Only pdf, jpg, png, webp' }, { status: 400 });
+      return Response.json(await db.integrations.Core.CreateUploadUrl({ name, isPrivate: body.private === true }));
+    }
+
+    // ---- ebooks copied from the old site still point at PDFs that were not copied.
+    // The old address ends with the original file name, which is how a re-upload finds its book.
+    const oldName = (uri) => (String(uri || '').match(/^mp\/private\/[^/]+\/[0-9a-f]+_(.+)$/) || [])[1];
+    if (body?.action === 'pending_pdfs') {
+      const rows = await db.entities.Ebook.list('sort_order', 500);
+      return Response.json({ items: rows.filter((r) => oldName(r.secure_file_uri)).map((r) => ({ title: r.title, file_name: oldName(r.secure_file_uri) })) });
+    }
+    if (body?.action === 'attach_pdf') {
+      const want = String(body.file_name || '').toLowerCase();
+      if (!want || !/^[0-9a-f]{8}_[A-Za-z0-9._-]+\.pdf$/i.test(String(body.file_uri || ''))) return Response.json({ error: 'Bad file' }, { status: 400 });
+      const rows = (await db.entities.Ebook.list('sort_order', 500)).filter((r) => (oldName(r.secure_file_uri) || '').toLowerCase() === want);
+      for (const row of rows) await db.entities.Ebook.update(row.id, { secure_file_uri: body.file_uri });
+      return Response.json({ attached: rows.map((r) => r.title) });
+    }
 
     const entity = body?.entity;
     if (!FIELDS[entity]) return Response.json({ error: 'Unknown entity' }, { status: 400 });
