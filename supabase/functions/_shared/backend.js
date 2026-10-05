@@ -61,7 +61,9 @@ export function createClientFromRequest(req) {
             return { upload_url: data.signedUrl, ref };
           },
           async CreateFileSignedUrl({ file_uri, expires_in = 120 }) {
-            const { data, error } = await admin.storage.from("private-files").createSignedUrl(file_uri, expires_in);
+            // saved on the buyer's computer under the file's own name, without the storage prefix
+            const download = file_uri.split("/").pop().replace(/^[0-9a-f]{8,9}_/, "");
+            const { data, error } = await admin.storage.from("private-files").createSignedUrl(file_uri, expires_in, { download });
             if (error) throw new Error(error.message);
             return { signed_url: data.signedUrl };
           },
