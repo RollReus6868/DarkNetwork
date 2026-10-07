@@ -224,6 +224,20 @@ assert.equal((await anon.Ebook.get(made.id)).price, 7);
 assert.equal((await tool({ action: "list", entity: "Ebook" })).items.length, 3);
 assert.equal((await tool({ action: "upsert", entity: "Product", data: { title: "Mug", slug: "mug" } })).http, 400);
 
+// orders and the visit counter, as the tool sees them
+const orders = (await tool({ action: "orders" })).items;
+const cartOrder = orders.find((o) => o.order_id === "1002");
+assert.deepEqual([cartOrder.email, cartOrder.status, cartOrder.total, cartOrder.items.length, cartOrder.buyer], ["other@example.com", "refunded", 3198, 2, "account"]);
+assert.ok(!JSON.stringify(orders).includes(cartToken), "the private download token never leaves the site");
+assert.deepEqual(await anon.PageView.create({ path: "/books", visitor_id: "v1" }), { path: "/books", visitor_id: "v1" });
+await anon.PageView.create({ path: "/books", visitor_id: "v1" });
+await anon.PageView.create({ path: "/", visitor_id: "v2" });
+assert.deepEqual(await anon.PageView.list(), [], "visitors cannot read the counter");
+assert.deepEqual(await anon.TrafficSummary.list().then((r) => Number(r[0].views_30d)), 0, "nor its summaries");
+const traffic = await tool({ action: "traffic" });
+assert.deepEqual([traffic.summary.views_today, traffic.summary.visitors_today, traffic.summary.views_30d, traffic.summary.visitors_7d], [3, 2, 3, 2]);
+assert.deepEqual([traffic.days.length, traffic.days[0].views, traffic.pages[0].path, traffic.pages[0].views], [1, 3, "/books", 2]);
+
 // ---------------- one-time import from the old Base44 app (its API is played by the server on 54399)
 const imp = async (body) => Promise.resolve().then(() => fetch(`${URL_}/functions/v1/importFromBase44`, { method: "POST", body: JSON.stringify(body),
   headers: { "X-Import-Key": "import-key-0123456789abcdefgh", "Content-Type": "application/json" } })).then(async (r) => ({ http: r.status, ...(await r.json()) }));

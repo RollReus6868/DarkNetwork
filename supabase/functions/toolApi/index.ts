@@ -2,7 +2,7 @@ import { createClientFromRequest, secrets, serve } from '../_shared/backend.js';
 
 // Entry point for the desktop tool "DN Product Studio".
 // The tool sends the secret TOOL_API_TOKEN in the X-Tool-Token header.
-// It can: check the connection, list records, get a one-time upload address, re-attach the PDF
+// It can: check the connection, read the orders and the visit counter, list records, get a one-time upload address, re-attach the PDF
 // of a book copied from the old site, and create or update an Ebook / Product. New records are ALWAYS drafts; the tool can never
 // publish, unpublish or delete anything.
 
@@ -70,6 +70,31 @@ async function handler(req) {
       const rows = (await db.entities.Ebook.list('sort_order', 500)).filter((r) => (oldName(r.secure_file_uri) || '').toLowerCase() === want);
       for (const row of rows) await db.entities.Ebook.update(row.id, { secure_file_uri: body.file_uri });
       return Response.json({ attached: rows.map((r) => r.title) });
+    }
+
+    // ---- read-only: orders (one row per order, a cart order lists all its books) and visits
+    if (body?.action === 'orders') {
+      const rows = await db.entities.EbookPurchase.list('-created_date', 1000);
+      const titles = Object.fromEntries((await db.entities.Ebook.list('sort_order', 1000)).map((e) => [e.id, e.title]));
+      const orders = new Map();
+      for (const r of rows) {
+        const key = r.provider_order_id || r.id;
+        const order = orders.get(key) || { order_id: key, date: r.purchase_date || r.created_date, email: r.customer_email || '',
+          status: r.payment_status || '', currency: r.currency || 'USD', buyer: 'guest', total: 0, items: [] };
+        order.total += Number(r.amount) || 0;   // cents
+        order.items.push(titles[r.ebook_id] || 'Ebook đã xoá');
+        if (r.user_id) order.buyer = 'account';
+        orders.set(key, order);
+      }
+      return Response.json({ items: [...orders.values()] });
+    }
+    if (body?.action === 'traffic') {
+      const [summary] = await db.entities.TrafficSummary.list();
+      return Response.json({
+        summary: summary || {},
+        days: await db.entities.TrafficDaily.list('day', 40),
+        pages: await db.entities.TrafficPage.list('-views', 10),
+      });
     }
 
     const entity = body?.entity;

@@ -7,7 +7,7 @@
 export const tableName = (entity) => entity.replace(/(?<!^)(?=[A-Z])/g, "_").toLowerCase();
 
 // Tables a visitor may add to but not read back (see the RLS policies).
-const INSERT_ONLY = new Set(["Subscriber"]);
+const INSERT_ONLY = new Set(["Subscriber", "PageView"]);
 
 function fail(error) {
   const err = new Error(error.message || "Database error");

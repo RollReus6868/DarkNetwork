@@ -23,6 +23,7 @@ import FAQ from '@/pages/FAQ';
 import Contact from '@/pages/Contact';
 import Cart from '@/pages/Cart';
 import Download from '@/pages/Download';
+import Analytics from '@/lib/analytics';
 import Search from '@/pages/Search';
 import Blog from '@/pages/Blog';
 import Legal from '@/pages/Legal';
@@ -105,6 +106,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
+          <Analytics />
           <AuthenticatedApp />
         </Router>
         <Toaster />
