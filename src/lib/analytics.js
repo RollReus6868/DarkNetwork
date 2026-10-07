@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 
 // Google Analytics 4 measurement ID ("G-XXXXXXXXXX"); empty = Google Analytics off.
-const GA_ID = "";
+const GA_ID = "G-0EV862YX9Q";
 
 let gaLoaded = false;
 function loadGoogleAnalytics() {
