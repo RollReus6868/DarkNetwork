@@ -1,8 +1,9 @@
 import { createClientFromRequest, secrets, serve } from '../_shared/backend.js';
+import { chatList, chatReply, chatThread } from '../_shared/chat.js';
 
 // Entry point for the desktop tool "DN Product Studio".
 // The tool sends the secret TOOL_API_TOKEN in the X-Tool-Token header.
-// It can: check the connection, read the orders and the visit counter, list records, get a one-time upload address, re-attach the PDF
+// It can: check the connection, read the orders and the visit counter, answer the customer chat, list records, get a one-time upload address, re-attach the PDF
 // of a book copied from the old site, and create or update an Ebook / Product. New records are ALWAYS drafts; the tool can never
 // publish, unpublish or delete anything.
 
@@ -95,6 +96,18 @@ async function handler(req) {
         days: await db.entities.TrafficDaily.list('day', 40),
         pages: await db.entities.TrafficPage.list('-views', 10),
       });
+    }
+
+    // ---- customer chat: the same inbox as the website's Admin > Tin nhắn
+    if (body?.action === 'chat_list') return Response.json({ conversations: await chatList(db.entities) });
+    if (body?.action === 'chat_thread') {
+      if (!body.conversation_id) return Response.json({ error: 'Missing conversation' }, { status: 400 });
+      return Response.json({ messages: await chatThread(db.entities, String(body.conversation_id)) });
+    }
+    if (body?.action === 'chat_reply') {
+      const message = await chatReply(db.entities, String(body.conversation_id || ''), body.body, { name: 'Dark Network' });
+      if (!message) return Response.json({ error: 'Missing conversation or message' }, { status: 400 });
+      return Response.json({ message });
     }
 
     const entity = body?.entity;

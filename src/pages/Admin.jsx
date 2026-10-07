@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import Seo from "@/components/site/Seo";
@@ -29,6 +30,15 @@ export default function Admin() {
     setTab(id);
     try { sessionStorage.setItem("admin_tab", id); } catch { /* ignore */ }
   };
+
+  // /admin?tab=messages (the chat button) opens that tab
+  const [params, setParams] = useSearchParams();
+  const wanted = params.get("tab");
+  useEffect(() => {
+    if (!wanted) return;
+    if (TABS.some((t) => t.id === wanted)) pick(wanted);
+    setParams({}, { replace: true });
+  }, [wanted, setParams]);
 
   // Số cuộc trò chuyện khách đã nhắn mà admin chưa đọc — hiện badge ở tab Tin nhắn.
   const [unread, setUnread] = useState(0);

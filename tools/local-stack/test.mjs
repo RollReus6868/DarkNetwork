@@ -182,7 +182,10 @@ assert.deepEqual(convs.map((c) => c.last_message_preview), ["From a member", "He
 assert.equal((await fn(admin.sb, "chatAdmin", { action: "thread", conversationId: sent.conversationId })).messages.length, 1);
 assert.equal(await admin.db.ChatConversation.count({ unread_for_admin: true }), 1);
 await fn(admin.sb, "chatAdmin", { action: "reply", conversationId: sent.conversationId, body: "Hi!" });
+assert.equal((await fn(client(), "chatGuest", { action: "unread", ...guest })).unread, 1, "the visitor's badge counts the reply");
+assert.equal((await fn(client(), "chatGuest", { action: "unread", guestKey: "someone-else-000" })).unread, 0);
 const synced = await fn(client(), "chatGuest", { action: "sync", ...guest });
+assert.equal((await fn(client(), "chatGuest", { action: "unread", ...guest })).unread, 0, "opening the chat clears it");
 assert.deepEqual(synced.messages.map((m) => [m.sender_role, m.body]), [["visitor", "Hello there"], ["admin", "Hi!"]]);
 
 // ---------------- the desktop tool's entry point
@@ -223,6 +226,18 @@ assert.equal((await tool({ action: "upsert", entity: "Ebook", id: made.id, data:
 assert.equal((await anon.Ebook.get(made.id)).price, 7);
 assert.equal((await tool({ action: "list", entity: "Ebook" })).items.length, 3);
 assert.equal((await tool({ action: "upsert", entity: "Product", data: { title: "Mug", slug: "mug" } })).http, 400);
+
+// the tool answers the same chat inbox
+const toolConvs = (await tool({ action: "chat_list" })).conversations;
+const memberConv = toolConvs.find((c) => c.last_message_preview === "From a member");
+assert.equal(memberConv.unread_for_admin, true);
+assert.deepEqual((await tool({ action: "chat_thread", conversation_id: memberConv.id })).messages.map((m) => m.body), ["From a member"]);
+assert.equal(await admin.db.ChatConversation.count({ unread_for_admin: true }), 0, "reading in the tool marks it read");
+assert.equal((await tool({ action: "chat_reply", conversation_id: memberConv.id, body: " " })).http, 400);
+assert.equal((await tool({ action: "chat_reply", conversation_id: memberConv.id, body: "Reply from the tool" })).message.sender_name, "Dark Network");
+assert.equal((await fn(buyer.sb, "chatGuest", { action: "unread" })).unread, 1);
+assert.equal((await fn(buyer.sb, "chatGuest", { action: "sync" })).messages.at(-1).body, "Reply from the tool");
+assert.equal((await tool({ action: "chat_list" }, "wrong-token-0123456789abcdef")).http, 401);
 
 // orders and the visit counter, as the tool sees them
 const orders = (await tool({ action: "orders" })).items;

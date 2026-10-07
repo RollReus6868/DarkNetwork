@@ -35,13 +35,24 @@ async function handler(req) {
     );
     let conversation = (existing.items ?? [])[0] ?? null;
 
+    // how many replies from the site this visitor has not opened yet (badge on the chat button)
+    if (action === 'unread') {
+      if (!conversation) return Response.json({ unread: 0 });
+      return Response.json({ unread: await db.ChatMessage.count({ conversation_id: conversation.id, sender_role: 'admin', read_by_visitor: false }) });
+    }
+
     if (action === 'sync') {
       if (!conversation) return Response.json({ conversation: null, messages: [] });
       const thread = await db.ChatMessage.filter(
         { conversation_id: conversation.id },
         { sort: 'created_date', limit: MAX_MESSAGES }
       );
-      return Response.json({ conversation, messages: thread.items ?? [] });
+      const messages = thread.items ?? [];
+      // the chat panel is open: the visitor has now seen the replies
+      for (const m of messages) {
+        if (m.sender_role === 'admin' && !m.read_by_visitor) await db.ChatMessage.update(m.id, { read_by_visitor: true });
+      }
+      return Response.json({ conversation, messages });
     }
 
     if (action === 'send') {

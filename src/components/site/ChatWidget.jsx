@@ -1,10 +1,70 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { getChatGuestKey } from "@/lib/chatGuestKey";
+import { useAuth } from "@/lib/AuthContext";
 
 const POLL_MS = 5000;
 const MAX_BODY = 2000;
+const BADGE_POLL_MS = 30000;
+const STARTED_KEY = "dn_chat_started";   // set once this browser has a conversation: only then is the badge polled
+
+const hasStarted = () => { try { return localStorage.getItem(STARTED_KEY) === "1"; } catch { return false; } };
+const markStarted = () => { try { localStorage.setItem(STARTED_KEY, "1"); } catch { /* ignore */ } };
+
+function Badge({ count, label }) {
+  if (!count) return null;
+  return (
+    <span
+      aria-label={label}
+      className="absolute -top-1 -right-1 min-w-[1.4rem] h-[1.4rem] px-1 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center border-2 border-[#1a0f08]"
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
+// Calls count() now and every 30 seconds while `on`; returns the latest number.
+function usePolledCount(on, count) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (!on) { setN(0); return; }
+    let alive = true;
+    const check = () => count().then((v) => alive && setN(Number(v) || 0)).catch(() => {});
+    check();
+    const timer = setInterval(check, BADGE_POLL_MS);
+    return () => { alive = false; clearInterval(timer); };
+  }, [on, count]);
+  return n;
+}
+
+const countWaitingConversations = () => base44.entities.ChatConversation.count({ unread_for_admin: true });
+const countUnreadReplies = () =>
+  base44.functions.invoke("chatGuest", { action: "unread", guestKey: getChatGuestKey() }).then((res) => res.data?.unread);
+
+// The owner sees how many customers are waiting; the button opens the inbox in Admin.
+function AdminChatButton() {
+  const navigate = useNavigate();
+  const waiting = usePolledCount(true, countWaitingConversations);
+  return (
+    <button
+      type="button"
+      onClick={() => navigate("/admin?tab=messages")}
+      aria-label="Open customer messages"
+      title="Customer messages"
+      className="btn-chat-glow relative w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-colors"
+    >
+      <MessageCircle className="w-6 h-6" />
+      <Badge count={waiting} label={`${waiting} conversations waiting`} />
+    </button>
+  );
+}
+
+export default function ChatWidget(props) {
+  const { user } = useAuth();
+  return user?.role === "admin" ? <AdminChatButton /> : <VisitorChat {...props} />;
+}
 
 function Bubble({ message }) {
   const mine = message.sender_role === "visitor";
@@ -24,7 +84,9 @@ function Bubble({ message }) {
 }
 
 // open/onToggle come from FloatingActions, which shows one panel at a time
-export default function ChatWidget({ open, onToggle }) {
+function VisitorChat({ open, onToggle }) {
+  const [started, setStarted] = useState(hasStarted);
+  const unread = usePolledCount(started && !open, countUnreadReplies);
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
@@ -38,7 +100,9 @@ export default function ChatWidget({ open, onToggle }) {
         action: "sync",
         guestKey: getChatGuestKey(),
       });
-      setMessages(res.data?.messages ?? []);
+      const found = res.data?.messages ?? [];
+      setMessages(found);
+      if (found.length > 0) { markStarted(); setStarted(true); }
       setError("");
     } catch {
       // Lỗi tạm thời khi làm mới: giữ nguyên nội dung đang hiển thị
@@ -77,6 +141,8 @@ export default function ChatWidget({ open, onToggle }) {
       if (!saved) throw new Error("not saved");
       setMessages((prev) => [...prev, saved]);
       setDraft("");
+      markStarted();
+      setStarted(true);
     } catch {
       setError("Your message could not be sent. Please try again.");
     } finally {
@@ -150,9 +216,10 @@ export default function ChatWidget({ open, onToggle }) {
         type="button"
         onClick={onToggle}
         aria-label={open ? "Close chat" : "Open chat"}
-        className="btn-chat-glow w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-colors"
+        className="btn-chat-glow relative w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-colors"
       >
         {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
+        {!open && <Badge count={unread} label={`${unread} new replies`} />}
       </button>
     </>
   );
