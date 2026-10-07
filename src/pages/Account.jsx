@@ -5,9 +5,11 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import Seo from "@/components/site/Seo";
 import { Image } from "@/components/ui/image";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Account() {
   const { user, logout } = useAuth();
+  const { toast } = useToast();
   const [purchases, setPurchases] = useState([]);
   const [ebooks, setEbooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,11 +58,14 @@ export default function Account() {
         file,
       });
       const signedUrl = res?.data?.signed_url || res?.signed_url;
-      if (signedUrl) {
-        window.open(signedUrl, "_blank", "noopener,noreferrer");
-      }
-    } catch {
-      // error shown via absence of action
+      if (!signedUrl) throw new Error("No download link returned");
+      window.open(signedUrl, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: error?.message || "Please try again or contact us.",
+        variant: "destructive",
+      });
     } finally {
       setDownloadingId(null);
     }

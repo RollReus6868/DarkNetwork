@@ -26,24 +26,23 @@ export function EbookBuyButton({ ebook, variant = "card" }) {
         description: "Verifying your purchase…",
       });
       setTimeout(() => {
-        if (isAuthenticated) {
-          navigate("/account");
-        } else {
-          toast({
-            title: "Purchase verified",
-            description: "Check your email for download instructions.",
-          });
-        }
+        navigate("/account");
         setVerifying(false);
       }, 3000);
     };
     window.addEventListener("lemon-checkout-success", onSuccess);
     return () => window.removeEventListener("lemon-checkout-success", onSuccess);
-  }, [navigate, toast, isAuthenticated]);
+  }, [navigate, toast]);
 
   const handleBuyNow = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    // Buyers download from their account, so a purchase must belong to one.
+    if (!isAuthenticated) {
+      toast({ title: "Please log in first", description: "Your ebook is delivered to your account library." });
+      setTimeout(() => base44.auth.redirectToLogin(window.location.href), 1200);
+      return;
+    }
     setLoading(true);
     isCheckoutInitiator.current = true;
     try {

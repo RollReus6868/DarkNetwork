@@ -45,6 +45,7 @@ async function handler(req) {
               dark: true
             },
             checkout_data: {
+              ...(user?.email ? { email: user.email } : {}),
               custom: {
                 ebook_id: ebookId,
                 user_id: user?.id || 'guest'
@@ -54,7 +55,12 @@ async function handler(req) {
               // One shared Lemon Squeezy product can serve every ebook: the name shown at
               // checkout and on the receipt always comes from this site's database.
               name: ebook.title,
-              redirect_url: `${origin}/books/${ebook.slug}`
+              // The buyer downloads from their library, so both the "continue" button
+              // and the receipt email lead there.
+              redirect_url: `${origin}/account`,
+              receipt_button_text: 'Download your ebook',
+              receipt_link_url: `${origin}/account`,
+              receipt_thank_you_note: 'Thank you! Log in to your Dark Network account to download your ebook from My Library.'
             },
             // ...and so does the price (in cents), so the amount charged always matches the page.
             ...(Number(ebook.price) > 0 ? { custom_price: Math.round(Number(ebook.price) * 100) } : {})
@@ -87,7 +93,8 @@ async function handler(req) {
 
     if (!checkoutUrl) return Response.json({ error: 'No checkout URL returned' }, { status: 502 });
 
-    return Response.json({ url: checkoutUrl });
+    // test_mode tells us whether the store is taking real payments
+    return Response.json({ url: checkoutUrl, test_mode: checkoutData?.data?.attributes?.test_mode });
   } catch (error) {
     return Response.json({ error: error.message || 'Failed to create checkout' }, { status: 500 });
   }
