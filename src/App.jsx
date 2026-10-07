@@ -22,6 +22,7 @@ import About from '@/pages/About';
 import FAQ from '@/pages/FAQ';
 import Contact from '@/pages/Contact';
 import Cart from '@/pages/Cart';
+import Download from '@/pages/Download';
 import Search from '@/pages/Search';
 import Blog from '@/pages/Blog';
 import Legal from '@/pages/Legal';
@@ -78,6 +79,7 @@ const AuthenticatedApp = () => {
         <Route path="/faq" element={<FAQ />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/download" element={<Download />} />
         <Route path="/search" element={<Search />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/privacy-policy" element={<Legal />} />

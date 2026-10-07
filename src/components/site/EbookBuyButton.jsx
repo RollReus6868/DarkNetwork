@@ -1,65 +1,18 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { ShoppingCart, Loader2, Zap, Check } from "lucide-react";
-import { base44 } from "@/api/base44Client";
-import { useAuth } from "@/lib/AuthContext";
 import { addToCart } from "@/lib/cart";
-import { openCheckout } from "@/lib/lemonSqueezy";
+import { useEbookCheckout } from "@/lib/useEbookCheckout";
 import { useToast } from "@/components/ui/use-toast";
 
 export function EbookBuyButton({ ebook, variant = "card" }) {
-  const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const isCheckoutInitiator = useRef(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAuthenticated } = useAuth();
+  const { start, loading, verifying } = useEbookCheckout();
 
-  useEffect(() => {
-    const onSuccess = () => {
-      if (!isCheckoutInitiator.current) return;
-      isCheckoutInitiator.current = false;
-      setVerifying(true);
-      toast({
-        title: "Payment received",
-        description: "Verifying your purchase…",
-      });
-      setTimeout(() => {
-        navigate("/account");
-        setVerifying(false);
-      }, 3000);
-    };
-    window.addEventListener("lemon-checkout-success", onSuccess);
-    return () => window.removeEventListener("lemon-checkout-success", onSuccess);
-  }, [navigate, toast]);
-
-  const handleBuyNow = async (e) => {
+  const handleBuyNow = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // Buyers download from their account, so a purchase must belong to one.
-    if (!isAuthenticated) {
-      toast({ title: "Please log in first", description: "Your ebook is delivered to your account library." });
-      setTimeout(() => base44.auth.redirectToLogin(window.location.href), 1200);
-      return;
-    }
-    setLoading(true);
-    isCheckoutInitiator.current = true;
-    try {
-      const res = await base44.functions.invoke("createEbookCheckout", { ebook_id: ebook.id });
-      const url = res?.data?.url || res?.url;
-      if (!url) throw new Error("No checkout URL returned");
-      await openCheckout(url);
-    } catch (error) {
-      isCheckoutInitiator.current = false;
-      toast({
-        title: "Checkout failed",
-        description: error?.message || "Could not start checkout. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    start([ebook.id]);
   };
 
   const handleAddToCart = (e) => {

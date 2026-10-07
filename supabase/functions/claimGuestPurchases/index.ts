@@ -1,27 +1,23 @@
-import { createClientFromRequest, secrets, serve } from '../_shared/backend.js';
+import { createClientFromRequest, serve } from '../_shared/backend.js';
 
+// Moves a guest order into the signed-in buyer's library. Proof of ownership is the secret
+// token from the receipt link, never the email address (emails are not verified at sign-up).
 async function handler(req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Find guest purchases (user_id is null) with matching customer_email
-    // Only claim paid purchases — refunded/failed purchases should not be linked
-    const guestPurchases = await base44.asServiceRole.entities.EbookPurchase.filter({
-      customer_email: user.email,
-      payment_status: 'paid'
-    });
+    const body = await req.json().catch(() => ({}));
+    const token = typeof body?.token === 'string' && body.token.length >= 32 ? body.token : null;
+    if (!token) return Response.json({ error: 'Missing token' }, { status: 400 });
 
+    const purchases = await base44.asServiceRole.entities.EbookPurchase.filter({ access_token: token, payment_status: 'paid' });
     let claimed = 0;
-    for (const purchase of guestPurchases) {
-      // Only claim purchases that don't already have a user_id
-      if (!purchase.user_id) {
-        await base44.asServiceRole.entities.EbookPurchase.update(purchase.id, {
-          user_id: user.id
-        });
-        claimed++;
-      }
+    for (const purchase of purchases) {
+      if (purchase.user_id) continue;
+      await base44.asServiceRole.entities.EbookPurchase.update(purchase.id, { user_id: user.id });
+      claimed++;
     }
 
     return Response.json({ claimed });

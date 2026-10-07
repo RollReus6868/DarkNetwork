@@ -56,44 +56,54 @@ async function handler(req) {
       const currency = orderData?.attributes?.currency || 'USD';
       // Lemon Squeezy sends the checkout's custom data in meta.custom_data
       const customData = body?.meta?.custom_data || orderData?.attributes?.custom_data || {};
-      const ebookId = customData.ebook_id;
+      // one order can carry several ebooks (cart checkout)
+      const ebookIds = String(customData.ebook_ids || customData.ebook_id || '').split(',').map((s) => s.trim()).filter(Boolean);
       const userId = customData.user_id && customData.user_id !== 'guest' ? customData.user_id : null;
+      const accessToken = customData.access_token || null;
       const variantId = orderData?.attributes?.first_order_item?.variant_id;
 
-      if (!ebookId) return Response.json({ received: true, note: 'No ebook_id in custom data' });
+      if (ebookIds.length === 0) return Response.json({ received: true, note: 'No ebook_id in custom data' });
 
-      // IDEMPOTENCY CHECK: check if a purchase already exists for this provider + order + ebook
-      const existing = await base44.asServiceRole.entities.EbookPurchase.filter({
-        provider: 'lemon_squeezy',
-        provider_order_id: orderId,
-        ebook_id: ebookId
-      });
+      for (const ebookId of ebookIds) {
+        // the order total belongs to a single book; in a cart order each row records its own price
+        let rowAmount = amount;
+        if (ebookIds.length > 1) {
+          const ebook = await base44.asServiceRole.entities.Ebook.get(ebookId).catch(() => null);
+          rowAmount = ebook ? Math.round(Number(ebook.price) * 100) : null;
+        }
 
-      if (existing && existing.length > 0) {
-        // Update existing record instead of creating a duplicate
-        await base44.asServiceRole.entities.EbookPurchase.update(existing[0].id, {
-          payment_status: 'paid',
-          download_access: true,
-          customer_email: customerEmail,
-          amount: amount,
-          currency: currency,
-          user_id: userId || existing[0].user_id
-        });
-      } else {
-        // Create new purchase record
-        await base44.asServiceRole.entities.EbookPurchase.create({
-          user_id: userId,
-          ebook_id: ebookId,
+        // IDEMPOTENCY CHECK: one purchase per provider + order + ebook
+        const existing = await base44.asServiceRole.entities.EbookPurchase.filter({
           provider: 'lemon_squeezy',
           provider_order_id: orderId,
-          provider_variant_id: variantId ? String(variantId) : '',
-          customer_email: customerEmail,
-          amount: amount,
-          currency: currency,
-          payment_status: 'paid',
-          download_access: true,
-          purchase_date: new Date().toISOString()
+          ebook_id: ebookId
         });
+
+        if (existing && existing.length > 0) {
+          await base44.asServiceRole.entities.EbookPurchase.update(existing[0].id, {
+            payment_status: 'paid',
+            download_access: true,
+            customer_email: customerEmail,
+            amount: rowAmount,
+            currency: currency,
+            user_id: userId || existing[0].user_id
+          });
+        } else {
+          await base44.asServiceRole.entities.EbookPurchase.create({
+            user_id: userId,
+            ebook_id: ebookId,
+            provider: 'lemon_squeezy',
+            provider_order_id: orderId,
+            provider_variant_id: variantId ? String(variantId) : '',
+            customer_email: customerEmail,
+            amount: rowAmount,
+            currency: currency,
+            payment_status: 'paid',
+            download_access: true,
+            access_token: accessToken,
+            purchase_date: new Date().toISOString()
+          });
+        }
       }
 
       return Response.json({ received: true, event: eventName, status: 'paid' });

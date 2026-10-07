@@ -13,12 +13,8 @@ export function saveCart(cart) {
 
 export function addToCart(item) {
   const cart = getCart();
-  const existing = cart.find((i) => i.id === item.id);
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    cart.push({ ...item, qty: 1 });
-  }
+  // digital ebooks: one copy each
+  if (!cart.some((i) => i.id === item.id)) cart.push({ ...item, qty: 1 });
   saveCart(cart);
   return cart;
 }
@@ -40,5 +36,5 @@ export function clearCart() {
 }
 
 export function cartTotal(cart) {
-  return cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  return cart.reduce((sum, i) => sum + Number(i.price), 0);
 }

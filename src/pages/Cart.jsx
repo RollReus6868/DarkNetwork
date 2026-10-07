@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Trash2, ArrowRight, ShoppingBag } from "lucide-react";
+import { Trash2, ArrowRight, ShoppingBag, Loader2, Zap } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import { Image } from "@/components/ui/image";
-import { getCart, removeFromCart, cartTotal } from "@/lib/cart";
+import { getCart, removeFromCart, cartTotal, clearCart } from "@/lib/cart";
+import { useEbookCheckout } from "@/lib/useEbookCheckout";
 
 export default function Cart() {
   const [cart, setCart] = useState([]);
+  const { start, loading, verifying } = useEbookCheckout({ onPaid: clearCart });
 
   useEffect(() => {
     setCart(getCart());
@@ -83,16 +85,18 @@ export default function Cart() {
 
               <div className="space-y-3">
                 <button
-                  disabled
-                  className="w-full bg-primary/40 text-primary-foreground/60 px-6 py-3.5 rounded font-semibold uppercase text-sm tracking-wide cursor-not-allowed flex items-center justify-center gap-2"
+                  onClick={() => start(cart.map((item) => item.id))}
+                  disabled={loading || verifying}
+                  className="btn-gold w-full px-6 py-3.5 rounded uppercase text-sm tracking-wide flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  Checkout — Coming Soon
+                  {loading || verifying ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <><Zap className="w-4 h-4" /> Checkout — ${total.toFixed(2)}</>
+                  )}
                 </button>
                 <p className="text-xs text-muted-foreground text-center">
-                  Use <span className="text-foreground font-medium">Buy Now</span> on any ebook to purchase instantly via Lemon Squeezy.
-                </p>
-                <p className="text-xs text-muted-foreground text-center">
-                  Multi-ebook cart checkout is coming soon.
+                  Secure payment by Lemon Squeezy. Your ebooks are ready to download right after payment.
                 </p>
               </div>
             </div>

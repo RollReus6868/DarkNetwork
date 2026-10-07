@@ -106,10 +106,21 @@ const co = await fn(buyer.sb, "createEbookCheckout", { ebook_id: e1.id });
 assert.equal(co.url, "https://store.lemonsqueezy.com/checkout/abc");
 const a = lemon.body.data.attributes;
 assert.equal(lemon.auth, "Bearer k"); assert.equal(a.custom_price, 2699); assert.equal(a.product_options.name, "Book 1");
-assert.deepEqual(a.checkout_data.custom, { ebook_id: e1.id, user_id: buyer.id });
+assert.deepEqual(a.checkout_data.custom, { ebook_ids: e1.id, user_id: buyer.id });
+assert.equal(co.after, "/account"); assert.match(a.product_options.redirect_url, /\/account$/);
 assert.equal(lemon.body.data.relationships.variant.data.id, "2204367"); assert.equal(lemon.body.data.relationships.store.data.id, "77");
-await fn(client(), "createEbookCheckout", { ebook_id: e1.id });
-assert.equal(lemon.body.data.attributes.checkout_data.custom.user_id, "guest");
+// a guest gets a secret download link instead of a library
+const guestCo = await fn(client(), "createEbookCheckout", { ebook_id: e1.id });
+const guestCustom = lemon.body.data.attributes.checkout_data.custom;
+assert.equal(guestCustom.user_id, "guest"); assert.match(guestCustom.access_token, /^[0-9a-f]{64}$/);
+assert.equal(guestCo.after, `/download?token=${guestCustom.access_token}`);
+// cart: several ebooks in one checkout, total = sum of the database prices
+await admin.db.Ebook.update(e2.id, { secure_file_uri: "a_book.pdf", lemon_squeezy_variant_id: "2204367", price: 4.99 });
+await fn(client(), "createEbookCheckout", { ebook_ids: [e1.id, e2.id, e1.id] });
+const cartAttrs = lemon.body.data.attributes;
+assert.equal(cartAttrs.custom_price, 3198); assert.equal(cartAttrs.product_options.name, "2 ebooks from Dark Network");
+assert.equal(cartAttrs.checkout_data.custom.ebook_ids, `${e1.id},${e2.id}`);
+const cartToken = cartAttrs.checkout_data.custom.access_token;
 
 // ---------------- webhook -> purchase -> download
 const hook = async (payload, secret = "whsec") => {
@@ -129,19 +140,31 @@ assert.deepEqual(await admin.db.EbookPurchase.list().then((r) => r.length), 1);
 const other = await signUp("other@example.com");
 assert.deepEqual(await other.db.EbookPurchase.list(), [], "customers never see each other's purchases");
 assert.equal((await fn(other.sb, "generateEbookDownloadUrl", { ebook_id: e1.id })).status, 403);
-assert.equal((await fn(client(), "generateEbookDownloadUrl", { ebook_id: e1.id })).status, 500, "a visitor gets no link");
+assert.equal((await fn(client(), "generateEbookDownloadUrl", { ebook_id: e1.id })).status, 401, "a visitor gets no link");
 const dl = await fn(buyer.sb, "generateEbookDownloadUrl", { ebook_id: e1.id });
 assert.equal(await (await fetch(dl.signed_url)).text(), "%PDF-1.4 secret book");
 assert.notEqual((await fetch(dl.signed_url.replace(/token=.{10}/, "token=0000000000"))).status, 200);
 
-// guest purchase, claimed after the same email signs in
-await hook(order("1002", { ebook_id: e1.id, user_id: "guest" }, "paid", "other@example.com"));
-assert.equal((await fn(other.sb, "claimGuestPurchases", {})).claimed, 1);
-assert.equal((await fn(other.sb, "claimGuestPurchases", {})).claimed, 0);
+// guest cart order: the token (not the email) opens the downloads, and can be moved into an account
+await hook(order("1002", { ebook_ids: `${e1.id},${e2.id}`, user_id: "guest", access_token: cartToken }, "paid", "other@example.com"));
+await hook(order("1002", { ebook_ids: `${e1.id},${e2.id}`, user_id: "guest", access_token: cartToken }, "paid", "other@example.com"));
+const guestRows = await admin.db.EbookPurchase.filter({ provider_order_id: "1002" });
+assert.deepEqual(guestRows.map((r) => Number(r.amount)).sort(), [2699, 499]);
+const visitor = client();
+assert.equal((await fn(visitor, "generateEbookDownloadUrl", { list: true, token: cartToken })).items.length, 2);
+assert.equal((await fn(visitor, "generateEbookDownloadUrl", { list: true, token: "0".repeat(64) })).items.length, 0);
+assert.equal((await fn(visitor, "generateEbookDownloadUrl", { list: true, token: "" })).status, 401);
+assert.equal((await fn(visitor, "generateEbookDownloadUrl", { ebook_id: e1.id, token: "0".repeat(64) })).status, 403);
+assert.equal(await (await fetch((await fn(visitor, "generateEbookDownloadUrl", { ebook_id: e2.id, token: cartToken })).signed_url)).text(), "%PDF-1.4 secret book");
+assert.equal((await fn(buyer.sb, "generateEbookDownloadUrl", { list: true })).items.length, 1);
+assert.equal((await fn(other.sb, "claimGuestPurchases", {})).status, 400, "the same email alone claims nothing");
+assert.equal((await fn(other.sb, "claimGuestPurchases", { token: cartToken })).claimed, 2);
+assert.equal((await fn(other.sb, "claimGuestPurchases", { token: cartToken })).claimed, 0);
 assert.ok((await fn(other.sb, "generateEbookDownloadUrl", { ebook_id: e1.id })).signed_url);
 // refund takes the download away
 await hook({ meta: { event_name: "order_refunded" }, data: { id: "1002", attributes: { status: "refunded" } } });
 assert.equal((await fn(other.sb, "generateEbookDownloadUrl", { ebook_id: e1.id })).status, 403);
+assert.equal((await fn(visitor, "generateEbookDownloadUrl", { list: true, token: cartToken })).items.length, 0);
 
 // ---------------- chat (also carries the contact form)
 const guest = { guestKey: "guestkey-12345678" };
