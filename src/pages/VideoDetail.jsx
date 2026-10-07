@@ -70,7 +70,8 @@ export default function VideoDetail() {
 
         <div className="mt-8 max-w-3xl">
           <h2 className="font-heading text-xl font-semibold mb-3">About This Video</h2>
-          <p className="text-foreground/80 text-lg leading-relaxed">{video.description}</p>
+          {/* the description keeps its own line breaks (copied from YouTube) */}
+          <p className="text-foreground/80 text-lg leading-relaxed whitespace-pre-line [overflow-wrap:anywhere]">{video.description}</p>
         </div>
       </div>
 
