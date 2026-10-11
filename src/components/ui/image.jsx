@@ -56,7 +56,10 @@ const Image = React.forwardRef(
       if (nextMode === IMAGE_LOAD_MODE.FALLBACK) onError?.(event)
     }
 
+    // Off-screen images load only when scrolled near (saves bandwidth).
     const imageProps = {
+      loading: "lazy",
+      decoding: "async",
       ...props,
       className: preview && preview.sourceClassName === props.className ? preview.className : props.className,
       onError: handleError,

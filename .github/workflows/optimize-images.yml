@@ -1,0 +1,19 @@
+name: Optimize images (one-off)
+on:
+  push:
+    branches: [claude/chuyen-sang-supabase]
+    paths: [tools/optimize-images/run.py]
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pillow && python tools/optimize-images/run.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/img/opt tools/optimize-images/map.json
+          git commit -m "Anh nen WebP cho trang web"
+          git push

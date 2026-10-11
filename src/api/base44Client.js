@@ -19,7 +19,7 @@ const safeName = (name) => String(name || "file").normalize("NFKD").replace(/[^A
 
 async function upload(bucket, file) {
   const path = `${crypto.randomUUID().slice(0, 8)}_${safeName(file.name)}`;
-  const { error } = await supabase.storage.from(bucket).upload(path, file, { contentType: file.type || undefined });
+  const { error } = await supabase.storage.from(bucket).upload(path, file, { contentType: file.type || undefined, cacheControl: "31536000" });
   if (error) throw new Error(error.message);
   return path;
 }
