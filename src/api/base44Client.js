@@ -24,6 +24,28 @@ async function upload(bucket, file) {
   return path;
 }
 
+// Photos are shrunk to a web-ready WebP before upload (a 3 MB cover becomes about 150 KB),
+// so pages stay light and storage bandwidth stays low. Anything else is uploaded as is.
+export async function shrinkImage(file) {
+  if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const maxWidth = bitmap.height > bitmap.width ? 640 : 1600; // book covers are portrait
+    const scale = Math.min(1, maxWidth / bitmap.width);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", 0.8));
+    if (blob?.type !== "image/webp" || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.\w+$/, "") + ".webp", { type: "image/webp" });
+  } catch {
+    return file;
+  }
+}
+
 const auth = {
   // The signed-in user with their role, or throws (status 401) for a visitor.
   async me() {
@@ -99,7 +121,7 @@ export const base44 = {
   integrations: {
     Core: {
       async UploadPublicFile({ file }) {
-        const path = await upload("public-files", file);
+        const path = await upload("public-files", await shrinkImage(file));
         return { file_url: supabase.storage.from("public-files").getPublicUrl(path).data.publicUrl };
       },
       async UploadPrivateFile({ file }) {
