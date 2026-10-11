@@ -13,10 +13,10 @@ import { useSiteData } from "@/hooks/useSiteData";
 import { Image } from "@/components/ui/image";
 
 const GEN = {
-  jerusalem: "https://qztnndbhauzawchfhcui.supabase.co/storage/v1/object/public/public-files/458e9bae_b6f3b85c0_generated_image.png",
-  ruins: "https://qztnndbhauzawchfhcui.supabase.co/storage/v1/object/public/public-files/ee85b6e2_a24bcc603_generated_image.png",
-  storm: "https://qztnndbhauzawchfhcui.supabase.co/storage/v1/object/public/public-files/9e9183b6_e78d2b614_generated_image.png",
-  figures: "https://qztnndbhauzawchfhcui.supabase.co/storage/v1/object/public/public-files/21a87b96_3791339aa_generated_image.png",
+  jerusalem: "/img/opt/53bd3813a082-1600.webp",
+  ruins: "/img/opt/bea5f48c7730-1600.webp",
+  storm: "/img/opt/24e002aa8efb-1600.webp",
+  figures: "/img/opt/be71a4433f9f-1600.webp",
   desert: "https://images.unsplash.com/photo-1564399579883-451a5d44ec08?w=800&q=80",
   scrolls: "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
 };
