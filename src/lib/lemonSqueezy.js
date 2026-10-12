@@ -12,6 +12,8 @@ export function loadLemonJS() {
     script.src = "https://app.lemonsqueezy.com/js/lemon.js";
     script.async = true;
     script.onload = () => {
+      // Loaded after the page: Lemon.js only starts itself on page load, so start it here.
+      window.createLemonSqueezy?.();
       if (window.LemonSqueezy) {
         window.LemonSqueezy.Setup({
           eventHandler: (event) => {
@@ -26,10 +28,14 @@ export function loadLemonJS() {
         });
         resolve();
       } else {
+        lemonPromise = null;
         reject(new Error("Lemon Squeezy failed to initialize"));
       }
     };
-    script.onerror = () => reject(new Error("Failed to load Lemon Squeezy script"));
+    script.onerror = () => {
+      lemonPromise = null; // let the next click try again
+      reject(new Error("Failed to load Lemon Squeezy script"));
+    };
     document.head.appendChild(script);
   });
 
@@ -41,7 +47,9 @@ export async function openCheckout(url) {
     await loadLemonJS();
     window.LemonSqueezy.Url.Open(url);
   } catch {
-    // Fallback: if Lemon.js fails to load or Url.Open throws, open in a new tab
-    window.open(url, "_blank", "noopener,noreferrer");
+    // Fallback: if Lemon.js fails to load or Url.Open throws, go to the checkout in this tab
+    // (a new tab opened this late is blocked by the browser as a pop-up). Once paid, Lemon Squeezy
+    // brings the buyer back to the site.
+    window.location.assign(url);
   }
 }
