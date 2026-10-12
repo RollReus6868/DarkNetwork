@@ -43,6 +43,7 @@ async function handler(req) {
     const after = user ? '/account' : `/download?token=${accessToken}`;
     const single = ebooks.length === 1;
     const cents = ebooks.reduce((sum, e) => sum + Math.round(Number(e.price) * 100), 0);
+    const checkoutRef = crypto.randomUUID();   // the webhook marks this checkout paid
 
     const createCheckout = (variantId) => fetch(`${API()}/v1/checkouts`, {
       method: 'POST',
@@ -57,6 +58,7 @@ async function handler(req) {
               custom: {
                 ebook_ids: ids.join(','),
                 user_id: user?.id || 'guest',
+                checkout_ref: checkoutRef,
                 ...(accessToken ? { access_token: accessToken } : {})
               }
             },
@@ -102,6 +104,11 @@ async function handler(req) {
     const checkoutData = await checkoutResponse.json();
     const checkoutUrl = checkoutData?.data?.attributes?.url;
     if (!checkoutUrl) return Response.json({ error: 'No checkout URL returned' }, { status: 502 });
+
+    // for the owner's statistics only: a failure here must never stop the sale
+    await base44.asServiceRole.entities.CheckoutAttempt.create({
+      id: checkoutRef, ebook_ids: ids, total: cents, user_id: user?.id || null, email: user?.email || null
+    }).catch(() => {});
 
     // after = where the site sends the buyer once paid; test_mode = not taking real payments
     return Response.json({ url: checkoutUrl, after, test_mode: checkoutData?.data?.attributes?.test_mode, variant_id: String(variantId) });

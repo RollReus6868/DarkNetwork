@@ -41,6 +41,12 @@ export function createClientFromRequest(req) {
     entities,
     asServiceRole: {
       entities,
+      // a database function only the server may call (e.g. tool_analytics)
+      async rpc(fn, args) {
+        const { data, error } = await admin.rpc(fn, args);
+        if (error) throw new Error(error.message);
+        return data;
+      },
       integrations: {
         Core: {
           async UploadPrivateFile({ file }) {

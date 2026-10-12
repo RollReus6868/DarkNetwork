@@ -106,7 +106,8 @@ const co = await fn(buyer.sb, "createEbookCheckout", { ebook_id: e1.id });
 assert.equal(co.url, "https://store.lemonsqueezy.com/checkout/abc");
 const a = lemon.body.data.attributes;
 assert.equal(lemon.auth, "Bearer k"); assert.equal(a.custom_price, 2699); assert.equal(a.product_options.name, "Book 1");
-assert.deepEqual(a.checkout_data.custom, { ebook_ids: e1.id, user_id: buyer.id });
+assert.deepEqual({ ...a.checkout_data.custom, checkout_ref: "-" }, { ebook_ids: e1.id, user_id: buyer.id, checkout_ref: "-" });
+assert.equal((await service.CheckoutAttempt.get(a.checkout_data.custom.checkout_ref)).total, 2699, "each checkout is remembered for the statistics");
 assert.equal(co.after, "/account"); assert.match(a.product_options.redirect_url, /\/account$/);
 assert.equal(lemon.body.data.relationships.variant.data.id, "2204367"); assert.equal(lemon.body.data.relationships.store.data.id, "77");
 // a guest gets a secret download link instead of a library
@@ -121,6 +122,7 @@ const cartAttrs = lemon.body.data.attributes;
 assert.equal(cartAttrs.custom_price, 3198); assert.equal(cartAttrs.product_options.name, "2 ebooks from Dark Network");
 assert.equal(cartAttrs.checkout_data.custom.ebook_ids, `${e1.id},${e2.id}`);
 const cartToken = cartAttrs.checkout_data.custom.access_token;
+const cartRef = cartAttrs.checkout_data.custom.checkout_ref;
 
 // ---------------- webhook -> purchase -> download
 const hook = async (payload, secret = "whsec") => {
@@ -146,9 +148,10 @@ assert.equal(await (await fetch(dl.signed_url)).text(), "%PDF-1.4 secret book");
 assert.notEqual((await fetch(dl.signed_url.replace(/token=.{10}/, "token=0000000000"))).status, 200);
 
 // guest cart order: the token (not the email) opens the downloads, and can be moved into an account
-await hook(order("1002", { ebook_ids: `${e1.id},${e2.id}`, user_id: "guest", access_token: cartToken }, "paid", "other@example.com"));
-await hook(order("1002", { ebook_ids: `${e1.id},${e2.id}`, user_id: "guest", access_token: cartToken }, "paid", "other@example.com"));
+await hook(order("1002", { ebook_ids: `${e1.id},${e2.id}`, user_id: "guest", access_token: cartToken, checkout_ref: cartRef }, "paid", "other@example.com"));
+await hook(order("1002", { ebook_ids: `${e1.id},${e2.id}`, user_id: "guest", access_token: cartToken, checkout_ref: cartRef }, "paid", "other@example.com"));
 const guestRows = await admin.db.EbookPurchase.filter({ provider_order_id: "1002" });
+assert.deepEqual(await service.CheckoutAttempt.get(cartRef).then((c) => [c.status, c.order_id, c.email]), ["paid", "1002", "other@example.com"]);
 assert.deepEqual(guestRows.map((r) => Number(r.amount)).sort(), [2699, 499]);
 const visitor = client();
 assert.equal((await fn(visitor, "generateEbookDownloadUrl", { list: true, token: cartToken })).items.length, 2);
@@ -252,6 +255,26 @@ assert.deepEqual(await anon.TrafficSummary.list().then((r) => Number(r[0].views_
 const traffic = await tool({ action: "traffic" });
 assert.deepEqual([traffic.summary.views_today, traffic.summary.visitors_today, traffic.summary.views_30d, traffic.summary.visitors_7d], [3, 2, 3, 2]);
 assert.deepEqual([traffic.days.length, traffic.days[0].views, traffic.pages[0].path, traffic.pages[0].views], [1, 3, "/books", 2]);
+
+// statistics like Google Analytics: sessions, country, source, time on page, cart, checkouts
+await anon.PageView.create({ path: `/books/${e1.slug}`, visitor_id: "v3", session_id: "s3", country: "US", referrer: "https://www.youtube.com/" });
+await anon.SiteEvent.create({ name: "engage", visitor_id: "v3", session_id: "s3", path: `/books/${e1.slug}`, value: 15000 });
+await anon.SiteEvent.create({ name: "add_to_cart", visitor_id: "v3", session_id: "s3", item_id: e1.id });
+await assert.rejects(anon.SiteEvent.create({ name: "purchase", visitor_id: "v3" }), "only the known events");
+assert.deepEqual(await anon.SiteEvent.list(), [], "visitors cannot read the events");
+assert.deepEqual(await anon.CheckoutAttempt.list(), [], "nor the checkouts");
+await assert.rejects(anon.CheckoutAttempt.create({ id: "fake", ebook_ids: [e1.id] }), "nor write checkouts");
+const an = await tool({ action: "analytics", days: 28 });
+assert.deepEqual([an.days_range, an.days.length, an.summary.users, an.summary.views, an.summary.engaged], [28, 28, 3, 4, 2]);
+assert.deepEqual(an.channels.map((c) => [c.channel, c.sessions]).sort(), [["Direct", 2], ["Organic Video", 1]]);
+assert.deepEqual([an.countries.find((c) => c.country === "US").users, an.pages.find((p) => p.path === `/books/${e1.slug}`).title], [1, e1.title]);
+assert.deepEqual([an.funnel.book_views, an.funnel.add_to_cart, an.funnel.checkouts, an.funnel.checkouts_paid], [1, 1, 3, 1]);
+assert.deepEqual(an.checkouts.find((c) => c.items.length === 2).status, "refunded");
+assert.deepEqual([an.books.find((b) => b.id === e1.id).add_to_cart, an.realtime.users_30m, an.subscribers.total], [1, 3, 1]);
+assert.equal((await tool({ action: "analytics", days: 5 })).days_range, 7, "only 7 / 28 / 90 days");
+const rpc = await fetch(`${URL_}/rest/v1/rpc/tool_analytics`, { method: "POST", body: "{}",
+  headers: { apikey: ANON, Authorization: `Bearer ${ANON}`, "Content-Type": "application/json" } });
+assert.ok(!rpc.ok, "visitors cannot call the statistics function");
 
 // ---------------- one-time import from the old Base44 app (its API is played by the server on 54399)
 const imp = async (body) => Promise.resolve().then(() => fetch(`${URL_}/functions/v1/importFromBase44`, { method: "POST", body: JSON.stringify(body),

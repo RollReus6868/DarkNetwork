@@ -66,6 +66,12 @@ function where(params, values) {
   return parts.length ? ` where ${parts.join(" and ")}` : "";
 }
 async function rest(req, res, url, body, claims) {
+  if (url.pathname.startsWith("/rest/v1/rpc/")) {   // POST /rest/v1/rpc/<function> {named args}
+    const keys = Object.keys(body || {});
+    const args = keys.map((k, i) => `${ident(k)} => $${i + 1}`).join(", ");
+    const r = await asCaller(claims, (c) => c.query(`select to_json(public.${ident(url.pathname.split("/")[4])}(${args})) as v`, keys.map((k) => body[k])));
+    return json(res, 200, r.rows[0].v);
+  }
   const table = `public.${ident(url.pathname.split("/")[3])}`;
   const params = [...url.searchParams];
   const prefer = req.headers.prefer || "";

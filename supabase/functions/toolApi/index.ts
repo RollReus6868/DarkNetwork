@@ -3,7 +3,7 @@ import { chatList, chatReply, chatThread } from '../_shared/chat.js';
 
 // Entry point for the desktop tool "DN Product Studio".
 // The tool sends the secret TOOL_API_TOKEN in the X-Tool-Token header.
-// It can: check the connection, read the orders and the visit counter, answer the customer chat, list records, get a one-time upload address, re-attach the PDF
+// It can: check the connection, read the orders, the visit counter and the statistics, answer the customer chat, list records, get a one-time upload address, re-attach the PDF
 // of a book copied from the old site, and create or update an Ebook / Product. New records are ALWAYS drafts; the tool can never
 // publish, unpublish or delete anything.
 
@@ -96,6 +96,12 @@ async function handler(req) {
         days: await db.entities.TrafficDaily.list('day', 40),
         pages: await db.entities.TrafficPage.list('-views', 10),
       });
+    }
+
+    // ---- statistics like Google Analytics, cart, checkouts and email sign-ups for the last 7 / 28 / 90 days
+    if (body?.action === 'analytics') {
+      const days = [7, 28, 90].includes(Number(body.days)) ? Number(body.days) : 7;
+      return Response.json(await db.rpc('tool_analytics', { p_days: days }));
     }
 
     // ---- customer chat: the same inbox as the website's Admin > Tin nhắn

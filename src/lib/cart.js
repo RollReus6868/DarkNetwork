@@ -1,3 +1,5 @@
+import { track } from "@/lib/analytics";
+
 export function getCart() {
   try {
     return JSON.parse(localStorage.getItem("dark_cart") || "[]");
@@ -14,7 +16,10 @@ export function saveCart(cart) {
 export function addToCart(item) {
   const cart = getCart();
   // digital ebooks: one copy each
-  if (!cart.some((i) => i.id === item.id)) cart.push({ ...item, qty: 1 });
+  if (!cart.some((i) => i.id === item.id)) {
+    cart.push({ ...item, qty: 1 });
+    track("add_to_cart", { item_id: String(item.id).slice(0, 64) });
+  }
   saveCart(cart);
   return cart;
 }

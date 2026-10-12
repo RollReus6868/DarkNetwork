@@ -106,6 +106,12 @@ async function handler(req) {
         }
       }
 
+      if (customData.checkout_ref) {
+        await base44.asServiceRole.entities.CheckoutAttempt.update(String(customData.checkout_ref), {
+          status: 'paid', order_id: orderId, email: customerEmail, paid_date: new Date().toISOString()
+        }).catch(() => {});
+      }
+
       return Response.json({ received: true, event: eventName, status: 'paid' });
     }
 
@@ -125,6 +131,10 @@ async function handler(req) {
           payment_status: refundStatus === 'refunded' ? 'refunded' : 'partially_refunded',
           download_access: isFullRefund ? false : purchase.download_access
         });
+      }
+
+      for (const attempt of await base44.asServiceRole.entities.CheckoutAttempt.filter({ order_id: orderId }).catch(() => [])) {
+        await base44.asServiceRole.entities.CheckoutAttempt.update(attempt.id, { status: refundStatus === 'refunded' ? 'refunded' : 'partially_refunded' });
       }
 
       return Response.json({ received: true, event: eventName, updated: purchases.length });
