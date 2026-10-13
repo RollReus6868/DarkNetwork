@@ -1,5 +1,6 @@
 import { createClientFromRequest, secrets, serve } from '../_shared/backend.js';
 import { chatList, chatReply, chatThread } from '../_shared/chat.js';
+import { ordersList } from '../_shared/stats.js';
 
 // Entry point for the desktop tool "DN Product Studio".
 // The tool sends the secret TOOL_API_TOKEN in the X-Tool-Token header.
@@ -74,21 +75,7 @@ async function handler(req) {
     }
 
     // ---- read-only: orders (one row per order, a cart order lists all its books) and visits
-    if (body?.action === 'orders') {
-      const rows = await db.entities.EbookPurchase.list('-created_date', 1000);
-      const titles = Object.fromEntries((await db.entities.Ebook.list('sort_order', 1000)).map((e) => [e.id, e.title]));
-      const orders = new Map();
-      for (const r of rows) {
-        const key = r.provider_order_id || r.id;
-        const order = orders.get(key) || { order_id: key, date: r.purchase_date || r.created_date, email: r.customer_email || '',
-          status: r.payment_status || '', currency: r.currency || 'USD', buyer: 'guest', total: 0, items: [] };
-        order.total += Number(r.amount) || 0;   // cents
-        order.items.push(titles[r.ebook_id] || 'Ebook đã xoá');
-        if (r.user_id) order.buyer = 'account';
-        orders.set(key, order);
-      }
-      return Response.json({ items: [...orders.values()] });
-    }
+    if (body?.action === 'orders') return Response.json({ items: await ordersList(db.entities) });
     if (body?.action === 'traffic') {
       const [summary] = await db.entities.TrafficSummary.list();
       return Response.json({

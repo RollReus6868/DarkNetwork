@@ -6,9 +6,14 @@ Hosting: Cloudflare Workers (static assets). Payments: Lemon Squeezy. Print on d
 ## Layout
 
 - `src/` — the site. `src/api/base44Client.js` is the only file that talks to the backend.
+- `studio/index.html` + `src/studio/` + `public/studio/` — **DN Studio**, the owner's phone app at
+  `/studio/` (installable web app: orders, statistics, cart & checkouts, email sign-ups, chat, push
+  notifications). Admins only; built as a second page with its own small bundle.
 - `supabase/migrations/` — database tables and access rules (row level security).
 - `supabase/functions/` — server code: checkout, payment webhook, ebook download links, chat,
-  `toolApi` (entry point of the DN Product Studio desktop tool).
+  `toolApi` (entry point of the DN Product Studio desktop tool), `adminApp` (the phone app).
+  Notifications are sent by `_shared/push.js` (Web Push with WebCrypto; the site makes and keeps
+  its own VAPID key in `push_config`, no secret to set).
 - `tools/local-stack/` — local stand-in backend + end-to-end tests.
 
 ## Run locally

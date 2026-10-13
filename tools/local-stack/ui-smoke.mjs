@@ -93,7 +93,7 @@ const [checkout] = await Promise.all([
   page.waitForResponse((r) => r.url().includes("/functions/v1/createEbookCheckout")),
   page.getByRole("button", { name: /Buy Now/ }).first().click(),
 ]);
-assert.deepEqual(await checkout.json(), { url: "https://dark.lemonsqueezy.com/checkout/abc" });
+assert.equal((await checkout.json()).url, "https://dark.lemonsqueezy.com/checkout/abc");
 assert.equal(checkouts, 1);
 
 // Lemon Squeezy confirms the payment through the webhook
@@ -118,10 +118,12 @@ await page.getByLabel("Send message").click();
 await page.getByText("Is the Enoch book a new translation?").first().waitFor();
 await page.shot("chat");
 await page.goto(`${SITE}/contact`);
-const inputs = page.locator("form input, form textarea");
-for (let i = 0; i < await inputs.count(); i++) await inputs.nth(i).fill(i === 1 ? "reader@example.com" : "Hello from the contact form");
-await page.locator('form button[type="submit"]').click();
-await page.waitForFunction(() => !document.querySelector("form textarea"), null, { timeout: 15000 });
+await page.waitForLoadState("networkidle");   // the form re-renders once sign-in is known; fill after that
+const contact = page.locator("main form:has(textarea)");   // not the newsletter form nor the open chat panel
+const inputs = contact.locator("input, textarea");
+for (let i = 0; i < await inputs.count(); i++) await inputs.nth(i).fill((await inputs.nth(i).getAttribute("type")) === "email" ? "reader@example.com" : "Hello from the contact form");
+await contact.locator('button[type="submit"]').click();
+await page.getByText("Message Sent").waitFor({ timeout: 15000 });
 await page.shot("contact_sent");
 assert.equal(await page.getByText("You need an admin account").count(), 0);
 await page.goto(`${SITE}/admin`);

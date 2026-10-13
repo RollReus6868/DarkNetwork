@@ -1,4 +1,5 @@
 import { createClientFromRequest, secrets, serve } from '../_shared/backend.js';
+import { inBackground, notifyOwner } from '../_shared/push.js';
 
 // Verify Lemon Squeezy webhook signature using HMAC-SHA256
 // Uses the RAW request body and X-Signature header
@@ -64,6 +65,8 @@ async function handler(req) {
 
       if (ebookIds.length === 0) return Response.json({ received: true, note: 'No ebook_id in custom data' });
 
+      let isNew = false;   // Lemon Squeezy retries: notify the owner once per order
+
       for (const ebookId of ebookIds) {
         // the order total belongs to a single book; in a cart order each row records its own price
         let rowAmount = amount;
@@ -89,6 +92,7 @@ async function handler(req) {
             user_id: userId || existing[0].user_id
           });
         } else {
+          isNew = true;
           await base44.asServiceRole.entities.EbookPurchase.create({
             user_id: userId,
             ebook_id: ebookId,
@@ -110,6 +114,17 @@ async function handler(req) {
         await base44.asServiceRole.entities.CheckoutAttempt.update(String(customData.checkout_ref), {
           status: 'paid', order_id: orderId, email: customerEmail, paid_date: new Date().toISOString()
         }).catch(() => {});
+      }
+
+      if (isNew) {
+        const titles = [];
+        for (const id of ebookIds) titles.push((await base44.asServiceRole.entities.Ebook.get(id).catch(() => null))?.title || 'Ebook');
+        await inBackground(notifyOwner(base44.asServiceRole.entities, {
+          title: `Đơn hàng mới · $${(Number(amount || 0) / 100).toFixed(2)}`,
+          body: `${titles.join(', ')}${customerEmail ? ` · ${customerEmail}` : ''}`,
+          url: '/studio/?tab=orders',
+          tag: `order-${orderId}`,
+        }));
       }
 
       return Response.json({ received: true, event: eventName, status: 'paid' });

@@ -1,4 +1,5 @@
 import { createClientFromRequest, secrets, serve } from '../_shared/backend.js';
+import { inBackground, notifyOwner } from '../_shared/push.js';
 
 const MAX_BODY = 2000;
 const PREVIEW_LEN = 140;
@@ -87,6 +88,13 @@ async function handler(req) {
         read_by_admin: false,
         read_by_visitor: true,
       });
+
+      await inBackground(notifyOwner(db, {
+        title: `Tin nhắn mới · ${conversation.visitor_name || (user ? 'Khách có tài khoản' : 'Khách vãng lai')}`,
+        body: preview,
+        url: `/studio/?tab=chat&c=${conversation.id}`,
+        tag: `chat-${conversation.id}`,
+      }));
 
       return Response.json({ conversationId: conversation.id, message });
     }

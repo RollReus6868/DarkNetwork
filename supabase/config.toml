@@ -16,3 +16,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.importFromBase44]
 verify_jwt = false
+[functions.adminApp]
+verify_jwt = false

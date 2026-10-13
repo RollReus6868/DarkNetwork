@@ -3,5 +3,10 @@
   "private": true,
   "type": "module",
   "description": "Local stand-in backend for testing (not deployed)",
-  "dependencies": { "deno": "^2.9.0", "pg": "^8.13.0", "@supabase/supabase-js": "^2.45.0" }
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "deno": "^2.9.0",
+    "http_ece": "^1.2.0",
+    "pg": "^8.13.0"
+  }
 }

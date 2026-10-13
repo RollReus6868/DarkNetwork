@@ -1,0 +1,4 @@
+/* The phone app: a plain dark page (no site gradient), no rubber-band zoom on inputs, no tap flash. */
+html, body { background: #120b06; overscroll-behavior-y: none; }
+body { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+button { touch-action: manipulation; }

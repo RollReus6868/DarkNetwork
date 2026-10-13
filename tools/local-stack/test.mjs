@@ -276,6 +276,75 @@ const rpc = await fetch(`${URL_}/rest/v1/rpc/tool_analytics`, { method: "POST", 
   headers: { apikey: ANON, Authorization: `Bearer ${ANON}`, "Content-Type": "application/json" } });
 assert.ok(!rpc.ok, "visitors cannot call the statistics function");
 
+// ---------------- the owner's phone app (/studio): adminApp + notifications
+// stand-in push service (a phone's browser): receives what the site sends, decrypted with the phone's keys
+const pushed = [];
+let pushStatus = 201;
+http.createServer(async (req, res) => {
+  const chunks = []; for await (const c of req) chunks.push(c);
+  pushed.push({ headers: req.headers, body: Buffer.concat(chunks) });
+  res.writeHead(pushStatus); res.end();
+}).listen(54398, "127.0.0.1");
+const phone = crypto.createECDH("prime256v1"); phone.generateKeys();
+const phoneAuth = crypto.randomBytes(16);
+const subscription = { endpoint: "http://127.0.0.1:54398/push/abc", keys: { p256dh: phone.getPublicKey().toString("base64url"), auth: phoneAuth.toString("base64url") } };
+const ece = (await import("http_ece")).default;
+const openPush = ({ headers, body }) => {
+  const [, jwt, k] = headers.authorization.match(/^vapid t=([^,]+), k=(.+)$/);
+  return { jwt, k, message: JSON.parse(ece.decrypt(body, { version: "aes128gcm", privateKey: phone, authSecret: phoneAuth.toString("base64url") }).toString()) };
+};
+const waitPush = async (n) => { for (let i = 0; i < 50 && pushed.length < n; i++) await new Promise((r) => setTimeout(r, 100)); assert.equal(pushed.length, n); return openPush(pushed[n - 1]); };
+
+assert.equal((await fn(client(), "adminApp", { action: "orders" })).status, 401, "visitors get nothing");
+assert.equal((await fn(buyer.sb, "adminApp", { action: "orders" })).status, 403, "customers get nothing");
+assert.equal((await fn(buyer.sb, "adminApp", { action: "push_subscribe", subscription })).status, 403);
+const appOrders = (await fn(admin.sb, "adminApp", { action: "orders" })).items;
+assert.deepEqual(appOrders.find((o) => o.order_id === "1002").items.length, 2, "same orders as the desktop tool");
+assert.equal((await fn(admin.sb, "adminApp", { action: "analytics", days: 28 })).days_range, 28);
+const key = (await fn(admin.sb, "adminApp", { action: "push_key" })).public_key;
+assert.equal(Buffer.from(key, "base64url").length, 65, "a P-256 public key");
+assert.equal((await fn(admin.sb, "adminApp", { action: "push_key" })).public_key, key, "made once, then kept");
+assert.deepEqual(await anon.PushConfig.list(), [], "the private key never leaves the server");
+assert.equal((await fn(admin.sb, "adminApp", { action: "push_subscribe", subscription: { ...subscription, endpoint: "http://evil.example/x" } })).status, 400);
+assert.equal((await fn(admin.sb, "adminApp", { action: "push_subscribe", subscription, orders_seen: "2000-01-01T00:00:00Z" })).ok, true);
+assert.equal((await fn(admin.sb, "adminApp", { action: "push_subscribe", subscription })).ok, true, "subscribing again updates the same row");
+assert.equal((await service.PushSubscription.list()).length, 1);
+assert.deepEqual(await anon.PushSubscription.list(), [], "subscriptions are server only");
+
+// test button -> a notification the phone can decrypt, signed with the site's key
+assert.equal((await fn(admin.sb, "adminApp", { action: "push_test", endpoint: subscription.endpoint })).ok, true);
+let got = await waitPush(1);
+assert.equal(got.k, key); assert.equal(pushed[0].headers["content-encoding"], "aes128gcm"); assert.equal(pushed[0].headers.ttl, "86400");
+assert.equal(got.message.tag, "test");
+const [h, c, sig] = got.jwt.split(".");
+const claims = JSON.parse(Buffer.from(c, "base64url"));
+assert.equal(claims.aud, "http://127.0.0.1:54398"); assert.ok(claims.exp > Date.now() / 1000 && claims.exp <= Date.now() / 1000 + 24 * 3600); assert.match(claims.sub, /^https:\/\//);
+const vapidPublic = await crypto.webcrypto.subtle.importKey("raw", Buffer.from(key, "base64url"), { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+assert.ok(await crypto.webcrypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, vapidPublic, Buffer.from(sig, "base64url"), Buffer.from(`${h}.${c}`)), "VAPID signature");
+
+// a customer writes -> the owner's phone is told right away
+await fn(client(), "chatGuest", { action: "send", guestKey: "guestkey-push-0001", body: "Is the Enoch book a PDF?" });
+got = await waitPush(2);
+assert.match(got.message.title, /^Tin nhắn mới/); assert.equal(got.message.body, "Is the Enoch book a PDF?"); assert.match(got.message.url, /^\/studio\/\?tab=chat&c=/);
+assert.ok(got.message.badge >= 1, "the icon number counts customers waiting");
+// a new paid order -> one notification, not one per Lemon Squeezy retry
+await hook(order("2001", { ebook_id: e1.id, user_id: "guest" }, "paid", "fan@example.com"));
+await hook(order("2001", { ebook_id: e1.id, user_id: "guest" }, "paid", "fan@example.com"));
+got = await waitPush(3);
+assert.equal(got.message.title, "Đơn hàng mới · $26.99"); assert.equal(got.message.body, "Book 1 · fan@example.com"); assert.equal(got.message.url, "/studio/?tab=orders");
+await new Promise((r) => setTimeout(r, 500)); assert.equal(pushed.length, 3, "a retried order does not notify twice");
+// the phone opened Orders: those orders no longer count on the icon
+await fn(admin.sb, "adminApp", { action: "seen", endpoint: subscription.endpoint, orders_seen: new Date().toISOString() });
+await fn(client(), "chatGuest", { action: "send", guestKey: "guestkey-push-0001", body: "Thanks" });
+got = await waitPush(4);
+assert.equal(got.message.badge, await service.ChatConversation.count({ unread_for_admin: true }));
+// a phone that turned notifications off is forgotten by the site
+pushStatus = 410;
+await fn(client(), "chatGuest", { action: "send", guestKey: "guestkey-push-0001", body: "Hello?" });
+await waitPush(5);
+assert.equal((await service.PushSubscription.list()).length, 0);
+pushStatus = 201;
+
 // ---------------- one-time import from the old Base44 app (its API is played by the server on 54399)
 const imp = async (body) => Promise.resolve().then(() => fetch(`${URL_}/functions/v1/importFromBase44`, { method: "POST", body: JSON.stringify(body),
   headers: { "X-Import-Key": "import-key-0123456789abcdefgh", "Content-Type": "application/json" } })).then(async (r) => ({ http: r.status, ...(await r.json()) }));
