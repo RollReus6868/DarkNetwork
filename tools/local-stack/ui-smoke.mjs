@@ -151,6 +151,77 @@ await owner.getByText("Is the Enoch book a new translation?").first().waitFor();
 await owner.getByText(/Contact form/).first().waitFor();
 await owner.shot("admin_messages");
 
+// ---- Admin: DN Studio shortcut (a full page load, not a router link)
+assert.equal(await owner.getByRole("link", { name: /Mở DN Studio/ }).getAttribute("href"), "/studio/");
+
+// ---- Admin > Tài khoản: a signed-in customer is banned, signed out on reload, then unbanned
+owner.on("dialog", (d) => d.accept());
+await createClient(URL_, process.env.ANON, { auth: { persistSession: false } }).auth.signUp({ email: "fan@example.com", password: "secret123" });
+const fanPage = await open(1440, 900);
+await fanPage.goto(`${SITE}/login`);
+await fanPage.fill("#email", "fan@example.com");
+await fanPage.fill("#password", "secret123");
+await fanPage.getByRole("button", { name: /^Log in$/i }).click();
+await fanPage.getByText("My Account").first().waitFor();
+await owner.getByRole("tab", { name: "Tài khoản" }).click();
+const fanRow = owner.locator("li").filter({ hasText: "fan@example.com" });
+await fanRow.waitFor();
+assert.equal(await owner.locator("li").filter({ hasText: "owner@example.com" }).getByRole("button").count(), 0, "no buttons on your own account");
+await owner.shot("admin_accounts");
+await fanRow.getByRole("button", { name: "Chặn", exact: true }).click();
+await fanRow.getByText("Bị chặn").waitFor();
+await owner.shot("admin_accounts_banned");
+await fanPage.reload();
+await fanPage.getByText("Sign Up / Login").first().waitFor();
+assert.equal(await fanPage.getByText("My Account").count(), 0, "a banned customer is signed out");
+await fanRow.getByRole("button", { name: "Bỏ chặn", exact: true }).click();
+await fanRow.getByRole("button", { name: "Chặn", exact: true }).waitFor();
+
+// ---- Admin > Cài đặt: the NEW badge switch reaches the shop pages
+const visitor = await open(1440, 900);
+await visitor.goto(`${SITE}/books`);
+await visitor.locator(".badge-new").first().waitFor();
+await visitor.shot("books_new_badge");
+await owner.getByRole("tab", { name: "Cài đặt" }).click();
+await owner.getByRole("switch").click();
+await owner.getByRole("button", { name: "Lưu" }).click();
+await owner.getByText("Đã lưu cài đặt").first().waitFor();
+await owner.shot("admin_settings_off");
+// count right away and again once everything has loaded: a switched-off badge must not even flash
+await visitor.reload({ waitUntil: "domcontentloaded" });
+await visitor.locator(".dn-book").first().waitFor();
+assert.equal(await visitor.locator(".badge-new").count(), 0, "badge switched off (first paint)");
+await visitor.waitForLoadState("networkidle");
+assert.equal(await visitor.locator(".badge-new").count(), 0, "badge switched off");
+await owner.getByRole("switch").click();
+await owner.getByRole("button", { name: "Lưu" }).click();
+await owner.getByText("Đã lưu cài đặt").first().waitFor();
+
+// ---- phone menu: Sign Up / Login is not hidden under the Chat and Donate buttons
+for (const [w, h] of [[375, 667], [390, 844]]) {
+  const phone = await open(w, h);
+  await phone.goto(`${SITE}/`);
+  await phone.getByRole("button", { name: "Open menu" }).click();
+  const login = phone.getByRole("link", { name: "Sign Up / Login" });
+  const box = await login.boundingBox();
+  for (const x of [box.x + 20, box.x + box.width / 2]) {
+    const ok = await phone.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest("a")?.textContent.includes("Sign Up / Login"), [x, box.y + box.height / 2]);
+    assert.ok(ok, `${w}px: Sign Up / Login covered at x=${x}`);
+  }
+  await phone.shot("menu");
+  // the checkout choice a signed-out visitor gets: its buttons sit above the floating buttons
+  await phone.goto(`${SITE}/books/${book.slug}`);
+  await phone.getByRole("button", { name: /Buy Now/ }).first().click();
+  for (const name of [/Log in or create account/, /Continue as guest/]) {
+    const b = await phone.getByRole("button", { name }).boundingBox();
+    for (const x of [b.x + 12, b.x + b.width / 2]) {
+      const ok = await phone.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest('[role="dialog"]') !== null, [x, b.y + b.height / 2]);
+      assert.ok(ok, `${w}px: checkout choice ${name} covered at x=${x}`);
+    }
+  }
+  await phone.shot("checkout_choice");
+}
+
 await browser.close();
 for (const e of errors) console.log("ERROR", e);
 console.log("ui smoke:", errors.length ? "FAIL" : "OK", "- screenshots in", OUT);

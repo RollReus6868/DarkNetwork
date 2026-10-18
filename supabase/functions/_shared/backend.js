@@ -41,6 +41,8 @@ export function createClientFromRequest(req) {
     entities,
     asServiceRole: {
       entities,
+      // Supabase Auth's account API (list accounts, ban / unban): adminUsers only
+      authAdmin: admin.auth.admin,
       // a database function only the server may call (e.g. tool_analytics)
       async rpc(fn, args) {
         const { data, error } = await admin.rpc(fn, args);

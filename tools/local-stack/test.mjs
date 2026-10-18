@@ -364,6 +364,53 @@ assert.ok(moved.images.every((u) => u.startsWith(URL_)) && moved.description.inc
 assert.equal(await (await fetch(moved.images[0])).text(), "old image bytes");
 assert.equal((await imp({ action: "records", entity: "EbookPurchase" })).http, 400);
 
+// ---------------- site settings (Admin > Cài đặt): everyone reads, only admins write
+assert.deepEqual(await anon.SiteSetting.list(), []);
+await rejects(buyer.db.SiteSetting.create({ id: "new_badge", value: { enabled: false } }), /row-level security/);
+await admin.db.SiteSetting.create({ id: "new_badge", value: { enabled: false, days: 30 } });
+await admin.db.SiteSetting.update("new_badge", { value: { enabled: true, days: 14 } });
+await rejects(buyer.db.SiteSetting.update("new_badge", { value: { enabled: false } }), /multiple \(or no\) rows|row-level/);
+assert.deepEqual((await anon.SiteSetting.get("new_badge")).value, { enabled: true, days: 14 });
+await rejects(admin.db.SiteSetting.create({ id: "Bad Key!", value: {} }), /check constraint/);
+
+// ---------------- accounts (Admin > Tài khoản): adminUsers
+const users = (sb) => fn(sb, "adminUsers", { action: "list" });
+assert.equal((await users(client())).status, 401, "visitors get nothing");
+assert.equal((await users(buyer.sb)).status, 403, "customers get nothing");
+const fan = await signUp("fan@example.com");
+let list = await users(admin.sb);
+const row = (email) => list.items.find((u) => u.email === email);
+assert.equal(list.status, 200);
+assert.deepEqual([row("owner@example.com").role, row("owner@example.com").is_me, row("fan@example.com").role, row("fan@example.com").banned],
+  ["admin", true, "user", false]);
+assert.equal(typeof row("buyer@example.com").purchases, "number");
+assert.ok(row("owner@example.com").last_sign_in_at === null || typeof row("owner@example.com").last_sign_in_at === "string");
+const usr = (body) => fn(admin.sb, "adminUsers", body);
+assert.equal((await usr({ action: "ban", id: admin.id })).status, 400, "nobody bans themselves");
+assert.equal((await usr({ action: "set_role", id: admin.id, role: "user" })).status, 400, "nobody demotes themselves");
+assert.equal((await fn(buyer.sb, "adminUsers", { action: "ban", id: fan.id })).status, 403);
+// ban: no new sign-in, the open session sees its ban flag (the site then signs it out), no self-unban
+assert.equal((await usr({ action: "ban", id: fan.id })).status, 200);
+assert.equal((await client().auth.signInWithPassword({ email: "fan@example.com", password: "secret123" })).error.message, "User is banned");
+assert.ok((await fan.sb.from("profiles").select("banned_at").eq("id", fan.id).single()).data.banned_at);
+assert.equal((await fan.sb.from("profiles").update({ banned_at: null }).eq("id", fan.id).select()).data.length, 0, "no self-unban");
+list = await users(admin.sb);
+assert.equal(row("fan@example.com").banned, true);
+assert.equal((await usr({ action: "set_role", id: fan.id, role: "admin" })).status, 400, "a banned account cannot become admin");
+assert.equal((await usr({ action: "unban", id: fan.id })).status, 200);
+const fanAgain = client();
+assert.equal((await fanAgain.auth.signInWithPassword({ email: "fan@example.com", password: "secret123" })).error, null);
+// admin by email (any case); an unknown email says to sign up first; admins cannot be banned until demoted
+assert.match((await usr({ action: "set_role", email: "nobody@example.com", role: "admin" })).error, /đăng ký/);
+assert.deepEqual(await usr({ action: "set_role", email: " FAN@example.com ", role: "admin" }), { status: 200, ok: true, email: "fan@example.com", role: "admin" });
+const fanBook = await entitiesProxy(fanAgain).Ebook.create(ebook(77, { status: "draft" }));
+assert.equal(fanBook.slug, "book-77", "the new admin can edit content");
+assert.equal((await fn(fanAgain, "adminUsers", { action: "list" })).status, 200, "and open Admin > Tài khoản");
+assert.equal((await usr({ action: "ban", id: fan.id })).status, 400, "an admin must be demoted before a ban");
+assert.equal((await usr({ action: "set_role", id: fan.id, role: "user" })).status, 200);
+await rejects(entitiesProxy(fanAgain).Ebook.update(fanBook.id, { price: 1 }), /multiple \(or no\) rows|row-level/);
+await service.Ebook.delete(fanBook.id);
+
 void profiles; void service;
 console.log("local stack: all checks passed");
 process.exit(0);

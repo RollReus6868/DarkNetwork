@@ -173,9 +173,10 @@ export default function Header({ cartCount = 0 }) {
         </div>
       </header>
 
-      {/* Mobile menu overlay */}
+      {/* Mobile menu overlay: above the floating Chat / Donate / Back-to-top buttons (z 75–80),
+          which otherwise cover Sign Up / Login at the bottom of the menu on phones */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-[60] lg:hidden">
+        <div className="fixed inset-0 z-[90] lg:hidden">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           <div className="absolute left-0 top-0 bottom-0 w-[85%] max-w-sm bg-background border-r border-border overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-border">

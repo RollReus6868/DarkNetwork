@@ -6,6 +6,9 @@ import Seo from "@/components/site/Seo";
 import HeroSlidesManager from "@/components/admin/HeroSlidesManager";
 import ChatInbox from "@/components/admin/ChatInbox";
 import EntityManager from "@/components/admin/EntityManager";
+import AccountsManager from "@/components/admin/AccountsManager";
+import SettingsPanel from "@/components/admin/SettingsPanel";
+import { Smartphone, ArrowUpRight } from "lucide-react";
 import {
   PRODUCT_FIELDS, PRODUCT_DEFAULTS, PRODUCT_IMPORT_EXAMPLE,
   EBOOK_FIELDS, EBOOK_DEFAULTS, EBOOK_IMPORT_EXAMPLE,
@@ -18,6 +21,8 @@ const TABS = [
   { id: "resources", label: "Tài liệu miễn phí" },
   { id: "hero", label: "Hero Slides" },
   { id: "messages", label: "Tin nhắn" },
+  { id: "accounts", label: "Tài khoản" },
+  { id: "settings", label: "Cài đặt" },
 ];
 
 export default function Admin() {
@@ -73,6 +78,21 @@ export default function Admin() {
       <Seo title="Admin — Dark Network" />
       <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary mb-2">Quản lý nội dung</p>
       <h1 className="font-heading text-4xl font-bold mb-6">Admin</h1>
+
+      {/* DN Studio, the owner's phone app: a separate page (/studio/), so a plain link, not the router */}
+      <a
+        href="/studio/"
+        className="group mb-8 flex items-center gap-4 rounded border border-primary/40 bg-gradient-to-r from-primary/15 to-transparent p-4 hover:border-primary transition-colors"
+      >
+        <span className="w-11 h-11 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+          <Smartphone className="w-5 h-5" />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block font-semibold text-foreground">Mở DN Studio</span>
+          <span className="block text-sm text-muted-foreground">App quản lý trên điện thoại: đơn hàng, thống kê, email, tin nhắn, thông báo. Mở trên điện thoại rồi chọn &quot;Thêm vào Màn hình chính&quot; để cài.</span>
+        </span>
+        <ArrowUpRight className="w-5 h-5 shrink-0 text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+      </a>
 
       <div className="flex gap-2 mb-8 border-b border-border overflow-x-auto scrollbar-hide" role="tablist">
         {TABS.map((t) => (
@@ -141,6 +161,8 @@ export default function Admin() {
       )}
       {tab === "hero" && <HeroSlidesManager />}
       {tab === "messages" && <ChatInbox />}
+      {tab === "accounts" && <AccountsManager />}
+      {tab === "settings" && <SettingsPanel />}
     </div>
   );
 }

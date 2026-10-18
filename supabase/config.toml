@@ -18,3 +18,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.adminApp]
 verify_jwt = false
+[functions.adminUsers]
+verify_jwt = false

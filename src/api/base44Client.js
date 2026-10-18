@@ -53,6 +53,11 @@ const auth = {
     const user = data?.session?.user;
     if (!user) throw authError({ message: "Not signed in" }, 401);
     const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+    // Banned in Admin > Tài khoản: Supabase Auth already refuses new sign-ins; end a session still open.
+    if (profile?.banned_at) {
+      await supabase.auth.signOut().catch(() => {});
+      throw authError({ message: "This account has been suspended" }, 403);
+    }
     return { id: user.id, email: user.email, full_name: profile?.full_name || "", role: profile?.role || "user" };
   },
   async isAuthenticated() {

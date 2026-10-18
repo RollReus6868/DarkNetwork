@@ -127,8 +127,10 @@ async function rest(req, res, url, body, claims) {
 }
 
 // ---- /auth/v1: accounts live in auth.users (passwords in clear: test stand-in only)
+const authUser = (u) => ({ id: u.id, aud: "authenticated", role: "authenticated", email: u.email, app_metadata: {}, user_metadata: {},
+  created_at: u.created_at, last_sign_in_at: u.last_sign_in_at, banned_until: u.banned_until });
 const session = (u) => {
-  const user = { id: u.id, aud: "authenticated", role: "authenticated", email: u.email, app_metadata: {}, user_metadata: {}, created_at: u.created_at };
+  const user = authUser(u);
   return { access_token: sign({ sub: u.id, role: "authenticated", email: u.email }), token_type: "bearer", expires_in: 3600,
            expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: sign({ sub: u.id, refresh: true }), user };
 };
@@ -147,6 +149,8 @@ async function auth(req, res, url, body, claims) {
       ? (await q("select * from auth.users where id = $1", [verify(body.refresh_token)?.sub])).rows[0]
       : (await q("select * from auth.users where email = $1 and password = $2", [body.email, body.password])).rows[0];
     if (!u) return json(res, 400, { code: 400, error_code: "invalid_credentials", msg: "Invalid login credentials" });
+    if (u.banned_until && new Date(u.banned_until) > new Date()) return json(res, 400, { code: 400, error_code: "user_banned", msg: "User is banned" });
+    await q("update auth.users set last_sign_in_at = now() where id = $1", [u.id]);
     return json(res, 200, session(u));
   }
   if (route === "user") {
@@ -154,6 +158,23 @@ async function auth(req, res, url, body, claims) {
     if (!u) return json(res, 401, { code: 401, error_code: "bad_jwt", msg: "invalid JWT" });
     if (req.method === "PUT" && body.password) await q("update auth.users set password = $2 where id = $1", [u.id, body.password]);
     return json(res, 200, session(u).user);
+  }
+  if (route === "admin") {   // /auth/v1/admin/users[/<id>]: service role only (list, ban_duration)
+    if (claims?.role !== "service_role") return json(res, 403, { code: 403, error_code: "not_admin", msg: "User not allowed" });
+    const id = url.pathname.split("/")[5];
+    if (req.method === "GET" && !id) {
+      const per = Number(url.searchParams.get("per_page") || 50), page = Number(url.searchParams.get("page") || 1);
+      const rows = (await q("select * from auth.users order by created_at limit $1 offset $2", [per, (page - 1) * per])).rows;
+      return json(res, 200, { users: rows.map(authUser), aud: "authenticated" });
+    }
+    if (req.method === "PUT" && id) {
+      const d = body.ban_duration;
+      if (d === "none") await q("update auth.users set banned_until = null where id = $1", [id]);
+      else if (/^\d+h$/.test(d || "")) await q("update auth.users set banned_until = now() + make_interval(hours => $2) where id = $1", [id, parseInt(d)]);
+      const u = (await q("select * from auth.users where id = $1", [id])).rows[0];
+      return u ? json(res, 200, authUser(u)) : json(res, 404, { code: 404, error_code: "user_not_found", msg: "User not found" });
+    }
+    return json(res, 404, { msg: "not found" });
   }
   if (route === "logout") { res.writeHead(204); return res.end(); }
   if (route === "recover") return json(res, 200, {});

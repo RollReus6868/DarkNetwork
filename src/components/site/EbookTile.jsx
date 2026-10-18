@@ -4,14 +4,18 @@ import { EbookBuyButton } from "@/components/site/EbookBuyButton";
 import EbookPartBadge from "@/components/site/EbookPartBadge";
 import { getDiscountPercentage, formatPrice } from "@/lib/pricing";
 import { stripHtml } from "@/lib/gradients";
+import { useSiteSetting } from "@/lib/siteSettings";
 
-const NEW_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Cream "collector" card for an ebook: cover on a warm brown backdrop, gold SAVE
 // badge, serif title, prominent price and a gold Buy button.
 export default function EbookTile({ ebook, className = "", compact = false }) {
   const discount = getDiscountPercentage(ebook.price, ebook.original_price);
-  const isNew = ebook.created_date && Date.now() - new Date(ebook.created_date).getTime() < NEW_WINDOW_MS;
+  // NEW badge: on/off and how many days a book counts as new are set in Admin > Cài đặt
+  const newBadge = useSiteSetting("new_badge");
+  const isNew = newBadge.loaded && newBadge.enabled && ebook.created_date &&
+    Date.now() - new Date(ebook.created_date).getTime() < Number(newBadge.days || 0) * DAY_MS;
   const learn = Array.isArray(ebook.what_you_learn) ? ebook.what_you_learn.filter(Boolean).slice(0, 3) : [];
   // "Featured on Homepage" in Admin: gold ring + red FEATURED flag, and the
   // sibling tiles are rendered compact so this one reads as the hero of the row.
@@ -38,8 +42,8 @@ export default function EbookTile({ ebook, className = "", compact = false }) {
             <EbookPartBadge ebook={ebook} />
           </div>
           <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
+            {isNew && <span className="badge-new">New</span>}
             {discount !== null && <span className="badge-gold">Save {discount}%</span>}
-            {isNew && discount === null && <span className="badge-gold">New</span>}
           </div>
 
           <div className="absolute inset-0 z-20 flex flex-col justify-end p-4 bg-[#1a0f08]/85 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300">
