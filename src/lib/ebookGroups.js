@@ -1,6 +1,9 @@
 import { editionTypeOf, parseTitle } from "@/lib/ebookSeries";
 
-const ROW_LIMIT = 8;
+// Không cắt bớt sách: thanh trượt tự cuộn nên hiện đủ mọi ebook đã đăng. Trước
+// đây giới hạn 8 cuốn/hàng làm ebook mới (Admin gán thứ tự cuối danh sách) bị
+// ẩn khỏi trang chủ dù vẫn có ở trang Books.
+const ROW_LIMIT = Infinity;
 const FALLBACK_TITLE = "Part Editions";
 
 // Trang chủ: hàng đầu là các bản đầy đủ, sau đó mỗi bộ sách theo part một hàng
