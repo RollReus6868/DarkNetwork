@@ -42,3 +42,12 @@ npm run dev
 ```bash
 npx eslint src --quiet && npm run build
 ```
+
+## Claude skills (for working on this site with Claude)
+
+`.claude/skills/` holds the instructions Claude uses for this site: `darknetwork-site-workflow` (code, tests,
+deploy, Supabase, Cloudflare, admin), `ebook-listing-from-pdf` (write a book's listing from its PDF and add it
+as a draft) and `dn-product-studio-dev` (the owner's desktop tool). A Claude session that clones this repo
+loads them automatically. On a new Claude account, see "Starting on a new Claude account" in
+`.claude/skills/darknetwork-site-workflow/SKILL.md`; to have them in every chat of that account, upload each
+folder as a zip in the Skills section of claude.ai Settings.
