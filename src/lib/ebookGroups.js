@@ -1,6 +1,7 @@
 import { editionTypeOf, parseTitle } from "@/lib/ebookSeries";
 
-const ROW_LIMIT = 8;
+const ROW_LIMIT = 8;          // each series row (its parts)
+const FULL_ROW_LIMIT = 24;    // "Full Editions": every single book, new ones first (see displayOrder.js)
 const FALLBACK_TITLE = "Part Editions";
 
 // Trang chủ: hàng đầu là các bản đầy đủ, sau đó mỗi bộ sách theo part một hàng
@@ -30,7 +31,7 @@ export function buildEbookRows(ebooks = [], limit = ROW_LIMIT) {
   const rows = [];
   if (full.length > 0) {
     const featuredFirst = [...full.filter((e) => e.featured), ...full.filter((e) => !e.featured)];
-    rows.push({ key: "full", title: "Full Editions", ebooks: featuredFirst.slice(0, limit) });
+    rows.push({ key: "full", title: "Full Editions", ebooks: featuredFirst.slice(0, Math.max(limit, FULL_ROW_LIMIT)) });
   }
 
   seriesRows.forEach((row) => {

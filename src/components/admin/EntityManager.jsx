@@ -104,7 +104,8 @@ export default function EntityManager({
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
   const startNew = () => {
-    setForm(orderField ? { ...defaults, sort_order: ordered.length + 1 } : { ...defaults });
+    // no number: a new item shows first everywhere until the list is arranged (see displayOrder.js)
+    setForm(orderField ? { ...defaults, sort_order: 0 } : { ...defaults });
     setEditing("new");
   };
   const startEdit = (item) => { setForm({ ...item }); setEditing(item.id); };

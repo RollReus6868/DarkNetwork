@@ -57,6 +57,24 @@ async function open(width, height) {
   return page;
 }
 
+// ---- books added later (tool: no number; Admin used to give the last number) and more than 8
+// single books: the home "Full Editions" row shows every one, never-placed books first
+const extra = Array.from({ length: 9 }, (_, i) => ({ ...ebooks.find((e) => !/part\s*\d/i.test(e.title)), id: undefined,
+  title: `Standalone Title ${"ABCDEFGHI"[i]}`, slug: `standalone-${i + 1}`, sort_order: 100 + i, featured: false }));
+await db.Ebook.bulkCreate(extra);
+await db.Ebook.create({ ...extra[0], title: "Fresh Arrival", slug: "fresh-arrival", sort_order: 0 });
+{
+  const page = await open(1440, 900);
+  await page.goto(SITE);
+  const row = page.locator("section").filter({ hasText: "Full Editions" }).first();
+  await row.locator(".dn-book h3").first().waitFor();
+  const titles = await row.locator(".dn-book h3").allInnerTexts();
+  const featured = ebooks.filter((e) => e.featured && !/part\s*\d/i.test(e.title)).length;   // "Featured" books stay in front
+  assert.equal(titles[featured], "Fresh Arrival", `a new book leads the row after featured ones: ${titles.slice(0, featured + 2).join(" | ")}`);
+  for (const t of ["Standalone Title I", "Fresh Arrival"]) assert.ok(titles.includes(t), `${t} on the home page`);
+  await page.context().close();
+}
+
 // ---- visitor on a phone and on a desktop
 for (const [w, h] of [[390, 844], [1440, 900]]) {
   const page = await open(w, h);

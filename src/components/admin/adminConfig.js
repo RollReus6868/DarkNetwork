@@ -19,7 +19,7 @@ export const PRODUCT_FIELDS = [
   { key: "shipping_info", label: "Thông tin vận chuyển", type: "richtext" },
   { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
   { key: "meta_description", label: "Mô tả SEO (≤160 ký tự)", type: "textarea" },
-  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước, áp dụng cho cả trang chủ và trang Shop. Kéo thả hoặc bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống sẽ xếp sau các mục đã đánh số, mới nhất trước." },
+  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước, áp dụng cho cả trang chủ và trang Shop. Kéo thả hoặc bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống hoặc 0: hiện đầu tiên (mục mới thêm tự lên đầu), mới nhất trước, rồi mới tới các mục đã đánh số." },
   status,
   { key: "featured", label: "Hiển thị nổi bật ở trang chủ", type: "boolean", half: true },
 ];
@@ -48,7 +48,7 @@ export const EBOOK_FIELDS = [
   { key: "edition_type", label: "Loại sách", type: "select", options: ["auto", "full", "part"], half: true, hint: "Xếp sách vào hàng nào ở trang chủ. auto: tự đoán theo tên (tên có \"Part N\" là sách theo part). full: bản đầy đủ. part: sách lẻ theo từng part của bộ." },
   { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
   { key: "meta_description", label: "Mô tả SEO (≤160 ký tự)", type: "textarea" },
-  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước, áp dụng cho trang Books và mục Ebook ở trang chủ. Kéo thả hoặc bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống sẽ xếp sau các mục đã đánh số, mới nhất trước." },
+  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước, áp dụng cho trang Books và mục Ebook ở trang chủ. Kéo thả hoặc bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống hoặc 0: hiện đầu tiên (mục mới thêm tự lên đầu), mới nhất trước, rồi mới tới các mục đã đánh số." },
   status,
   { key: "featured", label: "Hiển thị nổi bật ở trang chủ", type: "boolean", half: true },
 ];
@@ -92,7 +92,7 @@ export const RESOURCE_FIELDS = [
   { key: "requires_email", label: "Yêu cầu nhập email trước khi tải", type: "boolean", half: true },
   { key: "seo_title", label: "Tiêu đề SEO", type: "text" },
   { key: "meta_description", label: "Mô tả SEO (≤160 ký tự)", type: "textarea" },
-  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước ở trang Tài liệu miễn phí. Kéo thả hoặc bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống sẽ xếp sau các mục đã đánh số, mới nhất trước." },
+  { key: "sort_order", label: "Thứ tự hiển thị", type: "number", half: true, hint: "Số nhỏ hiển thị trước ở trang Tài liệu miễn phí. Kéo thả hoặc bấm ▲▼ trong danh sách để sắp xếp nhanh. Để trống hoặc 0: hiện đầu tiên (mục mới thêm tự lên đầu), mới nhất trước, rồi mới tới các mục đã đánh số." },
   status,
 ];
 
