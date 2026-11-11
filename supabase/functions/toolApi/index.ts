@@ -4,7 +4,7 @@ import { ordersList } from '../_shared/stats.js';
 
 // Entry point for the desktop tool "DN Product Studio".
 // The tool sends the secret TOOL_API_TOKEN in the X-Tool-Token header.
-// It can: check the connection, read the orders, the visit counter and the statistics, answer the customer chat, list records, get a one-time upload address, re-attach the PDF
+// It can: check the connection, swap pictures for lighter copies (media_list / set_media), read the orders, the visit counter and the statistics, answer the customer chat, list records, get a one-time upload address, re-attach the PDF
 // of a book copied from the old site, and create or update an Ebook / Product. New records are ALWAYS drafts; the tool can never
 // publish, unpublish or delete anything.
 
@@ -101,6 +101,31 @@ async function handler(req) {
       const message = await chatReply(db.entities, String(body.conversation_id || ''), body.body, { name: 'Dark Network' });
       if (!message) return Response.json({ error: 'Missing conversation or message' }, { status: 400 });
       return Response.json({ message });
+    }
+
+    // ---- pictures already on the site, so the tool can replace them with lighter copies (same picture,
+    // smaller file). Only addresses in this site's public bucket are accepted; nothing else changes.
+    const PUBLIC = '/storage/v1/object/public/public-files/';
+    const ownPicture = (url) => typeof url === 'string' && url.startsWith(secrets.get('SUPABASE_URL') + PUBLIC);
+    if (body?.action === 'media_list') {
+      const ebooks = await db.entities.Ebook.list('-created_date', 500);
+      const products = await db.entities.Product.list('-created_date', 500);
+      return Response.json({ items: [
+        ...ebooks.filter((r) => r.cover_image).map((r) => ({ entity: 'Ebook', id: r.id, title: r.title, images: [r.cover_image] })),
+        ...products.filter((r) => (r.images || []).length).map((r) => ({ entity: 'Product', id: r.id, title: r.title, images: r.images })),
+      ] });
+    }
+    if (body?.action === 'set_media') {
+      const images = Array.isArray(body.images) ? body.images : [];
+      if (!['Ebook', 'Product'].includes(body.entity) || !body.id || images.length === 0 || !images.every(ownPicture)) {
+        return Response.json({ error: 'Bad images' }, { status: 400 });
+      }
+      const row = await db.entities[body.entity].get(String(body.id)).catch(() => null);
+      if (!row) return Response.json({ error: 'Not found' }, { status: 404 });
+      const current = body.entity === 'Ebook' ? [row.cover_image] : (row.images || []);
+      if (current.length !== images.length) return Response.json({ error: 'Picture count changed' }, { status: 409 });
+      await db.entities[body.entity].update(row.id, body.entity === 'Ebook' ? { cover_image: images[0] } : { images });
+      return Response.json({ ok: true });
     }
 
     const entity = body?.entity;

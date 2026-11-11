@@ -11,6 +11,7 @@ import {
   Eye, EyeOff,
 } from "lucide-react";
 import { sortByCustomOrder } from "@/lib/displayOrder";
+import { forgetSiteData } from "@/hooks/useSiteData";
 
 /**
  * Generic admin CRUD manager for a Base44 entity.
@@ -77,6 +78,7 @@ export default function EntityManager({
   const [bulkBusy, setBulkBusy] = useState(false);
 
   const load = async () => {
+    forgetSiteData();   // after any change here, the public pages load fresh data
     setLoading(true);
     try {
       setItems(await api.list("-created_date", 500));

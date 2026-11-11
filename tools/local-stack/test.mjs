@@ -274,6 +274,18 @@ assert.equal((await tool({ action: "upsert", entity: "Ebook", id: made.id, data:
 assert.equal((await anon.Ebook.get(made.id)).price, 7);
 assert.equal((await tool({ action: "list", entity: "Ebook" })).items.length, 3);
 assert.equal((await tool({ action: "upsert", entity: "Product", data: { title: "Mug", slug: "mug" } })).http, 400);
+// pictures already on the site can be swapped for lighter copies (tool: Cài đặt › Nén lại ảnh)
+assert.deepEqual((await tool({ action: "media_list" })).items.find((m) => m.id === made.id),
+  { entity: "Ebook", id: made.id, title: "Tool Book", images: [up2.file_url] });
+const lighter = await put("tool-book.webp", false, "RIFFwebp");
+assert.equal((await tool({ action: "set_media", entity: "Ebook", id: made.id, images: ["https://evil.example/x.webp"] })).http, 400);
+assert.equal((await tool({ action: "set_media", entity: "Video", id: made.id, images: [lighter] })).http, 400);
+assert.equal((await tool({ action: "set_media", entity: "Ebook", id: made.id, images: [lighter, lighter] })).http, 409);
+assert.equal((await tool({ action: "set_media", entity: "Ebook", id: "00000000-0000-0000-0000-000000000000", images: [lighter] })).http, 404);
+assert.equal((await tool({ action: "set_media", entity: "Ebook", id: made.id, images: [lighter] }, "wrong-token-0123456789abcdef")).http, 401);
+assert.equal((await tool({ action: "set_media", entity: "Ebook", id: made.id, images: [lighter] })).http, 200);
+const lightened = await admin.db.Ebook.get(made.id);
+assert.deepEqual([lightened.cover_image, lightened.price, lightened.status, lightened.title], [lighter, 7, "draft", "Tool Book"]);
 
 // the tool answers the same chat inbox
 const toolConvs = (await tool({ action: "chat_list" })).conversations;
