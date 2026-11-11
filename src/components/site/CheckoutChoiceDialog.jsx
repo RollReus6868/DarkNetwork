@@ -40,7 +40,7 @@ export default function CheckoutChoiceDialog() {
             <Mail className="w-4 h-4" /> Continue as guest
           </button>
           <p className="text-xs text-muted-foreground text-center">
-            As a guest, your download link is sent in your receipt email. Keep that email safe.
+            As a guest, your download page opens right after payment. Save its link (it is also in your payment receipt).
           </p>
         </div>
       </DialogContent>

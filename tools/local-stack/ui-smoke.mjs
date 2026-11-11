@@ -27,14 +27,29 @@ await db.HeroSlide.create({ image: COVER, title: "Discover the Hidden Stories of
 await db.Testimonial.create({ rating: 5, text: "<p>Clear and honest.</p>", author: "A reader" });
 await sb.storage.from("private-files").upload("book.pdf", new File(["%PDF-1.4 the book"], "book.pdf"));
 
-// stand-in for the Lemon Squeezy API
-let checkouts = 0;
+// stand-in for the PayPal REST API (the stack runs with PAYPAL_API_URL=http://127.0.0.1:54397, PAYPAL_ENV=live)
+const ppOrders = new Map();
+let ppN = 0;
 http.createServer(async (req, res) => {
-  for await (const _ of req) { /* drain */ }
-  checkouts += 1;
-  res.writeHead(201, { "Content-Type": "application/json" });
-  res.end(JSON.stringify({ data: { attributes: { url: "https://dark.lemonsqueezy.com/checkout/abc" } } }));
-}).listen(54399, "127.0.0.1");
+  let raw = ""; for await (const c of req) raw += c;
+  const send = (code, body) => { res.writeHead(code, { "Content-Type": "application/json" }); res.end(JSON.stringify(body)); };
+  if (req.url === "/v1/oauth2/token") return send(200, { access_token: "pp-token", expires_in: 32400 });
+  const m = req.url.match(/^\/v2\/checkout\/orders(?:\/([A-Z0-9]+))?(\/capture)?$/);
+  if (m && !m[1]) { const id = `ORDER${++ppN}X`; ppOrders.set(id, JSON.parse(raw)); return send(201, { id, status: "CREATED" }); }
+  if (m && m[2]) {
+    const unit = ppOrders.get(m[1]).purchase_units[0];
+    return send(201, { id: m[1], status: "COMPLETED", payer: { email_address: "payer@example.com" },
+      purchase_units: [{ ...unit, payments: { captures: [{ id: `CAP${m[1]}`, status: "COMPLETED", custom_id: unit.custom_id, amount: unit.amount }] } }] });
+  }
+  send(404, {});
+}).listen(54397, "127.0.0.1");
+// stand-in for PayPal's button script (www.paypal.com/sdk/js): one button that runs the real createOrder / onApprove
+const FAKE_PAYPAL_SDK = `window.paypal = { Buttons(o) { return {
+  render(t) { const b = document.createElement("button"); b.type = "button"; b.textContent = "PayPal";
+    b.style.cssText = "width:100%;padding:12px;background:#ffc439;border:0;border-radius:4px;font:700 16px sans-serif;color:#003087";
+    b.onclick = async () => { try { const id = await o.createOrder(); await o.onApprove({ orderID: id }, { restart() {} }); } catch (e) { o.onError && o.onError(e); } };
+    (typeof t === "string" ? document.querySelector(t) : t).appendChild(b); return Promise.resolve(); },
+  close() { return Promise.resolve(); } }; } };`;
 
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAOCAYAAAAWo42rAAAAFElEQVR42mN8z8Dwn4EIwDiqkL4KAZKnGfWqGdyKAAAAAElFTkSuQmCC", "base64");
 const errors = [];
@@ -45,6 +60,7 @@ async function open(width, height) {
   // anything outside this machine (covers, fonts, lemon.js, YouTube) gets a placeholder
   await ctx.route((u) => !["127.0.0.1", "localhost"].includes(new URL(u).hostname), (r) =>
     r.request().resourceType() === "image" ? r.fulfill({ status: 200, contentType: "image/png", body: PNG }) : r.fulfill({ status: 200, body: "" }));
+  await ctx.route((u) => /^https:\/\/www\.paypal\.com\/sdk\/js/.test(String(u)), (r) => r.fulfill({ status: 200, contentType: "text/javascript", body: FAKE_PAYPAL_SDK }));
   const page = await ctx.newPage();
   page.on("pageerror", (e) => errors.push(`pageerror ${page.url()}: ${e.message}`));
   page.on("console", (m) => { if (m.type() === "error" && !/status of 40[0-9]|Failed to load resource/.test(m.text())) errors.push(`console ${page.url()}: ${m.text()}`); });
@@ -106,21 +122,21 @@ await page.goto(`${SITE}/account`);
 await page.getByText("buyer@example.com").first().waitFor();
 await page.shot("account_empty");
 
+// a signed-in buyer pays with PayPal in the dialog and lands in their library
 await page.goto(`${SITE}/books/${book.slug}`);
-const [checkout] = await Promise.all([
-  page.waitForResponse((r) => r.url().includes("/functions/v1/createEbookCheckout")),
-  page.getByRole("button", { name: /Buy Now/ }).first().click(),
+await page.getByRole("button", { name: /Buy Now/ }).first().click();
+const dialog = page.getByRole("dialog");
+await dialog.getByText("Total").waitFor();
+await dialog.getByRole("button", { name: "PayPal" }).waitFor();
+assert.equal(await dialog.getByText(/Test mode/).count(), 0, "no sandbox note when live");
+await page.shot("paypal_dialog");
+const [captured] = await Promise.all([
+  page.waitForResponse((r) => r.url().includes("/functions/v1/paypalCheckout") && r.request().postData().includes('"capture"')),
+  dialog.getByRole("button", { name: "PayPal" }).click(),
 ]);
-assert.equal((await checkout.json()).url, "https://dark.lemonsqueezy.com/checkout/abc");
-assert.equal(checkouts, 1);
-
-// Lemon Squeezy confirms the payment through the webhook
-const { data: users } = await sb.from("profiles").select("*").eq("email", "buyer@example.com");
-const raw = JSON.stringify({ meta: { event_name: "order_created" }, data: { id: "5001", attributes: { status: "paid", user_email: "buyer@example.com",
-  total: 2699, currency: "USD", custom_data: { ebook_id: book.id, user_id: users[0].id }, first_order_item: { variant_id: 2204367 } } } });
-const hook = await fetch(`${URL_}/functions/v1/lemonSqueezyWebhook`, { method: "POST", body: raw,
-  headers: { "Content-Type": "application/json", "X-Signature": crypto.createHmac("sha256", "whsec").update(raw).digest("hex") } });
-assert.equal(hook.status, 200);
+assert.deepEqual(await captured.json(), { status: "paid", after: "/account" });
+assert.equal(ppOrders.size, 1);
+await page.waitForURL(`${SITE}/account`);
 await page.goto(`${SITE}/account`);
 await page.getByRole("button", { name: /Download/ }).first().waitFor();
 await page.shot("account_purchased");
@@ -238,6 +254,22 @@ for (const [w, h] of [[375, 667], [390, 844]]) {
     }
   }
   await phone.shot("checkout_choice");
+  // a guest pays on the phone and lands on their private download page
+  await phone.getByRole("button", { name: /Continue as guest/ }).click();
+  const payBox = phone.getByRole("dialog");
+  await payBox.getByRole("button", { name: "PayPal" }).waitFor();
+  const over = await phone.evaluate(() => [...document.querySelectorAll('[role="dialog"] *')].filter((el) => el.getBoundingClientRect().right > window.innerWidth + 1).length);
+  assert.equal(over, 0, `${w}px: the PayPal dialog is wider than the screen`);
+  await phone.shot("paypal_dialog");
+  await payBox.getByRole("button", { name: "PayPal" }).click();
+  await phone.waitForURL(/\/download\?token=[0-9a-f]{64}$/);
+  await phone.getByRole("button", { name: /Download/ }).first().waitFor();
+  const [gdl] = await Promise.all([
+    phone.waitForResponse((r) => r.url().includes("/functions/v1/generateEbookDownloadUrl") && r.request().postData().includes('"ebook_id"')),
+    phone.getByRole("button", { name: /Download/ }).first().click(),
+  ]);
+  assert.equal(await (await fetch((await gdl.json()).signed_url)).text(), "%PDF-1.4 the book");
+  await phone.shot("guest_download");
 }
 
 await browser.close();

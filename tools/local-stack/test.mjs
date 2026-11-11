@@ -34,6 +34,51 @@ http.createServer(async (req, res) => {
   res.end(JSON.stringify({ data: { attributes: { url: "https://store.lemonsqueezy.com/checkout/abc" } } }));
 }).listen(54399, "127.0.0.1");
 
+// stand-in for the PayPal REST API (paypalCheckout / paypalWebhook run with PAYPAL_API_URL pointing here)
+const pp = { orders: new Map(), captures: new Map(), n: 0, next: {}, requestIds: [] };
+http.createServer(async (req, res) => {
+  let raw = ""; for await (const c of req) raw += c;
+  const send = (code, body) => { res.writeHead(code, { "Content-Type": "application/json" }); res.end(JSON.stringify(body)); };
+  const u = new URL(req.url, "http://x");
+  if (u.pathname === "/v1/oauth2/token") {
+    const ok = req.headers.authorization === `Basic ${Buffer.from("client-1:secret-1").toString("base64")}`;
+    return ok ? send(200, { access_token: "pp-token", expires_in: 32400 }) : send(401, { error: "invalid_client" });
+  }
+  if (req.headers.authorization !== "Bearer pp-token") return send(401, { name: "AUTHENTICATION_FAILURE" });
+  if (req.headers["paypal-request-id"]) pp.requestIds.push(req.headers["paypal-request-id"]);
+  if (u.pathname === "/v1/notifications/verify-webhook-signature") {
+    const b = JSON.parse(raw);
+    return send(200, { verification_status: b.transmission_sig === "good" && b.webhook_id === "WH-1" ? "SUCCESS" : "FAILURE" });
+  }
+  const m = u.pathname.match(/^\/v2\/checkout\/orders(?:\/([A-Z0-9]+))?(\/capture)?$/);
+  if (m && req.method === "POST" && !m[1]) {
+    const id = `ORDER${++pp.n}X`;
+    pp.orders.set(id, { id, status: "CREATED", body: JSON.parse(raw) });
+    return send(201, { id, status: "CREATED" });
+  }
+  if (m && m[2]) {
+    const o = pp.orders.get(m[1]);
+    if (!o) return send(404, { name: "RESOURCE_NOT_FOUND" });
+    if (pp.next.decline) { pp.next.decline = false; return send(422, { name: "UNPROCESSABLE_ENTITY", details: [{ issue: "INSTRUMENT_DECLINED" }] }); }
+    if (o.status === "COMPLETED") return send(422, { name: "UNPROCESSABLE_ENTITY", details: [{ issue: "ORDER_ALREADY_CAPTURED" }] });
+    const unit = o.body.purchase_units[0];
+    const capture = { id: `CAP${pp.n}${o.id}`, status: pp.next.pending ? "PENDING" : "COMPLETED", custom_id: unit.custom_id,
+      amount: pp.next.amount || unit.amount, links: [] };
+    pp.next.pending = false; pp.next.amount = null;
+    pp.captures.set(capture.id, { ...capture });
+    o.status = "COMPLETED"; o.payer = { email_address: "payer@example.com" };
+    o.purchase_units = [{ ...unit, payments: { captures: [capture] } }];
+    return send(201, { id: o.id, status: o.status, payer: o.payer, purchase_units: o.purchase_units });
+  }
+  if (m && req.method === "GET") {
+    const o = pp.orders.get(m[1]);
+    return o ? send(200, { id: o.id, status: o.status, payer: o.payer, purchase_units: o.purchase_units || o.body.purchase_units }) : send(404, {});
+  }
+  const c = u.pathname.match(/^\/v2\/payments\/captures\/([A-Z0-9]+)$/);
+  if (c) return pp.captures.has(c[1]) ? send(200, pp.captures.get(c[1])) : send(404, {});
+  send(404, { name: "NOT_FOUND" });
+}).listen(54397, "127.0.0.1");
+
 const fn = async (sb, name, body) => {
   const { data, error } = await sb.functions.invoke(name, { body });
   if (error) return { status: error.context.status, ...(await error.context.json().catch(() => ({}))) };
@@ -410,6 +455,131 @@ assert.equal((await usr({ action: "ban", id: fan.id })).status, 400, "an admin m
 assert.equal((await usr({ action: "set_role", id: fan.id, role: "user" })).status, 200);
 await rejects(entitiesProxy(fanAgain).Ebook.update(fanBook.id, { price: 1 }), /multiple \(or no\) rows|row-level/);
 await service.Ebook.delete(fanBook.id);
+
+// ---------------- PayPal (paypalCheckout + paypalWebhook; the stack runs with PAYPAL_ENV=live)
+const pay = (sb, body) => fn(sb, "paypalCheckout", body);
+const ppHook = async (event, sig = "good") => {
+  const r = await fetch(`${URL_}/functions/v1/paypalWebhook`, { method: "POST", body: JSON.stringify(event), headers: {
+    "Content-Type": "application/json", "paypal-auth-algo": "SHA256withRSA", "paypal-cert-url": "https://api.paypal.com/cert.pem",
+    "paypal-transmission-id": "t-1", "paypal-transmission-sig": sig, "paypal-transmission-time": new Date().toISOString() } });
+  return { http: r.status, ...(await r.json()) };
+};
+const p1 = await admin.db.Ebook.create(ebook(31, { price: 12.5, secure_file_uri: "a_book.pdf" }));
+const p2 = await admin.db.Ebook.create(ebook(32, { price: 4.99, secure_file_uri: "a_book.pdf" }));
+const pDraft = await admin.db.Ebook.create(ebook(33, { price: 3, status: "draft" }));
+assert.deepEqual(await pay(client(), { action: "config" }), { status: 200, ready: true, env: "live", client_id: "client-1" });
+assert.equal((await pay(client(), { action: "create" })).status, 400);
+assert.equal((await pay(client(), { action: "create", ebook_ids: [pDraft.id] })).status, 400, "a draft cannot be bought");
+assert.equal((await pay(client(), { action: "create", ebook_ids: ["nope"] })).status, 404);
+assert.equal((await pay(client(), { action: "capture", order_id: "ORDERNOPE1" })).status, 404);
+
+// a guest buys one book: price from the database, download key kept on the server
+const g = await pay(client(), { action: "create", ebook_ids: [p1.id], price: 0.01 });
+assert.equal(g.status, 200);
+const gOrder = pp.orders.get(g.id).body.purchase_units[0];
+const [gAttempt] = await service.CheckoutAttempt.filter({ order_id: g.id });
+assert.deepEqual([gOrder.amount.value, gOrder.items[0].name, gOrder.items[0].category, gOrder.custom_id, gOrder.invoice_id],
+  ["12.50", "Book 31", "DIGITAL_GOODS", gAttempt.id, gAttempt.id]);
+assert.deepEqual([gAttempt.provider, gAttempt.total, gAttempt.status, gAttempt.user_id], ["paypal", 1250, "started", null]);
+assert.match(gAttempt.access_token, /^[0-9a-f]{64}$/);
+assert.ok(gOrder.description.endsWith(`/download?token=${gAttempt.access_token}`), "the guest link rides in the PayPal receipt");
+assert.equal(pp.requestIds.at(-1), gAttempt.id, "create is idempotent on PayPal's side");
+assert.equal(await service.EbookPurchase.count({ provider_order_id: g.id }), 0, "nothing is granted before payment");
+const gPaid = await pay(client(), { action: "capture", order_id: g.id });
+assert.deepEqual(gPaid, { status: "paid", after: `/download?token=${gAttempt.access_token}` });   // fn() keeps the body's own "status"
+assert.deepEqual(await pay(client(), { action: "capture", order_id: g.id }), { status: "paid", after: `/download?token=${gAttempt.access_token}` }, "a second capture is harmless");
+const gRows = await service.EbookPurchase.filter({ provider_order_id: g.id });
+assert.deepEqual(gRows.map((r) => [r.provider, r.ebook_id, Number(r.amount), r.payment_status, r.download_access, r.customer_email, r.user_id]),
+  [["paypal", p1.id, 1250, "paid", true, "payer@example.com", null]]);
+assert.deepEqual(await service.CheckoutAttempt.get(gAttempt.id).then((a) => [a.status, a.email, Boolean(a.capture_id), Boolean(a.paid_date)]), ["paid", "payer@example.com", true, true]);
+assert.equal((await fn(client(), "generateEbookDownloadUrl", { list: true, token: gAttempt.access_token })).items.length, 1);
+assert.equal(await (await fetch((await fn(client(), "generateEbookDownloadUrl", { ebook_id: p1.id, token: gAttempt.access_token })).signed_url)).text(), "%PDF-1.4 secret book");
+
+// a signed-in buyer's cart: one order, both books, each row with its own price, straight to the library
+const shopper = await signUp("shopper@example.com");
+const s1 = await pay(shopper.sb, { action: "create", ebook_ids: [p1.id, p2.id, p1.id] });
+const sUnit = pp.orders.get(s1.id).body.purchase_units[0];
+assert.deepEqual([sUnit.amount.value, sUnit.amount.breakdown.item_total.value, sUnit.items.length, sUnit.description], ["17.49", "17.49", 2, "2 ebooks from Dark Network"]);
+assert.deepEqual(await pay(shopper.sb, { action: "capture", order_id: s1.id }), { status: "paid", after: "/account" });
+assert.deepEqual((await shopper.db.EbookPurchase.filter({ user_id: shopper.id })).map((r) => Number(r.amount)).sort(), [1250, 499]);
+assert.ok((await fn(shopper.sb, "generateEbookDownloadUrl", { ebook_id: p2.id })).signed_url);
+
+// a declined card: PayPal lets the buyer choose another, then it goes through
+const d1 = await pay(client(), { action: "create", ebook_ids: [p2.id] });
+pp.next.decline = true;
+const declined = await pay(client(), { action: "capture", order_id: d1.id });
+assert.deepEqual([declined.status, declined.restart], [402, true]);
+assert.equal((await pay(client(), { action: "capture", order_id: d1.id })).status, "paid");
+
+// PayPal reports a different amount: no books
+const m1 = await pay(client(), { action: "create", ebook_ids: [p1.id] });
+pp.next.amount = { currency_code: "USD", value: "0.50" };
+assert.equal((await pay(client(), { action: "capture", order_id: m1.id })).status, 409);
+assert.equal(await service.EbookPurchase.count({ provider_order_id: m1.id }), 0);
+assert.equal((await service.CheckoutAttempt.filter({ order_id: m1.id }))[0].status, "started", "statistics see it as not paid");
+
+// a pending payment: no books until PayPal's webhook says COMPLETED (and only a verified webhook counts)
+const w1 = await pay(client(), { action: "create", ebook_ids: [p2.id] });
+pp.next.pending = true;
+const wPending = await pay(client(), { action: "capture", order_id: w1.id });
+assert.equal(wPending.status, "pending");
+assert.equal((await service.CheckoutAttempt.filter({ order_id: w1.id }))[0].status, "started");
+assert.equal(await service.EbookPurchase.count({ provider_order_id: w1.id }), 0);
+const [wAttempt] = await service.CheckoutAttempt.filter({ order_id: w1.id });
+const wCapture = { ...pp.captures.get(wAttempt.capture_id), status: "COMPLETED" };
+const completed = { event_type: "PAYMENT.CAPTURE.COMPLETED", resource: wCapture };
+assert.equal((await ppHook(completed, "forged")).http, 401);
+assert.equal(await service.EbookPurchase.count({ provider_order_id: w1.id }), 0);
+assert.deepEqual(await ppHook(completed), { http: 200, received: true, status: "paid" });
+assert.deepEqual(await ppHook(completed), { http: 200, received: true, status: "paid" }, "PayPal retries: no duplicate");
+assert.deepEqual((await service.EbookPurchase.filter({ provider_order_id: w1.id })).map((r) => [r.payment_status, r.download_access]), [["paid", true]]);
+
+// refunds: partial keeps the download, full takes it away; a chargeback (reversal) too
+const refund = (captureId) => ({ event_type: "PAYMENT.CAPTURE.REFUNDED", resource: { id: "REF1", status: "COMPLETED",
+  links: [{ rel: "up", method: "GET", href: `https://api.paypal.com/v2/payments/captures/${captureId}` }] } });
+const gCap = (await service.CheckoutAttempt.get(gAttempt.id)).capture_id;
+pp.captures.get(gCap).status = "PARTIALLY_REFUNDED";
+assert.deepEqual(await ppHook(refund(gCap)), { http: 200, received: true, updated: 1 });
+assert.deepEqual((await service.EbookPurchase.filter({ provider_order_id: g.id })).map((r) => [r.payment_status, r.download_access]), [["partially_refunded", true]]);
+pp.captures.get(gCap).status = "REFUNDED";
+await ppHook(refund(gCap));
+assert.deepEqual((await service.EbookPurchase.filter({ provider_order_id: g.id })).map((r) => [r.payment_status, r.download_access]), [["refunded", false]]);
+assert.equal((await fn(client(), "generateEbookDownloadUrl", { list: true, token: gAttempt.access_token })).items.length, 0);
+assert.equal((await service.CheckoutAttempt.get(gAttempt.id)).status, "refunded");
+const sCap = (await service.CheckoutAttempt.filter({ order_id: s1.id }))[0].capture_id;
+assert.deepEqual(await ppHook({ event_type: "PAYMENT.CAPTURE.REVERSED", resource: { id: sCap, status: "REVERSED" } }), { http: 200, received: true, updated: 2 });
+assert.equal((await fn(shopper.sb, "generateEbookDownloadUrl", { ebook_id: p2.id })).status, 403);
+assert.deepEqual(await ppHook({ event_type: "CHECKOUT.ORDER.APPROVED", resource: {} }), { http: 200, received: true, event: "CHECKOUT.ORDER.APPROVED" });
+
+// the owner's lists count PayPal orders like the others
+const toolOrders = (await tool({ action: "orders" })).items;
+assert.ok(toolOrders.some((o) => o.order_id === w1.id || o.provider_order_id === w1.id || JSON.stringify(o).includes(w1.id)), "the desktop tool lists PayPal orders");
+
+// while PAYPAL_ENV is "sandbox" only admins may pay (test money); everyone else keeps the old checkout
+const { spawn } = await import("node:child_process");
+const sandboxFn = spawn("deno", ["run", "-A", "--quiet", new URL("../../supabase/functions/paypalCheckout/index.ts", import.meta.url).pathname], {
+  env: { ...process.env, PAYPAL_ENV: "sandbox", DENO_SERVE_ADDRESS: "tcp:127.0.0.1:54396", SUPABASE_URL: URL_, SUPABASE_SERVICE_ROLE_KEY: SERVICE }, stdio: "ignore" });
+const sandbox = async (sb, body) => {
+  const token = sb ? (await sb.auth.getSession()).data.session.access_token : ANON;
+  for (let i = 0; i < 50; i++) {
+    try {
+      const r = await fetch("http://127.0.0.1:54396", { method: "POST", body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, apikey: ANON } });
+      return { status: r.status, ...(await r.json()) };
+    } catch { await new Promise((r) => setTimeout(r, 200)); }
+  }
+  throw new Error("sandbox function did not start");
+};
+try {
+  assert.deepEqual(await sandbox(null, { action: "config" }), { status: 200, ready: false, env: "sandbox" });
+  assert.deepEqual(await sandbox(shopper.sb, { action: "config" }), { status: 200, ready: false, env: "sandbox" });
+  assert.equal((await sandbox(shopper.sb, { action: "create", ebook_ids: [p2.id] })).status, 503);
+  assert.deepEqual(await sandbox(admin.sb, { action: "config" }), { status: 200, ready: true, env: "sandbox", client_id: "client-1" });
+  assert.equal((await sandbox(admin.sb, { action: "create", ebook_ids: [p2.id] })).status, 200);
+} finally {
+  sandboxFn.kill();
+}
+for (const e of [p1, p2, pDraft]) await service.Ebook.delete(e.id);
 
 void profiles; void service;
 console.log("local stack: all checks passed");

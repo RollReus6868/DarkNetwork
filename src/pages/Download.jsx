@@ -7,7 +7,7 @@ import { useLibrary } from "@/lib/useLibrary";
 import Seo from "@/components/site/Seo";
 import LibraryRows from "@/components/site/LibraryRows";
 
-// Where a guest buyer lands after paying and from the button in their receipt email.
+// Where a guest buyer lands right after paying, and from the link in their payment receipt.
 export default function Download() {
   const token = useSearchParams()[0].get("token") || "";
   const { isAuthenticated } = useAuth();
@@ -38,7 +38,7 @@ export default function Download() {
           <div className="border border-dashed border-border rounded-sm py-14 px-6 text-center">
             <p className="font-heading text-xl text-foreground/80 mb-2">We couldn't find this order.</p>
             <p className="text-sm text-muted-foreground mb-6">
-              If you just paid, refresh this page in a minute. Otherwise open the link from your receipt email again, or contact us and we'll help.
+              If you just paid, refresh this page in a minute. Otherwise open the download link from your payment receipt again, or contact us with your PayPal email and we'll help.
             </p>
             <Link to="/contact" className="text-primary font-medium hover:underline">Contact us</Link>
           </div>
@@ -48,7 +48,7 @@ export default function Download() {
             <div className="mt-10 border border-primary/30 rounded-sm p-6 bg-card/40">
               <h2 className="font-heading text-xl font-semibold mb-2">Keep your ebooks in one place</h2>
               <p className="text-sm text-muted-foreground mb-5">
-                This page opens only with the link in your receipt email. Create a free account and these ebooks are saved to your library, ready to download again anytime.
+                Bookmark this page: it opens only with this private link. Better still, create a free account and these ebooks are saved to your library, ready to download again anytime.
               </p>
               <Link
                 to={`/register?returnTo=${here}`}

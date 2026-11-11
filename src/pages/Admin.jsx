@@ -137,11 +137,11 @@ export default function Admin() {
           key="ebooks"
           entity="Ebook"
           title="Ebook"
-          description="Sách điện tử thanh toán qua Lemon Squeezy. Cần Variant ID và file ebook để khách mua và tải được."
+          description="Sách điện tử thanh toán qua PayPal. Cần giá và file ebook (riêng tư) để khách mua và tải được."
           fields={EBOOK_FIELDS}
           defaults={EBOOK_DEFAULTS}
           getThumb={(e) => e.cover_image}
-          getSubtitle={(e) => `$${Number(e.price || 0).toFixed(2)}${e.lemon_squeezy_variant_id ? "" : " · thiếu Variant ID"}`}
+          getSubtitle={(e) => `$${Number(e.price || 0).toFixed(2)}${e.secure_file_uri ? "" : " · thiếu file ebook"}`}
           importExample={EBOOK_IMPORT_EXAMPLE}
           bulk
         />

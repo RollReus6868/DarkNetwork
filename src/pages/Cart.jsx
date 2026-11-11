@@ -96,7 +96,7 @@ export default function Cart() {
                   )}
                 </button>
                 <p className="text-xs text-muted-foreground text-center">
-                  Secure payment by Lemon Squeezy. Your ebooks are ready to download right after payment.
+                  Secure checkout with PayPal or a debit / credit card. Your ebooks are ready to download right after payment.
                 </p>
               </div>
             </div>

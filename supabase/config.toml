@@ -20,3 +20,8 @@ verify_jwt = false
 verify_jwt = false
 [functions.adminUsers]
 verify_jwt = false
+[functions.paypalCheckout]
+verify_jwt = false
+
+[functions.paypalWebhook]
+verify_jwt = false

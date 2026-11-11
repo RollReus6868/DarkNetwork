@@ -6,11 +6,11 @@ import { SectionHeading } from "@/components/site/Cards";
 const FAQS = [
   { q: "What is the Dark Network?", a: "The Dark Network is a cinematic Bible discovery platform built around a network of documentary-style YouTube channels — Dark Faith, Dark Logic, Dark History, and Dark Eyes. We explore Scripture through history, archaeology, and mystery." },
   { q: "Are the Bible studies free to read?", a: "Yes. Our editorial Bible studies are completely free to read. We also offer free downloadable resources like study guides, reading plans, and timelines." },
-  { q: "How do ebooks work?", a: "Our ebooks are digital downloads. After purchase, you'll receive a secure download link on the confirmation page and by email. You can read them on any device — phone, tablet, e-reader, or computer." },
+  { q: "How do ebooks work?", a: "Our ebooks are digital downloads. After purchase, your download page opens right away. With a free account, your ebooks also stay in My Account to download again anytime. You can read them on any device — phone, tablet, e-reader, or computer." },
   { q: "How are physical products fulfilled?", a: "Physical merchandise — apparel, wall art, mugs, and gifts — is printed and fulfilled by Spring (formerly Teespring). When you click 'Buy on Spring,' you'll complete your purchase on their secure platform, and they handle printing, shipping, and customer service." },
   { q: "Can I get a refund on an ebook?", a: "Because ebooks are digital goods delivered instantly, they are generally non-refundable. If you experience a technical issue with your download, contact us and we'll make it right." },
   { q: "How often is new content published?", a: "We publish new Bible studies, videos, and resources regularly. Subscribe to our email list to be the first to know when new content drops." },
-  { q: "Do I need an account to read or watch?", a: "No account is needed to read Bible studies, watch videos, or download free resources. You only need to provide an email at checkout when purchasing an ebook." },
+  { q: "Do I need an account to read or watch?", a: "No account is needed to read Bible studies, watch videos, or download free resources. You can buy ebooks as a guest with PayPal or a card, but a free account keeps your purchases in one place." },
   { q: "How do I stay updated?", a: "Enter your email in any of our free resource forms, or follow us on YouTube, Facebook, Instagram, Pinterest, and TikTok. We'll keep you in the loop on everything new." },
 ];
 

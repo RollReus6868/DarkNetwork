@@ -118,6 +118,7 @@ export const base44 = {
         const body = await error.context?.json?.().catch(() => null);
         const err = new Error(body?.error || error.message || "Request failed");
         err.status = error.context?.status;
+        err.data = body;   // the whole answer, e.g. { restart: true } from paypalCheckout
         throw err;
       }
       return { data };
