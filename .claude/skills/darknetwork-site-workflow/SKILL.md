@@ -123,7 +123,7 @@ Nothing from the old account carries over except what is in GitHub and the servi
 - Say plainly what was verified and what was not (for example "layout checked, the Ko-fi form itself could not load here").
 
 ## Open items
-- PayPal go-live: the owner adds the sandbox keys, tests a purchase as admin, then live keys + `PAYPAL_ENV=live` + webhook id. After LS closes (28/11/2026): remove the Lemon Squeezy path (`createEbookCheckout`, `src/lib/lemonSqueezy.js`, LS secrets) and the `lemon_squeezy_variant_id` field from Admin and the desktop tool.
+- PayPal went live on 11/11/2026 (sandbox purchase of "Isaiah 61..." by the owner's admin account paid and delivered; then live keys + `PAYPAL_ENV=live`; `config` answers `{ready:true, env:'live'}` to visitors). Still open: the live webhook (`PAYPAL_WEBHOOK_ID` missing -> refunds do not lock downloads yet), and the sandbox test order + failed test checkouts in `ebook_purchase` / `checkout_attempt` (owner asked whether to delete; the owner first pasted Live keys under `PAYPAL_ENV=sandbox`, which gave 401 invalid_client). After LS closes (28/11/2026): remove the Lemon Squeezy path (`createEbookCheckout`, `src/lib/lemonSqueezy.js`, LS secrets) and the `lemon_squeezy_variant_id` field from Admin and the desktop tool.
 - No email backend: guests depend on the download page / PayPal description for their link. Custom SMTP or Resend would allow a real receipt email with the link.
 - Custom SMTP for password reset.
 - Cleanup after cutover (needs the user's approval): drop `public.import_key`, retire `importFromBase44`, delete the test purchase, remove the two extra Lemon Squeezy webhooks, compress cover PNGs, decide on merging the live branch into `main` now that the Base44 plan has ended.
