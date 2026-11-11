@@ -20,7 +20,7 @@ For the Dark Network site (Supabase + Cloudflare; repo, deploy and admin details
    - Series books are titled `<Series> - Part N` (home page groups them into one row per series, parts ascending; titles without "Part N", or `edition_type` `full`, go in the "Full Editions" row). Keep that pattern when the user has a series.
    - `description` as HTML (`<p>`, `<h3>`, `<ul>`): opening hook, what it is, what is inside (real chapter/part counts, appendices, tools), an "honest edition" note, format and page count. Plain spaces only (no `&nbsp;`: it once made a phone page 2,700 px wide).
    - `what_you_learn` (about 9 short strings), `who_for` (HTML list), `faq` (5-7 `{question, answer}`), `seo_title`, `meta_description` (<= 160 chars)
-   - Delivery wording must match the site: buyers sign in, open **My Account** (`/account`) and press Download; guests get the link in their receipt email. Do not promise anything else.
+   - Delivery wording must match the site: buyers sign in, open **My Account** (`/account`) and press Download; guests land on their private download page right after paying (PayPal or card). Do not promise anything else.
    - Do not invent reviews (`reviews` stays empty). Do not overclaim. Repeat limits the book states itself ("not a new translation", "pre-publication manuscript") and flag them to the user.
    - Price: suggest one, keep the user's existing price if set, say it is editable. `original_price` only for a real discount (shows SAVE x%).
 5. **Prepare the cover.** Admin compresses covers to WebP on upload, so the original is fine; to save a ready copy anyway: Pillow `im.convert("RGB"); im.thumbnail((640, 960)); save WEBP quality 80` (about 150 KB). Covers display at 5:7.
