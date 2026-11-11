@@ -10,26 +10,42 @@
 import { secrets } from './backend.js';
 import { notifyOwner, inBackground } from './push.js';
 
-export const paypalEnv = () => (String(secrets.get('PAYPAL_ENV') || 'sandbox').trim().toLowerCase() === 'live' ? 'live' : 'sandbox');
-export const paypalConfigured = () => Boolean(secrets.get('PAYPAL_CLIENT_ID') && secrets.get('PAYPAL_CLIENT_SECRET'));
-const API = () => secrets.get('PAYPAL_API_URL') || (paypalEnv() === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com');
+// Keys are pasted by hand into Supabase: ignore spaces, line breaks and quotes around them.
+const clean = (v) => String(v || '').trim().replace(/^["']|["']$/g, '').replace(/\s+/g, '');
+export const paypalEnv = () => (clean(secrets.get('PAYPAL_ENV')).toLowerCase() === 'live' ? 'live' : 'sandbox');
+export const paypalClientId = () => clean(secrets.get('PAYPAL_CLIENT_ID'));
+export const paypalConfigured = () => Boolean(paypalClientId() && clean(secrets.get('PAYPAL_CLIENT_SECRET')));
+const BASE = { live: 'https://api-m.paypal.com', sandbox: 'https://api-m.sandbox.paypal.com' };
+const API = () => secrets.get('PAYPAL_API_URL') || BASE[paypalEnv()];
 
 export const money = (cents) => (Math.round(Number(cents) || 0) / 100).toFixed(2);
 export const toCents = (value) => Math.round(Number(value) * 100);
 
 let cachedToken = null;   // { value, expires }
 
+const requestToken = (base) => fetch(`${base}/v1/oauth2/token`, {
+  method: 'POST',
+  headers: {
+    Authorization: `Basic ${btoa(`${paypalClientId()}:${clean(secrets.get('PAYPAL_CLIENT_SECRET'))}`)}`,
+    'Content-Type': 'application/x-www-form-urlencoded',
+  },
+  body: 'grant_type=client_credentials',
+});
+
 async function accessToken() {
   if (cachedToken && cachedToken.expires > Date.now() + 60_000) return cachedToken.value;
-  const basic = btoa(`${secrets.get('PAYPAL_CLIENT_ID')}:${secrets.get('PAYPAL_CLIENT_SECRET')}`);
-  const res = await fetch(`${API()}/v1/oauth2/token`, {
-    method: 'POST',
-    headers: { Authorization: `Basic ${basic}`, 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'grant_type=client_credentials',
-  });
+  const res = await requestToken(API());
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.access_token) {
-    throw new Error(`PayPal sign-in failed (${res.status}${data.error ? `: ${data.error}` : ''}). Check PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET and PAYPAL_ENV.`);
+    // The usual mistake: Live keys with PAYPAL_ENV=sandbox (or the reverse). Ask the other side to say so.
+    let hint = 'Check that PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET come from the same app.';
+    if (res.status === 401 && !secrets.get('PAYPAL_API_URL')) {
+      const other = paypalEnv() === 'live' ? 'sandbox' : 'live';
+      const probe = await requestToken(BASE[other]).catch(() => null);
+      if (probe?.ok) hint = `These are ${other.toUpperCase()} keys: set PAYPAL_ENV=${other}, or paste the ${paypalEnv().toUpperCase()} keys.`;
+    }
+    console.error(`paypal: sign-in failed in ${paypalEnv()} (${res.status} ${data.error || ''}); client id ${paypalClientId().slice(0, 6)}… length ${paypalClientId().length}; ${hint}`);
+    throw new Error(`PayPal sign-in failed (${res.status}${data.error ? `: ${data.error}` : ''}, ${paypalEnv()} mode). ${hint}`);
   }
   cachedToken = { value: data.access_token, expires: Date.now() + Number(data.expires_in || 300) * 1000 };
   return cachedToken.value;

@@ -1,6 +1,6 @@
 import { createClientFromRequest, secrets, serve } from '../_shared/backend.js';
 import {
-  paypal, paypalEnv, paypalConfigured, money, toCents, firstCapture, issueOf, afterPaid, grantPurchase,
+  paypal, paypalEnv, paypalConfigured, paypalClientId, money, toCents, firstCapture, issueOf, afterPaid, grantPurchase,
 } from '../_shared/paypal.js';
 
 // Ebook checkout with PayPal, driven by the PayPal buttons on the site:
@@ -23,7 +23,7 @@ async function handler(req) {
     const ready = paypalConfigured() && (env === 'live' || user?.role === 'admin');
 
     if (body?.action === 'config') {
-      return Response.json(ready ? { ready, env, client_id: secrets.get('PAYPAL_CLIENT_ID') } : { ready: false, env });
+      return Response.json(ready ? { ready, env, client_id: paypalClientId() } : { ready: false, env });
     }
     if (!ready) return fail(503, 'Checkout is being upgraded. Please try again soon.');
 
