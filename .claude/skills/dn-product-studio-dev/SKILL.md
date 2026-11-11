@@ -56,6 +56,7 @@ PYTHONPATH=$(python3 -c "import playwright,os;print(os.path.dirname(os.path.dirn
 6. Tell the user: open the tool > Cài đặt > Kiểm tra cập nhật.
 
 ## Lessons
+- GitHub retires macOS runner images: `macos-14` stopped in 10/2026 (job cancelled with "The configuration 'macos-14-arm64-us-default' is not supported"); arm64 now builds on `macos-15`, x64 on `macos-15-intel`. A cancelled job with no steps means a runner label problem, not code.
 - HTTP server: always read the POST body before answering 403, or keep-alive breaks with "Bad request syntax".
 - Tests must not depend on order (set the default price explicitly).
 - UI: toasts top-right, keep scroll position across pages, item rows wrap at 1040 px.
