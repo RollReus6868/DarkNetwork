@@ -29,13 +29,13 @@ For the Dark Network site (Supabase + Cloudflare; repo, deploy and admin details
    - Always set `status = 'draft'`: the column default is `published`, so an insert without it goes live with no cover, file or variant.
    - Leave `sort_order` unset (default 0): unnumbered books show FIRST on the home page and Books page, newest first. Leave `featured` false unless asked.
    - `what_you_learn`, `faq`, `preview_images`, `related_ebook_ids` are jsonb arrays (`'[...]'::jsonb`); use dollar quoting (`$q$...$q$`) for HTML. `cover_image` can stay empty for a draft.
-   - Set `lemon_squeezy_variant_id` to the variant the other books use (`select lemon_squeezy_variant_id, count(*) from ebook group by 1`): one shared variant serves every book, the checkout takes name and price from the row.
+   - Payments go through PayPal (since 11/2026): the checkout takes name and price from the row, so `lemon_squeezy_variant_id` is not needed. A book is buyable once it is published with a price > 0 and a private PDF.
    - Free resources go in `free_resource` the same way (`download_url` is the public file).
 7. **Save copies** of the listing JSON (`<slug>.ebook.json`, array, `status: draft`) in the repo `seed/` and, if the user wants, back to their folder (`device_commit_files`, stage under `/mnt/user-data/outputs/` first).
-8. **Tell the user what remains** in `/admin` > tab Ebook > the book's pencil button (Sửa): upload the cover (Ảnh bìa), upload the PDF as the private file ("File ebook (riêng tư)"; buyers download it under its file name), check price and variant id, then set Trạng thái to `published` and Lưu. Give these as clicks.
+8. **Tell the user what remains** in `/admin` > tab Ebook > the book's pencil button (Sửa): upload the cover (Ảnh bìa), upload the PDF as the private file ("File ebook (riêng tư)"; buyers download it under its file name), check the price, then set Trạng thái to `published` and Lưu. Give these as clicks.
 
 ## Gotchas
-- A published ebook without a variant id or private PDF shows a broken Buy Now; a published free resource without `download_url` delivers nothing. Say so if the user publishes early.
+- A published ebook without a private PDF sells a book nobody can download; a published free resource without `download_url` delivers nothing. Say so if the user publishes early.
 - Bulk import in Admin is per tab (Ebook JSON in the Ebook tab) and creates duplicates if the slug already exists.
 - Check the copyright page for notes such as "reviews still required before print" and tell the user.
 - The NEW badge appears by itself on books added in the last 30 days (Admin > Cài đặt switches it off or changes the days).
