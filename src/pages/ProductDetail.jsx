@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { sanitizeHtml } from "@/lib/sanitize";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { ChevronRight, ExternalLink, ShoppingBag } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import { useSiteData } from "@/hooks/useSiteData";
 import { Image } from "@/components/ui/image";
 import { ProductTextPrice } from "@/components/site/ProductTextPrice";
+import PodBuyBox, { usePodSelection, cartItemFor } from "@/components/site/PodBuyBox";
+import { imagesFor, addToPodCart, variantPrice } from "@/lib/podCart";
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -14,8 +16,13 @@ export default function ProductDetail() {
 
   const product = useMemo(() => products.find((p) => p.slug === slug) || null, [products, slug]);
   const notFound = !loading && !product;
+  const navigate = useNavigate();
+  // printed through Printify and sold here (size / colour, cart, checkout) vs an old Spring link
+  const isPod = Boolean(product?.printify_product_id && product?.variants?.length);
+  const selection = usePodSelection(isPod ? product : null);
+  const pictureId = selection.pictureVariant?.id;
 
-  useEffect(() => { setActiveImage(0); }, [slug]);
+  useEffect(() => { setActiveImage(0); }, [slug, pictureId]);
 
   if (loading) return <div className="pt-32 text-center text-muted-foreground">Loading product…</div>;
   if (notFound || !product) {
@@ -30,7 +37,15 @@ export default function ProductDetail() {
   const relatedStudy = studies.find((s) => s.id === product.related_study_id);
   const relatedEbook = ebooks.find((e) => e.id === product.related_ebook_id);
   const relatedProducts = products.filter((p) => p.id !== product.id && p.category === product.category).slice(0, 4);
-  const images = product.images?.length ? product.images : [];
+  const images = isPod ? imagesFor(product, pictureId) : (product.images?.length ? product.images : []);
+  const buyFromBar = () => {
+    if (!selection.variant) {
+      document.getElementById("pod-buy")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    addToPodCart(cartItemFor(product, selection.variant, 1, images[0]));
+    navigate("/checkout");
+  };
 
   return (
     <>
@@ -80,26 +95,32 @@ export default function ProductDetail() {
             <ProductTextPrice
               category={product.category}
               title={product.title}
-              price={product.price}
+              price={isPod ? null : product.price}
               originalPrice={product.original_price}
               titleAs="h1"
               showSaleBadge
               showDescription={false}
             />
 
-            <a
-              href={product.spring_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-gold mt-6 inline-flex items-center justify-center gap-2 px-8 py-4 rounded uppercase text-sm tracking-wide w-full sm:w-auto"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              Buy on Spring
-              <ExternalLink className="w-4 h-4" />
-            </a>
-            <p className="text-xs text-muted-foreground mt-3">
-              Physical merchandise is printed and fulfilled by Spring. You'll complete your purchase on their secure checkout.
-            </p>
+            {isPod ? (
+              <PodBuyBox product={product} selection={selection} image={images[0]} />
+            ) : (
+              <>
+                <a
+                  href={product.spring_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-gold mt-6 inline-flex items-center justify-center gap-2 px-8 py-4 rounded uppercase text-sm tracking-wide w-full sm:w-auto"
+                >
+                  <ShoppingBag className="w-5 h-5" />
+                  Buy on Spring
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Physical merchandise is printed and fulfilled by Spring. You'll complete your purchase on their secure checkout.
+                </p>
+              </>
+            )}
 
             <div className="mt-8 pt-8 border-t border-border">
               <h2 className="font-heading text-xl font-semibold mb-3">Description</h2>
@@ -208,12 +229,19 @@ export default function ProductDetail() {
         <div className="flex-1">
           <p className="text-xs text-muted-foreground">{product.title}</p>
           <div className="flex items-center gap-2">
-            <p className="text-primary font-heading text-xl font-bold">${Number(product.price).toFixed(2)}</p>
-            {product.original_price && Number(product.original_price) > Number(product.price) && (
+            <p className="text-primary font-heading text-xl font-bold">
+              ${Number(isPod ? (selection.variant ? variantPrice(product, selection.variant) : selection.minPrice) : product.price).toFixed(2)}
+            </p>
+            {!isPod && product.original_price && Number(product.original_price) > Number(product.price) && (
               <p className="text-sm text-muted-foreground line-through">${Number(product.original_price).toFixed(2)}</p>
             )}
           </div>
         </div>
+        {isPod ? (
+          <button type="button" onClick={buyFromBar} className="btn-gold px-6 py-3 rounded uppercase text-sm flex items-center gap-2">
+            {selection.variant ? "Buy Now" : "Select Options"}
+          </button>
+        ) : (
         <a
           href={product.spring_url}
           target="_blank"
@@ -222,6 +250,7 @@ export default function ProductDetail() {
         >
           Buy <ExternalLink className="w-4 h-4" />
         </a>
+        )}
       </div>
     </>
   );

@@ -43,6 +43,41 @@ http.createServer(async (req, res) => {
   }
   send(404, {});
 }).listen(54397, "127.0.0.1");
+
+// stand-in for the Printify API (the stack runs with PRINTIFY_API_URL=http://127.0.0.1:54395)
+const pfOrders = [];
+http.createServer(async (req, res) => {
+  let raw = ""; for await (const c of req) raw += c;
+  const send = (code, body) => { res.writeHead(code, { "Content-Type": "application/json" }); res.end(JSON.stringify(body)); };
+  const u = new URL(req.url, "http://x").pathname;
+  if (u === "/v1/shops.json") return send(200, [{ id: 111, title: "Store", sales_channel: "custom_integration" }]);
+  if (u === "/v1/shops/111/orders/shipping.json") {
+    const qty = JSON.parse(raw).line_items.reduce((n, l) => n + l.quantity, 0);
+    return send(200, { standard: 399 + 209 * (qty - 1) });
+  }
+  if (u === "/v1/shops/111/orders.json") { pfOrders.push(JSON.parse(raw)); return send(200, { id: `pforder${pfOrders.length}` }); }
+  if (/send_to_production/.test(u)) return send(202, {});
+  send(404, {});
+}).listen(54395, "127.0.0.1");
+const TEE_IMG = (c, side) => `https://img.test/${c}-${side}.png`;
+const tee = await db.Product.create({
+  title: "His Love Endures Tee", slug: "his-love-endures-tee", category: "Apparel", price: 21.99, status: "published",
+  description: "<p>A soft, everyday tee.</p>", printify_product_id: "pf1", images: [TEE_IMG("black", "front"), TEE_IMG("black", "back")],
+  options: [
+    { name: "Colors", type: "color", values: [{ id: 1, title: "Black", colors: ["#000000"] }, { id: 2, title: "White", colors: ["#ffffff"] }] },
+    { name: "Sizes", type: "size", values: [{ id: 10, title: "S" }, { id: 11, title: "M" }, { id: 12, title: "2XL" }] },
+  ],
+  variants: [
+    { id: 101, title: "Black / S", options: [1, 10], extra: 0, available: true },
+    { id: 102, title: "Black / M", options: [1, 11], extra: 0, available: true },
+    { id: 103, title: "Black / 2XL", options: [1, 12], extra: 300, available: true },
+    { id: 201, title: "White / S", options: [2, 10], extra: 0, available: true },
+  ],
+  variant_images: [
+    { src: TEE_IMG("black", "front"), variant_ids: [101, 102, 103], is_default: true },
+    { src: TEE_IMG("white", "front"), variant_ids: [201], is_default: true },
+  ],
+});
 // stand-in for PayPal's button script (www.paypal.com/sdk/js): one button that runs the real createOrder / onApprove
 const FAKE_PAYPAL_SDK = `window.paypal = { Buttons(o) { return {
   render(t) { const b = document.createElement("button"); b.type = "button"; b.textContent = "PayPal";
@@ -272,6 +307,54 @@ for (const [w, h] of [[375, 667], [390, 844]]) {
   await phone.shot("guest_download");
 }
 
+
+// ---- a guest buys printed merch (Printify) on a phone and on a desktop: size / colour, cart, address, PayPal, order page
+for (const [w, h] of [[390, 844], [1440, 900]]) {
+  const p = await open(w, h);
+  await p.goto(`${SITE}/shop/${tee.slug}`);
+  const box = p.locator("#pod-buy");
+  await box.getByRole("button", { name: "2XL" }).waitFor();
+  assert.equal(await p.getByText("Buy on Spring").count(), 0, "a Printify product never sends buyers to Spring");
+  assert.match(await box.innerText(), /From\s*\$21\.99/);
+  await box.getByRole("button", { name: /Add to Cart/ }).click();
+  await box.getByText("Please choose a size.").waitFor();
+  await box.getByRole("button", { name: "White" }).click();
+  assert.equal(await box.getByRole("button", { name: "2XL" }).isDisabled(), true, "2XL is not made in white");
+  await box.getByRole("button", { name: "Black" }).click();
+  await box.getByRole("button", { name: "2XL" }).click();
+  assert.match(await box.innerText(), /\$24\.99/);
+  await box.getByRole("button", { name: "Increase quantity" }).click();
+  await p.shot("pod_product");
+  await box.getByRole("button", { name: /Add to Cart/ }).click();
+  await box.getByText("Added to your cart.").waitFor();
+  await box.getByRole("button", { name: "S", exact: true }).click();
+  await box.getByRole("button", { name: /Add to Cart/ }).click();
+  await p.goto(`${SITE}/cart`);
+  await p.getByText("Black / 2XL").waitFor();
+  assert.match(await p.locator("main").innerText(), /Checkout — \$71\.97/i);   // 2 × 24.99 + 21.99
+  await p.shot("pod_cart");
+  await p.getByRole("link", { name: /Checkout — \$71\.97/ }).click();
+  await p.waitForURL(/\/checkout$/);
+  const form = p.locator('form[aria-label="Shipping address"]');
+  for (const [name, value] of [["email", "mary@example.com"], ["first_name", "Mary"], ["last_name", "Jones"], ["address1", "1 Peachtree St"], ["city", "Atlanta"], ["zip", "30303"]]) {
+    await form.locator(`[name="${name}"]`).fill(value);
+  }
+  await form.locator('select[name="region"]').selectOption("GA");
+  await form.getByRole("button", { name: /Continue to Payment/ }).click();
+  await p.getByRole("button", { name: "PayPal" }).waitFor();
+  const summary = await p.locator("aside").innerText();
+  assert.match(summary, /\$8\.17/); assert.match(summary, /\$80\.14 USD/);   // shipping 3.99 + 2 × 2.09
+  await p.shot("pod_checkout");
+  await p.getByRole("button", { name: "PayPal" }).click();
+  await p.waitForURL(/\/order\/[0-9a-f]{32}\?token=[0-9a-f]{32}$/);
+  await p.getByText("Thank you for your order!").waitFor();
+  await p.getByText("Printing").waitFor();
+  await p.shot("pod_order");
+  assert.equal(await p.evaluate(() => JSON.parse(localStorage.getItem("dark_pod_cart") || "[]").length), 0, "the cart empties after payment");
+  await p.context().close();
+}
+assert.equal(pfOrders.length, 2, "each paid order went to Printify");
+assert.deepEqual(pfOrders[0].line_items, [{ product_id: "pf1", variant_id: 103, quantity: 2 }, { product_id: "pf1", variant_id: 101, quantity: 1 }]);
 await browser.close();
 for (const e of errors) console.log("ERROR", e);
 console.log("ui smoke:", errors.length ? "FAIL" : "OK", "- screenshots in", OUT);

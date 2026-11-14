@@ -79,6 +79,63 @@ http.createServer(async (req, res) => {
   send(404, { name: "NOT_FOUND" });
 }).listen(54397, "127.0.0.1");
 
+// stand-in for the Printify API (podShop / printifyWebhook run with PRINTIFY_API_URL pointing here, token pfy-token)
+const pf = { orders: new Map(), sent: [], hooks: [], n: 0, failCreate: false, shipping: [] };
+const PF_PRODUCT = {
+  id: "pf1", title: "His Love Endures Tee", description: "<p>Soft tee</p>", tags: ["T-shirts"], blueprint_id: 12, print_provider_id: 99,
+  options: [
+    { name: "Colors", type: "color", values: [{ id: 1, title: "Black", colors: ["#000000"] }, { id: 2, title: "White", colors: ["#ffffff"] }, { id: 3, title: "Red", colors: ["#ff0000"] }] },
+    { name: "Sizes", type: "size", values: [{ id: 10, title: "S" }, { id: 11, title: "XL" }, { id: 12, title: "2XL" }] },
+  ],
+  variants: [
+    { id: 101, title: "Black / S", cost: 1129, price: 1463, is_enabled: true, is_default: true, is_available: true, options: [1, 10] },
+    { id: 102, title: "Black / XL", cost: 1129, price: 1463, is_enabled: true, is_default: false, is_available: true, options: [1, 11] },
+    { id: 103, title: "Black / 2XL", cost: 1348, price: 1700, is_enabled: true, is_default: false, is_available: true, options: [1, 12] },
+    { id: 201, title: "White / S", cost: 1129, price: 1463, is_enabled: true, is_default: false, is_available: true, options: [2, 10] },
+    { id: 203, title: "White / 2XL", cost: 1348, price: 1700, is_enabled: true, is_default: false, is_available: false, options: [2, 12] },
+    { id: 301, title: "Red / S", cost: 1129, price: 1463, is_enabled: false, is_default: false, is_available: true, options: [3, 10] },
+  ],
+  images: [
+    { src: "https://img.test/black-front.png", variant_ids: [101, 102, 103], position: "front", is_default: true },
+    { src: "https://img.test/white-front.png", variant_ids: [201, 203], position: "front", is_default: false },
+    { src: "https://img.test/black-back.png", variant_ids: [101, 102, 103], position: "back", is_default: false },
+    { src: "https://img.test/red-front.png", variant_ids: [301], position: "front", is_default: false },
+  ],
+};
+const PF_EMPTY = { ...PF_PRODUCT, id: "pf2", title: "Draft In Printify", variants: PF_PRODUCT.variants.map((v) => ({ ...v, is_enabled: false })) };
+http.createServer(async (req, res) => {
+  let raw = ""; for await (const c of req) raw += c;
+  const send = (code, body) => { res.writeHead(code, { "Content-Type": "application/json" }); res.end(JSON.stringify(body)); };
+  if (req.headers.authorization !== "Bearer pfy-token" || !req.headers["user-agent"]) return send(401, { error: "Unauthenticated" });
+  const u = new URL(req.url, "http://x"); const path = u.pathname; const body = raw ? JSON.parse(raw) : null;
+  if (path === "/v1/shops.json") return send(200, [{ id: 7001, title: "Other", sales_channel: "etsy" }, { id: 111, title: "My new store", sales_channel: "custom_integration" }]);
+  if (path === "/v1/shops/111/products.json") return send(200, { current_page: 1, last_page: 1, data: [PF_PRODUCT, PF_EMPTY] });
+  if (path === "/v1/shops/111/orders/shipping.json") {
+    pf.shipping.push(body);
+    if (body.address_to.country === "KP") return send(400, { errors: { reason: "Unsupported country" } });
+    const qty = body.line_items.reduce((n, l) => n + l.quantity, 0);
+    return send(200, { standard: 399 + 209 * (qty - 1), express: 1500 });
+  }
+  if (path === "/v1/shops/111/orders.json" && req.method === "POST") {
+    if (pf.failCreate) return send(400, { status: "error", errors: { reason: "No payment method on file" } });
+    const id = `pforder${++pf.n}`;
+    pf.orders.set(id, { id, status: "on-hold", body });
+    return send(200, { id });
+  }
+  const send2p = path.match(/^\/v1\/shops\/111\/orders\/([a-z0-9]+)\/send_to_production\.json$/);
+  if (send2p) { if (!pf.orders.has(send2p[1])) return send(404, {}); pf.sent.push(send2p[1]); pf.orders.get(send2p[1]).status = "sending-to-production"; return send(202, { id: send2p[1] }); }
+  const getOrder = path.match(/^\/v1\/shops\/111\/orders\/([a-z0-9]+)\.json$/);
+  if (getOrder) {
+    const o = pf.orders.get(getOrder[1]);
+    return o ? send(200, { id: o.id, status: o.status, shipments: o.shipments || [] }) : send(404, {});
+  }
+  if (path === "/v1/shops/111/webhooks.json" && req.method === "GET") return send(200, pf.hooks);
+  if (path === "/v1/shops/111/webhooks.json" && req.method === "POST") { pf.hooks.push({ id: `wh${pf.hooks.length + 1}`, ...body }); return send(200, pf.hooks.at(-1)); }
+  const delHook = path.match(/^\/v1\/shops\/111\/webhooks\/(\w+)\.json$/);
+  if (delHook && req.method === "DELETE") { pf.hooks = pf.hooks.filter((h) => h.id !== delHook[1]); return send(200, {}); }
+  send(404, { error: "Not found" });
+}).listen(54395, "127.0.0.1");
+
 const fn = async (sb, name, body) => {
   const { data, error } = await sb.functions.invoke(name, { body });
   if (error) return { status: error.context.status, ...(await error.context.json().catch(() => ({}))) };
@@ -591,6 +648,147 @@ try {
 } finally {
   sandboxFn.kill();
 }
+
+// ---------------- print on demand (podShop + printifyWebhook + paypalWebhook; Printify played on 54395)
+const pod = (sb, body) => fn(sb, "podShop", body);
+assert.equal((await pod(client(), { action: "sync" })).status, 401);
+assert.equal((await pod(shopper.sb, { action: "sync" })).status, 403);
+assert.equal((await pod(shopper.sb, { action: "orders" })).status, 403);
+const podSynced = await pod(admin.sb, { action: "sync" });
+assert.deepEqual([podSynced.status, podSynced.created, podSynced.skipped, podSynced.updated], [200, ["His Love Endures Tee"], ["Draft In Printify"], []]);
+let [tee] = await service.Product.filter({ printify_product_id: "pf1" });
+assert.deepEqual([tee.status, tee.price, tee.category, tee.slug, tee.description], ["draft", 21.99, "Apparel", "his-love-endures-tee", "<p>Soft tee</p>"]);
+assert.deepEqual(tee.options.map((o) => o.values.map((v) => v.title)), [["Black", "White"], ["S", "XL", "2XL"]], "only colours / sizes on sale");
+assert.deepEqual(tee.variants.map((v) => [v.id, v.extra, v.available]), [[101, 0, true], [102, 0, true], [103, 300, true], [201, 0, true], [203, 300, false]],
+  "2XL costs $2.19 more -> $21.99 + 2.19 = 24.18 -> rounded up to $24.99");
+assert.deepEqual(tee.images, ["https://img.test/black-front.png", "https://img.test/black-back.png"]);
+assert.ok(!JSON.stringify(tee).includes("1348"), "cost prices never reach the public product row");
+// a second sync keeps the owner's price and pictures, refreshes the rest
+await service.Product.update(tee.id, { price: 19.99, images: ["https://my.cdn/photo.jpg"] });
+const resynced = await pod(admin.sb, { action: "sync" });
+assert.deepEqual([resynced.created, resynced.updated], [[], ["His Love Endures Tee"]]);
+tee = await service.Product.get(tee.id);
+assert.deepEqual([tee.price, tee.images, tee.variants.find((v) => v.id === 103).extra], [19.99, ["https://my.cdn/photo.jpg"], 300], "$19.99 + 2.19 = 22.18 -> $22.99");
+await service.Product.update(tee.id, { price: 21.99 });
+await pod(admin.sb, { action: "sync" });
+tee = await service.Product.get(tee.id);
+
+const addr = { first_name: "Mary", last_name: "Jones", email: "Mary@Example.com ", phone: "", country: "US", region: "GA", address1: "1 Peachtree St", address2: "", city: "Atlanta", zip: "30303" };
+const cartItems = [{ product_id: tee.id, variant_id: 101, quantity: 1 }, { product_id: tee.id, variant_id: 103, quantity: 2 }];
+assert.equal((await pod(client(), { action: "quote", items: cartItems, address: addr })).status, 409, "a draft cannot be bought");
+await service.Product.update(tee.id, { status: "published" });
+assert.deepEqual(await pod(client(), { action: "config" }), { status: 200, ready: true, env: "live", client_id: "client-1" });
+assert.equal((await pod(client(), { action: "quote", items: [], address: addr })).status, 400);
+assert.equal((await pod(client(), { action: "quote", items: cartItems, address: { ...addr, zip: "" } })).status, 400);
+assert.equal((await pod(client(), { action: "quote", items: cartItems, address: { ...addr, region: "" } })).status, 400, "a US address needs a state");
+assert.equal((await pod(client(), { action: "quote", items: [{ product_id: tee.id, variant_id: 203, quantity: 1 }], address: addr })).status, 409, "out of stock");
+assert.equal((await pod(client(), { action: "quote", items: [{ product_id: tee.id, variant_id: 301, quantity: 1 }], address: addr })).status, 409, "not on sale");
+assert.equal((await pod(client(), { action: "quote", items: [{ product_id: tee.id, variant_id: 101, quantity: 0 }], address: addr })).status, 400);
+assert.equal((await pod(client(), { action: "quote", items: cartItems, address: { ...addr, country: "KP", region: "" } })).status, 422);
+const quote = await pod(client(), { action: "quote", items: [...cartItems, { product_id: tee.id, variant_id: "101", quantity: 1, price: 0.01 }], address: addr });
+assert.deepEqual([quote.status, quote.subtotal, quote.shipping, quote.total], [200, 2199 * 2 + 2499 * 2, 399 + 209 * 3, 2199 * 2 + 2499 * 2 + 1026],
+  "server prices; the same variant twice is one line");
+assert.deepEqual(quote.lines.map((l) => [l.variant_id, l.quantity, l.unit_price, l.image]), [[101, 2, 2199, "https://img.test/black-front.png"], [103, 2, 2499, "https://img.test/black-front.png"]]);
+assert.deepEqual(pf.shipping.at(-1).address_to, { first_name: "Mary", last_name: "Jones", email: "mary@example.com", phone: "", country: "US", region: "GA", address1: "1 Peachtree St", address2: "", city: "Atlanta", zip: "30303" });
+
+// a guest buys two lines; PayPal gets the address, the shipping and the items
+const pc = await pod(client(), { action: "create", items: cartItems, address: addr });
+assert.equal(pc.status, 200);
+const [po] = await service.PodOrder.filter({ paypal_order_id: pc.id });
+const pu = pp.orders.get(pc.id).body.purchase_units[0];
+assert.deepEqual([po.status, po.subtotal, po.shipping, po.total, po.user_id, po.email], ["started", 7197, 817, 8014, null, "mary@example.com"]);
+assert.deepEqual([pu.custom_id, pu.amount.value, pu.amount.breakdown.item_total.value, pu.amount.breakdown.shipping.value], [`pod_${po.id}`, "80.14", "71.97", "8.17"]);
+assert.deepEqual(pu.items.map((i) => [i.name, i.quantity, i.unit_amount.value, i.category]), [["His Love Endures Tee - Black / S", "1", "21.99", "PHYSICAL_GOODS"], ["His Love Endures Tee - Black / 2XL", "2", "24.99", "PHYSICAL_GOODS"]]);
+assert.deepEqual(pu.shipping.address, { address_line_1: "1 Peachtree St", admin_area_2: "Atlanta", admin_area_1: "GA", postal_code: "30303", country_code: "US" });
+assert.equal(pp.orders.get(pc.id).body.application_context.shipping_preference, "SET_PROVIDED_ADDRESS");
+assert.ok(pu.description.endsWith(`/order/${po.id}?token=${po.access_token}`));
+assert.deepEqual(await anon.PodOrder.list(), [], "visitors cannot read orders");
+assert.equal(pf.orders.size, 0, "nothing goes to Printify before payment");
+
+const pcPaid = await pod(client(), { action: "capture", order_id: pc.id });
+assert.deepEqual([pcPaid.status, pcPaid.after], ["paid", `/order/${po.id}?token=${po.access_token}`]);
+let poNow = await service.PodOrder.get(po.id);
+assert.deepEqual([poNow.status, poNow.printify_order_id, poNow.printify_status, poNow.capture_id.startsWith("CAP")], ["in_production", "pforder1", "sending-to-production", true]);
+const sentOrder = pf.orders.get("pforder1").body;
+assert.deepEqual([sentOrder.external_id, sentOrder.shipping_method, sentOrder.send_shipping_notification, sentOrder.line_items],
+  [po.id, 1, true, [{ product_id: "pf1", variant_id: 101, quantity: 1 }, { product_id: "pf1", variant_id: 103, quantity: 2 }]]);
+assert.deepEqual(pf.sent, ["pforder1"]);
+assert.deepEqual(await pod(client(), { action: "capture", order_id: pc.id }), pcPaid);
+assert.equal(pf.orders.size, 1, "a second capture call does not order twice");
+
+// the order page: by secret link, by the owner, never by someone else
+const tracked = await pod(client(), { action: "track", id: po.id, token: po.access_token });
+assert.deepEqual([tracked.order.status, tracked.order.total, tracked.order.items.length, tracked.order.address.name], ["in_production", 8014, 2, "Mary Jones"]);
+assert.ok(!JSON.stringify(tracked).includes(po.capture_id) && !JSON.stringify(tracked).includes("pforder1"), "no payment or Printify ids for the buyer");
+assert.equal((await pod(client(), { action: "track", id: po.id, token: "wrong" })).status, 404);
+assert.equal((await pod(shopper.sb, { action: "track", id: po.id })).status, 404);
+assert.equal((await pod(admin.sb, { action: "track", id: po.id })).status, 200);
+
+// Printify webhooks: signed with HMAC(secret derived from the token)
+const hookSecret = crypto.createHmac("sha256", "pfy-token").update("dn-printify-webhook").digest("hex");
+const pfHook = async (event, secret = hookSecret) => {
+  const raw = JSON.stringify(event);
+  const r = await fetch(`${URL_}/functions/v1/printifyWebhook`, { method: "POST", body: raw, headers: {
+    "Content-Type": "application/json", "x-pfy-signature": `sha256=${crypto.createHmac("sha256", secret).update(raw).digest("hex")}` } });
+  return { http: r.status, ...(await r.json()) };
+};
+const shipEvent = (type, extra) => ({ id: "e1", type, created_at: "2026-11-15 10:00:00+00:00", resource: { id: "pforder1", type: "order", data: { shop_id: 111, ...extra } } });
+assert.equal((await pfHook(shipEvent("order:shipment:created", {}), "bad-secret")).http, 401);
+assert.deepEqual(await pfHook(shipEvent("order:shipment:created", { shipped_at: "2026-11-15 10:00:00+00:00", carrier: { code: "usps", tracking_number: "9400111", tracking_url: "https://tools.usps.com/t?n=9400111" }, skus: [] })),
+  { http: 200, received: true, status: "shipped" });
+poNow = await service.PodOrder.get(po.id);
+assert.deepEqual(poNow.shipments, [{ carrier: "usps", number: "9400111", url: "https://tools.usps.com/t?n=9400111", shipped_at: "2026-11-15 10:00:00+00:00" }]);
+assert.deepEqual(await pfHook(shipEvent("order:updated", { status: "in-production" })), { http: 200, received: true, status: "shipped" }, "a late status never moves an order back");
+assert.deepEqual(await pfHook(shipEvent("order:shipment:delivered", { delivered_at: "2026-11-18 10:00:00+00:00", carrier: { code: "usps", tracking_number: "9400111", tracking_url: "https://tools.usps.com/t?n=9400111" } })),
+  { http: 200, received: true, status: "delivered" });
+assert.deepEqual((await pfHook({ ...shipEvent("order:updated", {}), resource: { id: "nope", type: "order", data: {} } })), { http: 200, received: true, note: "unknown order" });
+
+// a signed-in buyer: Printify refuses the order -> needs attention, the owner fixes it and sends it again
+const myPod = await pod(shopper.sb, { action: "create", items: [{ product_id: tee.id, variant_id: 201, quantity: 1 }], address: { ...addr, email: "shopper@example.com" } });
+pf.failCreate = true;
+assert.equal((await pod(shopper.sb, { action: "capture", order_id: myPod.id })).status, "paid", "the buyer has paid: their page still opens");
+let [myOrder] = await service.PodOrder.filter({ paypal_order_id: myPod.id });
+assert.deepEqual([myOrder.status, myOrder.user_id, myOrder.printify_order_id], ["needs_attention", shopper.id, null]);
+assert.match(myOrder.note, /No payment method on file/);
+assert.deepEqual((await shopper.db.PodOrder.list()).map((o) => o.id), [myOrder.id], "a buyer reads their own orders only");
+assert.equal((await pod(shopper.sb, { action: "retry", id: myOrder.id })).status, 403);
+assert.equal((await pod(admin.sb, { action: "retry", id: po.id })).status, 400, "an order Printify already has is not sent again");
+pf.failCreate = false;
+const retried = await pod(admin.sb, { action: "retry", id: myOrder.id });
+assert.deepEqual([retried.status, retried.order.status, retried.order.printify_order_id, retried.order.note], [200, "in_production", "pforder2", null]);
+pf.orders.get("pforder2").status = "fulfilled";
+pf.orders.get("pforder2").shipments = [{ carrier: "ups", number: "1Z9", url: "https://ups.test/1Z9", delivered_at: null }];
+const refreshed = await pod(admin.sb, { action: "refresh", id: myOrder.id });
+assert.deepEqual([refreshed.order.status, refreshed.order.printify_status, refreshed.order.shipments[0].number], ["shipped", "fulfilled", "1Z9"]);
+const ordersList = await pod(admin.sb, { action: "orders" });
+assert.deepEqual(ordersList.items.slice(0, 2).map((o) => o.id), [myOrder.id, po.id]);
+
+// PayPal still checking the payment: the webhook finishes the order later; refunds reach print orders
+const late = await pod(client(), { action: "create", items: [{ product_id: tee.id, variant_id: 102, quantity: 1 }], address: addr });
+pp.next.pending = true;
+assert.equal((await pod(client(), { action: "capture", order_id: late.id })).status, "pending");
+let [lateOrder] = await service.PodOrder.filter({ paypal_order_id: late.id });
+assert.equal(lateOrder.status, "started");
+const lateCapture = pp.orders.get(late.id).purchase_units[0].payments.captures[0];
+assert.deepEqual(await ppHook({ event_type: "PAYMENT.CAPTURE.COMPLETED", resource: { ...lateCapture, status: "COMPLETED" } }), { http: 200, received: true, status: "paid" });
+lateOrder = await service.PodOrder.get(lateOrder.id);
+assert.deepEqual([lateOrder.status, lateOrder.printify_order_id], ["in_production", "pforder3"]);
+assert.deepEqual(await ppHook({ event_type: "PAYMENT.CAPTURE.COMPLETED", resource: { ...lateCapture, status: "COMPLETED" } }), { http: 200, received: true, status: "paid" });
+assert.equal(pf.orders.size, 3, "a repeated webhook does not order twice");
+pp.captures.set(lateCapture.id, { ...lateCapture, status: "REFUNDED" });
+assert.deepEqual(await ppHook({ event_type: "PAYMENT.CAPTURE.REFUNDED", resource: { id: "REF1", links: [{ rel: "up", href: `https://api.paypal.com/v2/payments/captures/${lateCapture.id}` }] } }),
+  { http: 200, received: true, updated: 1 });
+assert.equal((await service.PodOrder.get(lateOrder.id)).status, "refunded");
+
+// the owner connects Printify's webhooks (one per topic, signed with the derived secret)
+const before = await pod(admin.sb, { action: "status" });
+assert.deepEqual([before.shop_id, before.webhooks_ok], ["111", false]);
+assert.deepEqual((await pod(admin.sb, { action: "webhooks" })).webhooks, ["order:updated", "order:sent-to-production", "order:shipment:created", "order:shipment:delivered"]);
+await pod(admin.sb, { action: "webhooks" });
+assert.equal(pf.hooks.length, 4, "connecting again replaces, never duplicates");
+assert.ok(pf.hooks.every((h) => h.secret === hookSecret && h.url.endsWith("/functions/v1/printifyWebhook")));
+assert.equal((await pod(admin.sb, { action: "status" })).webhooks_ok, true);
+await service.Product.delete(tee.id);
 for (const e of [p1, p2, pDraft]) await service.Ebook.delete(e.id);
 
 void profiles; void service;

@@ -1,8 +1,10 @@
 import { createClientFromRequest, secrets, serve } from '../_shared/backend.js';
 import { paypal, grantPurchase, refundCapture } from '../_shared/paypal.js';
+import { POD_PREFIX, completePodOrder, refundPodCapture } from '../_shared/pod.js';
 
 // PayPal webhook (developer.paypal.com > the app > Webhooks, URL .../functions/v1/paypalWebhook):
-//   PAYMENT.CAPTURE.COMPLETED  books for a payment that finished after the buyer left (or was pending)
+//   PAYMENT.CAPTURE.COMPLETED  books for a payment that finished after the buyer left (or was pending);
+//                              for a print order (custom_id pod_<id>) the order goes to Printify
 //   PAYMENT.CAPTURE.REFUNDED   full refund -> no more downloads; partial refund -> marked only
 //   PAYMENT.CAPTURE.REVERSED   chargeback -> like a full refund
 //   PAYMENT.CAPTURE.DENIED     logged (the checkout stays unpaid)
@@ -41,6 +43,14 @@ async function handler(req) {
     const type = event?.event_type;
     const resource = event?.resource || {};
 
+    if (type === 'PAYMENT.CAPTURE.COMPLETED' && String(resource.custom_id || '').startsWith(POD_PREFIX)) {
+      const podOrder = await db.PodOrder.get(String(resource.custom_id).slice(POD_PREFIX.length)).catch(() => null);
+      if (!podOrder) return Response.json({ received: true, note: 'unknown order' });
+      const order = await paypal('GET', `/v2/checkout/orders/${podOrder.paypal_order_id}`);
+      const outcome = await completePodOrder(db, podOrder, resource, order.data?.payer?.email_address || null);
+      return Response.json({ received: true, status: outcome });
+    }
+
     if (type === 'PAYMENT.CAPTURE.COMPLETED') {
       const attempt = resource.custom_id ? await db.CheckoutAttempt.get(String(resource.custom_id)).catch(() => null) : null;
       if (!attempt) return Response.json({ received: true, note: 'unknown checkout' });
@@ -59,7 +69,7 @@ async function handler(req) {
         const capture = await paypal('GET', `/v2/payments/captures/${captureId}`);
         full = capture.data?.status === 'REFUNDED';
       }
-      const updated = await refundCapture(db, captureId, full);
+      const updated = (await refundCapture(db, captureId, full)) || (await refundPodCapture(db, captureId, full));
       return Response.json({ received: true, updated });
     }
 

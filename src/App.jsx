@@ -33,6 +33,8 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import Account from '@/pages/Account';
 import Admin from '@/pages/Admin';
+import Checkout from '@/pages/Checkout';
+import OrderStatus from '@/pages/OrderStatus';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -80,6 +82,8 @@ const AuthenticatedApp = () => {
         <Route path="/faq" element={<FAQ />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/order/:id" element={<OrderStatus />} />
         <Route path="/download" element={<Download />} />
         <Route path="/search" element={<Search />} />
         <Route path="/blog" element={<Blog />} />

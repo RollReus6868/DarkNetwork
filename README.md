@@ -1,7 +1,8 @@
 # Dark Network website
 
 React + Vite site. Backend: **Supabase** (database, sign-in, file storage, edge functions).
-Hosting: Cloudflare Workers (static assets). Payments: Lemon Squeezy. Print on demand: Spring.
+Hosting: Cloudflare Workers (static assets). Payments: PayPal (Lemon Squeezy until its store closes).
+Print on demand: Printify, sold on this site (`podShop`); older products may still link to Spring.
 
 ## Layout
 
@@ -32,7 +33,10 @@ npm run dev
 - **Functions**: deploy every folder in `supabase/functions/` (JWT verification off, see
   `supabase/config.toml`; each function checks its caller itself).
 - **Secrets** (Supabase > Edge Functions > Secrets): `LEMON_SQUEEZY_API_KEY`,
-  `LEMON_SQUEEZY_STORE_ID`, `LEMON_SQUEEZY_WEBHOOK_SECRET`, `TOOL_API_TOKEN`, `SITE_URL`.
+  `LEMON_SQUEEZY_STORE_ID`, `LEMON_SQUEEZY_WEBHOOK_SECRET`, `TOOL_API_TOKEN`, `SITE_URL`, the `PAYPAL_*` keys,
+  `PRINTIFY_API_TOKEN` (Printify > My Profile > Connections; optional `PRINTIFY_SHOP_ID`).
+- **Printify**: connect the Printify shop through "API", then Admin > Đơn áo (Printify) > "Đồng bộ sản phẩm"
+  (products arrive as drafts) and "Kết nối webhook" (shipping updates reach `printifyWebhook`).
 - **Lemon Squeezy webhook**: `https://<project>.supabase.co/functions/v1/lemonSqueezyWebhook`
   (events `order_created`, `order_refunded`).
 - **Admin**: sign up on the site, then set `role = 'admin'` for that account in the `profiles` table.

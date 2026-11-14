@@ -32,14 +32,23 @@ function CtaButtons({ product, tone = "cream" }) {
     : "border-border text-foreground hover:border-primary hover:text-primary";
   return (
     <div className="flex flex-col gap-2">
-      <a
-        href={product.spring_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn-gold w-full px-3 py-2.5 rounded uppercase text-xs tracking-wide flex items-center justify-center gap-1.5"
-      >
-        Buy on Spring <ExternalLink className="w-3.5 h-3.5" />
-      </a>
+      {product.printify_product_id ? (
+        <Link
+          to={`/shop/${product.slug}`}
+          className="btn-gold w-full px-3 py-2.5 rounded uppercase text-xs tracking-wide flex items-center justify-center gap-1.5"
+        >
+          Choose Size &amp; Color <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      ) : (
+        <a
+          href={product.spring_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-gold w-full px-3 py-2.5 rounded uppercase text-xs tracking-wide flex items-center justify-center gap-1.5"
+        >
+          Buy on Spring <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+      )}
       <Link
         to={`/shop/${product.slug}`}
         className={`w-full border ${ghost} px-3 py-2.5 rounded font-semibold uppercase text-xs tracking-wide transition-colors flex items-center justify-center gap-1.5`}

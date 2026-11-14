@@ -25,3 +25,7 @@ verify_jwt = false
 
 [functions.paypalWebhook]
 verify_jwt = false
+[functions.podShop]
+verify_jwt = false
+[functions.printifyWebhook]
+verify_jwt = false

@@ -112,7 +112,7 @@ export default function Footer() {
             © {new Date().getFullYear()} Dark Network. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
-            Digital ebooks delivered instantly · Physical merch fulfilled by Spring
+            Digital ebooks delivered instantly · Merch printed on demand and shipped to your door
           </p>
         </div>
       </div>

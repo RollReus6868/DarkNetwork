@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { LogOut, BookOpen, ArrowRight, Loader2 } from "lucide-react";
+import { LogOut, BookOpen, ArrowRight, Loader2, Package } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useLibrary } from "@/lib/useLibrary";
 import Seo from "@/components/site/Seo";
@@ -73,6 +75,8 @@ export default function Account() {
           )}
         </div>
 
+        <MyOrders userId={user?.id} />
+
         {/* Logout */}
         <button
           onClick={handleLogout}
@@ -83,5 +87,46 @@ export default function Account() {
         </button>
       </div>
     </>
+  );
+}
+// Printed merchandise orders (pod_order rows this account placed; the database lets each buyer read only theirs)
+const ORDER_STATUS = {
+  paid: "Order placed", needs_attention: "Order placed", in_production: "Printing", shipped: "Shipped",
+  delivered: "Delivered", canceled: "Canceled", refunded: "Refunded", partially_refunded: "Partly refunded",
+};
+
+function MyOrders({ userId }) {
+  const [orders, setOrders] = useState([]);
+  useEffect(() => {
+    if (!userId) return;
+    let alive = true;
+    base44.entities.PodOrder.filter({ user_id: userId }, "-created_date", 50)
+      .then((rows) => alive && setOrders(rows.filter((o) => o.status !== "started")))
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [userId]);
+  if (!orders.length) return null;
+  return (
+    <div className="mb-10">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground/60 mb-5">My Orders</h2>
+      <ul className="border border-border rounded-sm divide-y divide-border bg-card/40">
+        {orders.map((o) => (
+          <li key={o.id}>
+            <Link to={`/order/${o.id}?token=${o.access_token}`} className="flex items-center gap-4 p-4 hover:bg-primary/5 transition-colors">
+              <Package className="w-5 h-5 text-primary shrink-0" />
+              <span className="flex-1 min-w-0">
+                <span className="block font-semibold truncate">
+                  {(o.items || []).map((i) => i.title).join(", ")}
+                </span>
+                <span className="block text-xs text-muted-foreground">
+                  #{o.id.slice(0, 8).toUpperCase()} · {new Date(o.created_date).toLocaleDateString()} · ${(o.total / 100).toFixed(2)}
+                </span>
+              </span>
+              <span className="text-xs uppercase tracking-wide text-primary shrink-0">{ORDER_STATUS[o.status] || o.status}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
