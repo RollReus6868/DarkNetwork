@@ -7,12 +7,15 @@ import { formatPrice } from "@/lib/pricing";
 // Size / colour choice for a Printify product. The selection lives in ProductDetail (usePodSelection)
 // so the gallery and the phone's sticky bar follow it.
 
-// a single choice (one colour, one size) is made for the buyer; colour starts at the first one
-function startingChoice(options, variants) {
+// a single choice (one colour, one size) is made for the buyer; colour starts at the product's
+// display colour (Admin "Màu hiển thị", default black), otherwise the first one
+function startingChoice(options, variants, startColor) {
   const start = {};
   options.forEach((o, i) => {
     if (o.values.length === 1 || o.type === "color") {
-      const first = o.values.find((val) => variants.some((v) => v.options[i] === val.id));
+      const can = (id) => variants.some((v) => v.options[i] === id);
+      const first = (o.type === "color" && startColor != null && can(startColor) ? o.values.find((val) => val.id === startColor) : null)
+        || o.values.find((val) => can(val.id));
       if (first) start[i] = first.id;
     }
   });
@@ -22,9 +25,10 @@ function startingChoice(options, variants) {
 export function usePodSelection(product) {
   const options = useMemo(() => product?.options || [], [product]);
   const variants = useMemo(() => (product?.variants || []).filter((v) => v.available !== false), [product]);
-  const [picked, setPicked] = useState(() => startingChoice(options, variants));
+  const startColor = product?.display_color_id ?? null;
+  const [picked, setPicked] = useState(() => startingChoice(options, variants, startColor));
   // another product (or the product finished loading): start over
-  useEffect(() => { setPicked(startingChoice(options, variants)); }, [options, variants]);
+  useEffect(() => { setPicked(startingChoice(options, variants, startColor)); }, [options, variants, startColor]);
 
   const matches = (v, sel) => Object.entries(sel).every(([i, id]) => v.options[Number(i)] === id);
   const variant = options.length && Object.keys(picked).length === options.length

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { sortByCustomOrder } from "@/lib/displayOrder";
 import { forgetSiteData } from "@/hooks/useSiteData";
+import { colorOption, colorImages, displayColor } from "@/lib/podCart";
 
 /**
  * Generic admin CRUD manager for a Base44 entity.
@@ -19,7 +20,7 @@ import { forgetSiteData } from "@/hooks/useSiteData";
  * fields: [{ key, label, type, required, options, placeholder, hint, half }]
  *   type: text | number | select | boolean | textarea | richtext | url
  *         | image | images | stringlist | faqlist | privatefile | publicfile
- *         | ebookpicker
+ *         | ebookpicker | podcolor (colour a Printify product shows first)
  */
 
 export function slugify(str = "") {
@@ -423,7 +424,7 @@ export default function EntityManager({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {fields.map((f) => (
+              {fields.filter((f) => f.type !== "podcolor" || colorOption(form)).map((f) => (
                 <div key={f.key} className={f.half ? "col-span-2 sm:col-span-1" : "col-span-2"}>
                   <FieldInput field={f} value={form[f.key]} onChange={(v) => set(f.key, v)} onUpload={upload} uploading={uploading} form={form} />
                 </div>
@@ -591,6 +592,27 @@ function FieldInput({ field: f, value, onChange, onUpload, uploading, form }) {
             ))}
           </div>
           <button type="button" onClick={() => onChange([...list, { question: "", answer: "" }])} className="mt-2 text-sm text-primary hover:underline">+ Thêm câu hỏi</button>
+          {hint}
+        </div>
+      );
+    }
+    case "podcolor": {
+      // the colours of a Printify product (filled by the Printify sync); other products have none
+      const color = colorOption(form);
+      if (!color) return null;
+      const auto = displayColor({ ...form, default_color: "" });
+      const shown = displayColor({ ...form, default_color: value });
+      const preview = shown ? colorImages(form, shown.id)[0] : null;
+      return (
+        <div>
+          {label}
+          <div className="flex items-center gap-3">
+            <select value={shown && value ? shown.title : ""} onChange={(e) => onChange(e.target.value || null)} className={inputCls}>
+              <option value="">Tự động ({auto ? auto.title : "màu mặc định của Printify"})</option>
+              {color.values.map((v) => <option key={v.id} value={v.title}>{v.title}</option>)}
+            </select>
+            {preview && <div className="w-14 h-14 shrink-0 overflow-hidden rounded border border-border bg-white"><Image src={preview} alt="" className="w-full h-full" fittingType="fill" /></div>}
+          </div>
           {hint}
         </div>
       );

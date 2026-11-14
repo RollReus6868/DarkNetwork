@@ -10,6 +10,7 @@ import AccountsManager from "@/components/admin/AccountsManager";
 import SettingsPanel from "@/components/admin/SettingsPanel";
 import PodOrders from "@/components/admin/PodOrders";
 import { Smartphone, ArrowUpRight } from "lucide-react";
+import { displayImages } from "@/lib/podCart";
 import {
   PRODUCT_FIELDS, PRODUCT_DEFAULTS, PRODUCT_IMPORT_EXAMPLE,
   EBOOK_FIELDS, EBOOK_DEFAULTS, EBOOK_IMPORT_EXAMPLE,
@@ -128,7 +129,7 @@ export default function Admin() {
           description="Hàng in theo yêu cầu (áo, tranh, cốc, quà tặng). Sản phẩm từ Printify (thêm bằng nút Đồng bộ ở tab Đơn áo) bán ngay trên web; sản phẩm cũ có link Spring vẫn mở trang Spring. Sản phẩm ở trạng thái 'draft' sẽ chưa hiện trên web."
           fields={PRODUCT_FIELDS}
           defaults={PRODUCT_DEFAULTS}
-          getThumb={(p) => p.images?.[0]}
+          getThumb={(p) => displayImages(p)[0]}
           getSubtitle={(p) => `${p.category} · $${Number(p.price || 0).toFixed(2)}${p.printify_product_id ? ` · Printify · ${(p.variants || []).length} size/màu` : ""}`}
           importExample={PRODUCT_IMPORT_EXAMPLE}
           bulk

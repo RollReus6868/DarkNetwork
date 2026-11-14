@@ -75,6 +75,50 @@ export const podAdmin = (action, extra = {}) => call({ action, ...extra });
 // ---- product helpers (product.options / product.variants come from the Printify sync) ----
 export const variantPrice = (product, variant) => Number(product.price || 0) + Number(variant?.extra || 0) / 100;
 
+// ---- which colour a product shows before the buyer picks one (cards on the home page and the shop,
+// and the colour the product page starts on): the owner's choice in Admin (product.default_color,
+// a colour name), otherwise Black when the product is made in black, otherwise Printify's default.
+export const AUTO_COLOR = "Black";
+
+export function colorOption(product) {
+  const index = (product?.options || []).findIndex((o) => o.type === "color");
+  return index >= 0 ? { index, values: product.options[index].values || [] } : null;
+}
+
+const sameName = (a, b) => String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+
+// -> the colour value ({ id, title, colors }) or null
+export function displayColor(product) {
+  const color = colorOption(product);
+  if (!color) return null;
+  const sold = color.values.filter((val) => (product.variants || []).some((v) => v.available !== false && v.options?.[color.index] === val.id));
+  return sold.find((val) => sameName(val.title, product.default_color))
+    || sold.find((val) => sameName(val.title, AUTO_COLOR))
+    || null;
+}
+
+// mockups of one colour, its front picture first
+export function colorImages(product, valueId) {
+  const color = colorOption(product);
+  if (!color) return [];
+  const ids = new Set((product.variants || []).filter((v) => v.options?.[color.index] === valueId).map((v) => v.id));
+  const own = (product.variant_images || []).filter((img) => (img.variant_ids || []).some((id) => ids.has(id)));
+  return [...new Set([...own].sort((a, b) => Number(b.is_default) - Number(a.is_default)).map((img) => img.src))];
+}
+
+// The pictures cards and the gallery show by default. Pictures the owner uploaded (not Printify
+// mockups) stay unless the owner picked a colour on purpose.
+export function displayImages(product) {
+  const images = product?.images || [];
+  const color = displayColor(product);
+  if (!color) return images;
+  const mockups = new Set((product.variant_images || []).map((img) => img.src));
+  const ownPictures = images.some((src) => !mockups.has(src));
+  if (ownPictures && !product.default_color) return images;
+  const shown = colorImages(product, color.id);
+  return shown.length ? shown : images;
+}
+
 export function imagesFor(product, variantId) {
   if (!variantId) return product.images || [];
   const own = (product.variant_images || []).filter((img) => (img.variant_ids || []).includes(variantId));

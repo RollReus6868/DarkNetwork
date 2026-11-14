@@ -78,6 +78,20 @@ const tee = await db.Product.create({
     { src: TEE_IMG("white", "front"), variant_ids: [201], is_default: true },
   ],
 });
+// like the real Printify shirts: White is Printify's default (gallery = 15 white mockups), Black second
+const SIDES = ["front", "back", ...Array.from({ length: 13 }, (_, i) => `person-${i + 1}`)];
+const SHADES = [["White", 2001, "#ffffff"], ["Black", 2002, "#000000"], ["Dark Chocolate", 2003, "#31221d"]];
+const shade = (name) => name.toLowerCase().replace(" ", "-");
+const heritage = await db.Product.create({
+  title: "Africa Is in the Story Tee", slug: "africa-story-tee", category: "Apparel", price: 21.99, status: "published",
+  description: "<p>Heritage tee.</p>", printify_product_id: "pf2", images: SIDES.map((side) => TEE_IMG("white", side)),
+  options: [
+    { name: "Colors", type: "color", values: SHADES.map(([title, id, hex]) => ({ id, title, colors: [hex] })) },
+    { name: "Sizes", type: "size", values: [{ id: 14, title: "M" }] },
+  ],
+  variants: SHADES.map(([title, id]) => ({ id: id * 10, title: `${title} / M`, options: [id, 14], extra: 0, available: true })),
+  variant_images: SHADES.flatMap(([title, id]) => SIDES.map((side, i) => ({ src: TEE_IMG(shade(title), side), variant_ids: [id * 10], is_default: i === 0 }))),
+});
 // stand-in for PayPal's button script (www.paypal.com/sdk/js): one button that runs the real createOrder / onApprove
 const FAKE_PAYPAL_SDK = `window.paypal = { Buttons(o) { return {
   render(t) { const b = document.createElement("button"); b.type = "button"; b.textContent = "PayPal";
@@ -307,6 +321,64 @@ for (const [w, h] of [[375, 667], [390, 844]]) {
   await phone.shot("guest_download");
 }
 
+
+// ---- Printify colours: cards and the product page start on black (not Printify's white); Admin ›
+// "Màu hiển thị mặc định" picks another; the ~15 small pictures keep their size and scroll sideways
+{
+  const cardSrc = async (pg) => {
+    const card = pg.locator(`a[href="/shop/${heritage.slug}"] img`).first();
+    await card.waitFor();
+    return card.getAttribute("src");
+  };
+  for (const [w, h] of [[390, 844], [1440, 900]]) {
+    const p = await open(w, h);
+    await p.goto(`${SITE}/shop`);
+    assert.equal(await cardSrc(p), TEE_IMG("black", "front"), "the shop card shows the black shirt");
+    await p.goto(`${SITE}/shop/${heritage.slug}`);
+    const box = p.locator("#pod-buy");
+    await box.getByText("Black", { exact: true }).waitFor();          // the colour legend starts on Black
+    const thumbs = p.getByTestId("product-thumbs");
+    assert.equal(await thumbs.locator("button").count(), 15);
+    const sizes = await thumbs.locator("button").evaluateAll((els) => els.map((e) => [e.offsetWidth, e.offsetHeight]));
+    assert.ok(sizes.every(([bw, bh]) => bw === bh && bw >= 64), `small pictures stay square: ${JSON.stringify(sizes.slice(0, 3))}`);
+    assert.ok(await thumbs.evaluate((e) => e.scrollWidth > e.clientWidth), "the row scrolls");
+    assert.equal(await thumbs.locator("img").first().getAttribute("src"), TEE_IMG("black", "front"));
+    await p.shot("pod_gallery");
+    await p.getByRole("button", { name: "Next picture" }).click();
+    await p.getByText("2 / 15").waitFor();
+    assert.equal(await thumbs.locator("button").nth(1).getAttribute("aria-current"), "true");
+    if (w > 800) {
+      await p.getByRole("button", { name: "More pictures to the right" }).click();
+      await p.waitForFunction(() => document.querySelector('[data-testid="product-thumbs"]').scrollLeft > 0);
+      await p.getByRole("button", { name: "More pictures to the left" }).waitFor();
+    }
+    await box.getByRole("button", { name: "White" }).click();
+    assert.equal(await thumbs.locator("img").first().getAttribute("src"), TEE_IMG("white", "front"));
+    await p.getByText("1 / 15").waitFor();
+  }
+
+  // the owner picks Dark Chocolate in Admin
+  await owner.goto(`${SITE}/admin`);
+  await owner.getByRole("tab", { name: "Sản phẩm (Shop)" }).click();
+  const row = owner.locator("div").filter({ has: owner.getByText(heritage.title, { exact: true }) })
+    .filter({ has: owner.getByRole("button", { name: "Sửa" }) }).last();
+  await row.waitFor();
+  assert.equal(await row.locator("img").first().getAttribute("src"), TEE_IMG("black", "front"), "the admin list shows the black shirt");
+  await row.getByRole("button", { name: "Sửa" }).click();
+  const pick = owner.locator("select").filter({ has: owner.locator("option", { hasText: "Tự động (Black)" }) });
+  await pick.waitFor();
+  await pick.selectOption("Dark Chocolate");
+  await owner.shot("admin_default_color");
+  await owner.getByRole("button", { name: "Lưu", exact: true }).click();
+  await owner.getByText("Đã lưu", { exact: true }).first().waitFor();
+  assert.equal((await db.Product.get(heritage.id)).default_color, "Dark Chocolate");
+  const p = await open(1440, 900);
+  await p.goto(`${SITE}/shop`);
+  assert.equal(await cardSrc(p), TEE_IMG("dark-chocolate", "front"));
+  await p.goto(`${SITE}/shop/${heritage.slug}`);
+  await p.locator("#pod-buy").getByText("Dark Chocolate", { exact: true }).waitFor();
+  assert.equal((await db.Product.get(heritage.id)).images.length, 15, "the stored gallery is left as Printify made it");
+}
 
 // ---- a guest buys printed merch (Printify) on a phone and on a desktop: size / colour, cart, address, PayPal, order page
 for (const [w, h] of [[390, 844], [1440, 900]]) {

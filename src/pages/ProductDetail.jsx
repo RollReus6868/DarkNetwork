@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ChevronRight, ExternalLink, ShoppingBag } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, ShoppingBag } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import { useSiteData } from "@/hooks/useSiteData";
 import { Image } from "@/components/ui/image";
@@ -71,24 +71,7 @@ export default function ProductDetail() {
       <section className="py-10 lg:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-10 lg:gap-14">
           {/* Gallery */}
-          <div>
-            <div className="dn-book-cover aspect-square overflow-hidden !rounded border border-[#a87f2e]/40 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.8)] mb-4">
-              {images[activeImage] && <Image src={images[activeImage]} alt={product.title} className="w-full h-full" fittingType="fill" />}
-            </div>
-            {images.length > 1 && (
-              <div className="flex gap-2">
-                {images.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveImage(i)}
-                    className={`w-16 h-16 md:w-20 md:h-20 overflow-hidden rounded border-2 transition-colors ${i === activeImage ? "border-[#c9a24a]" : "border-border"}`}
-                  >
-                    <Image src={img} alt={`View ${i + 1}`} className="w-full h-full" fittingType="fill" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <Gallery images={images} title={product.title} active={activeImage} setActive={setActiveImage} />
 
           {/* Info */}
           <div>
@@ -253,5 +236,66 @@ export default function ProductDetail() {
         )}
       </div>
     </>
+  );
+}
+// Big picture + one row of small pictures. A Printify product has ~15 mockups per colour: the row
+// scrolls sideways (arrows on a computer, swipe on a phone) instead of squeezing every picture.
+function Gallery({ images, title, active, setActive }) {
+  const row = useRef(null);
+  const [ends, setEnds] = useState({ start: true, end: true });
+  const count = images.length;
+
+  const measure = () => {
+    const el = row.current;
+    if (!el) return;
+    setEnds({ start: el.scrollLeft <= 2, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 2 });
+  };
+  useEffect(() => {
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [count]);
+  // keep the picked picture visible in the row
+  useEffect(() => {
+    row.current?.children[active]?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+  }, [active]);
+
+  const go = (step) => setActive((active + step + count) % count);
+  const slide = (dir) => row.current?.scrollBy({ left: dir * row.current.clientWidth * 0.8, behavior: "smooth" });
+  const arrow = "absolute top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full flex items-center justify-center bg-[#1a0f08]/70 text-[#e6c56a] border border-[#e6c56a]/30 hover:bg-[#1a0f08]/90 transition-colors";
+
+  return (
+    <div className="min-w-0">
+      <div className="dn-book-cover relative aspect-square overflow-hidden !rounded border border-[#a87f2e]/40 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.8)] mb-4">
+        {images[active] && <Image src={images[active]} alt={title} className="w-full h-full" fittingType="fill" />}
+        {count > 1 && (
+          <>
+            <button type="button" onClick={() => go(-1)} className={`${arrow} left-3`} aria-label="Previous picture"><ChevronLeft className="w-5 h-5" /></button>
+            <button type="button" onClick={() => go(1)} className={`${arrow} right-3`} aria-label="Next picture"><ChevronRight className="w-5 h-5" /></button>
+            <span className="absolute bottom-3 right-3 text-[11px] px-2 py-0.5 rounded bg-[#1a0f08]/70 text-[#e6c56a]">{active + 1} / {count}</span>
+          </>
+        )}
+      </div>
+      {count > 1 && (
+        <div className="relative">
+          <div ref={row} onScroll={measure} className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth snap-x" data-testid="product-thumbs">
+            {images.map((img, i) => (
+              <button
+                key={`${img}-${i}`}
+                type="button"
+                onClick={() => setActive(i)}
+                aria-label={`Picture ${i + 1}`}
+                aria-current={i === active}
+                className={`shrink-0 snap-start w-16 h-16 md:w-20 md:h-20 overflow-hidden rounded border-2 bg-white transition-colors ${i === active ? "border-[#c9a24a]" : "border-border opacity-80 hover:opacity-100"}`}
+              >
+                <Image src={img} alt="" className="w-full h-full" fittingType="fill" loading="lazy" />
+              </button>
+            ))}
+          </div>
+          {!ends.start && <button type="button" onClick={() => slide(-1)} className={`${arrow} -left-2 hidden md:flex`} aria-label="More pictures to the left"><ChevronLeft className="w-5 h-5" /></button>}
+          {!ends.end && <button type="button" onClick={() => slide(1)} className={`${arrow} -right-2 hidden md:flex`} aria-label="More pictures to the right"><ChevronRight className="w-5 h-5" /></button>}
+        </div>
+      )}
+    </div>
   );
 }

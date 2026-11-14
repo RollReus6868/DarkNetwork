@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { sortByCustomOrder } from "@/lib/displayOrder";
+import { displayImages, displayColor } from "@/lib/podCart";
 
 // Everything the public pages list (books, videos, studies...), loaded ONCE and shared by every page:
 // moving from page to page reuses it instead of downloading all nine tables again, which keeps the
@@ -27,7 +28,12 @@ async function fetchAll() {
     studies: s,
     videos: v,
     ebooks: sortByCustomOrder(e),
-    products: sortByCustomOrder(p),
+    // Printify products show the colour chosen in Admin (default: black) on every card and gallery
+    products: sortByCustomOrder(p).map((product) => ({
+      ...product,
+      images: displayImages(product),
+      display_color_id: displayColor(product)?.id ?? null,
+    })),
     resources: sortByCustomOrder(r),
     testimonials: t,
     siteContent: sc,
