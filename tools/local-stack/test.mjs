@@ -84,7 +84,8 @@ const pf = { orders: new Map(), sent: [], hooks: [], n: 0, failCreate: false, sh
 const PF_BLUEPRINTS = [[12, "Unisex Jersey Short Sleeve Tee", "Bella+Canvas", "3001"], [36, "Unisex Ultra Cotton Tee", "Gildan", "2000"],
   [77, "Unisex Heavy Blend™ Hooded Sweatshirt", "Gildan", "18500"], [49, "Unisex Heavy Blend™ Crewneck Sweatshirt", "Gildan", "18000"],
   [1298, "Unisex Garment-Dyed Hoodie", "Comfort Colors", "1567"], [1687, "Unisex Nantucket Crewneck Sweatshirt (Embroidery)", "Lane Seven", "LS11004"],
-  [70, "Stainless Steel Travel Mug", "Generic brand", ""], [1491, "Women's Hooded Blanket", "Generic brand", ""]];
+  [70, "Stainless Steel Travel Mug", "Generic brand", ""], [1491, "Women's Hooded Blanket", "Generic brand", ""],
+  [1729, "Distressed Dad Hat (Embroidery)", "OTTO Cap", "104-1018"], [10741, "Pet Hoodie with Collar Hole", "Generic brand", ""]];
 const PF_HEX = { Black: "#000000", White: "#ffffff", Navy: "#1f2a44" };
 const PF_SIZES = { 12: ["S", "M", "L", "XL", "2XL"], 77: ["S", "M", "L", "XL", "2XL"], 1298: ["S", "M"], 1687: ["S", "M"], 36: ["S"], 49: ["S"] };
 const pfCost = (bp, size) => ({ 12: 1129, 77: 2158, 1298: 2500, 1687: 2737 }[bp] || 900) + (size === "2XL" ? 219 : 0);
@@ -852,7 +853,7 @@ await service.Product.delete(tee.id);
 assert.equal((await tool({ action: "pod_catalog" }, "wrong-token-0123456789abcdef")).http, 401);
 const cat1 = await tool({ action: "pod_catalog" });
 assert.deepEqual(cat1.categories.map((c) => [c.key, c.all.map((b) => b.id)]),
-  [["tshirts", [12, 36]], ["hoodies", [77, 1298]], ["sweatshirts", [49]], ["embroidery", [1687]]], "mugs and blankets stay out");
+  [["tshirts", [12, 36]], ["hoodies", [77, 1298]], ["sweatshirts", [49]], ["embroidery", [1687]]], "mugs, blankets, caps and pet clothes stay out");
 assert.deepEqual(cat1.categories[0].bestsellers.map((b) => [b.id, b.from_cost]), [[12, null], [36, null]], "bestsellers in the owner's order; no price read yet");
 const teeInfo = await tool({ action: "pod_blueprint", blueprint_id: 12 });
 assert.deepEqual([teeInfo.provider, teeInfo.from_cost, teeInfo.default_price, teeInfo.category, teeInfo.embroidery],

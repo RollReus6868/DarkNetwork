@@ -121,5 +121,5 @@ export function fromPrintify(p, basePrice) {
   return { options, variants, variant_images: variantImages, images: [...new Set(gallery)] };
 }
 
-export const slugify = (s) => String(s || 'product').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
+export const slugify = (s) => String(s || 'product').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
   .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'product';

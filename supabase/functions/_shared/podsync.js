@@ -73,16 +73,18 @@ export const CATEGORIES = [
   { key: 'tshirts', name: 'T-shirts', site: 'Apparel',
     test: (t) => /\b(tee|t-shirt|t shirt)\b/i.test(t) && !/embroider|\(aop\)|hood|blanket|plush|teddy|towel|dress|stuffed|pet /i.test(t) },
   { key: 'hoodies', name: 'Hoodies', site: 'Apparel',
-    test: (t) => /hood/i.test(t) && !/embroider|\(aop\)|blanket|towel|\btee\b|t-shirt|jacket/i.test(t) },
+    test: (t) => /hood/i.test(t) && !/embroider|\(aop\)|blanket|towel|\btee\b|t-shirt|jacket|\bpet\b|\bdog\b/i.test(t) },
   { key: 'sweatshirts', name: 'Sweatshirts', site: 'Apparel',
     test: (t) => /sweatshirt|crewneck/i.test(t) && !/hood|embroider|\(aop\)|blanket|\btee\b|t-shirt/i.test(t) },
-  { key: 'embroidery', name: 'Embroidery', site: 'Apparel', test: (t) => /\(embroidery\)/i.test(t) },
+  // clothing only: Printify's embroidery range also has caps, beanies, blankets and bags
+  { key: 'embroidery', name: 'Embroidery', site: 'Apparel',
+    test: (t) => /\(embroidery\)/i.test(t) && !/\b(cap|hat|beanie|snapback|blanket|throw|towel|backpack|scarf|sweatpants|joggers?)\b/i.test(t) },
 ];
 export const BESTSELLERS = {
   tshirts: [12, 6, 706, 145, 36],            // Bella+Canvas 3001, Gildan 5000, Comfort Colors 1717, Gildan 64000, Gildan 2000
   hoodies: [77, 1298, 1525, 175, 439],       // Gildan 18500, Comfort Colors 1567, Gildan SF500, Bella+Canvas 3719, Lane Seven LS14001
   sweatshirts: [49, 1296, 1436, 1405, 446],  // Gildan 18000, Comfort Colors 1566, Gildan SF000, Comfort Colors 1466, Lane Seven LS14004
-  embroidery: [1687, 1754, 1733, 1730, 1729],
+  embroidery: [1687, 1754, 1733, 1730, 1906], // Lane Seven LS11004 crewneck, Cotton Heritage M2475 pullover, Sol's 03568 hoodie, Port Authority K500 polo, Shaka Wear tee
 };
 // Print providers when "Printify Choice" (99) does not make a product: US providers first.
 const PROVIDER_ORDER = [99, 29, 39, 217, 410, 61, 27, 52, 50];
