@@ -80,7 +80,21 @@ http.createServer(async (req, res) => {
 }).listen(54397, "127.0.0.1");
 
 // stand-in for the Printify API (podShop / printifyWebhook run with PRINTIFY_API_URL pointing here, token pfy-token)
-const pf = { orders: new Map(), sent: [], hooks: [], n: 0, failCreate: false, shipping: [] };
+const pf = { orders: new Map(), sent: [], hooks: [], n: 0, failCreate: false, shipping: [], made: new Map(), created: [], deleted: [], uploads: [], downloaded: [], variantCalls: [] };
+const PF_BLUEPRINTS = [[12, "Unisex Jersey Short Sleeve Tee", "Bella+Canvas", "3001"], [36, "Unisex Ultra Cotton Tee", "Gildan", "2000"],
+  [77, "Unisex Heavy Blend™ Hooded Sweatshirt", "Gildan", "18500"], [49, "Unisex Heavy Blend™ Crewneck Sweatshirt", "Gildan", "18000"],
+  [1298, "Unisex Garment-Dyed Hoodie", "Comfort Colors", "1567"], [1687, "Unisex Nantucket Crewneck Sweatshirt (Embroidery)", "Lane Seven", "LS11004"],
+  [70, "Stainless Steel Travel Mug", "Generic brand", ""], [1491, "Women's Hooded Blanket", "Generic brand", ""]];
+const PF_HEX = { Black: "#000000", White: "#ffffff", Navy: "#1f2a44" };
+const PF_SIZES = { 12: ["S", "M", "L", "XL", "2XL"], 77: ["S", "M", "L", "XL", "2XL"], 1298: ["S", "M"], 1687: ["S", "M"], 36: ["S"], 49: ["S"] };
+const pfCost = (bp, size) => ({ 12: 1129, 77: 2158, 1298: 2500, 1687: 2737 }[bp] || 900) + (size === "2XL" ? 219 : 0);
+const pfCatalogVariants = (bp) => {
+  const colors = bp === 1687 ? ["Navy"] : ["Black", "White", "Navy", "Sold Out"];
+  const sizes = PF_SIZES[bp] || ["S"];
+  const area = bp === 1687 ? { position: "front_left_chest", decoration_method: "embroidery", width: 1200, height: 1200 } : { position: "front", decoration_method: "dtg", width: 3000, height: 3600 };
+  return colors.flatMap((c, ci) => sizes.map((z, zi) => ({ id: bp * 1000 + ci * 10 + zi, title: `${c} / ${z}`, options: { color: c, size: z },
+    placeholders: [area, { position: "neck", decoration_method: "dtf", width: 750, height: 750 }], decoration_methods: [area.decoration_method] })));
+};
 const PF_PRODUCT = {
   id: "pf1", title: "His Love Endures Tee", description: "<p>Soft tee</p>", tags: ["T-shirts"], blueprint_id: 12, print_provider_id: 99,
   options: [
@@ -109,7 +123,51 @@ http.createServer(async (req, res) => {
   if (req.headers.authorization !== "Bearer pfy-token" || !req.headers["user-agent"]) return send(401, { error: "Unauthenticated" });
   const u = new URL(req.url, "http://x"); const path = u.pathname; const body = raw ? JSON.parse(raw) : null;
   if (path === "/v1/shops.json") return send(200, [{ id: 7001, title: "Other", sales_channel: "etsy" }, { id: 111, title: "My new store", sales_channel: "custom_integration" }]);
-  if (path === "/v1/shops/111/products.json") return send(200, { current_page: 1, last_page: 1, data: [PF_PRODUCT, PF_EMPTY] });
+  if (path === "/v1/shops/111/products.json" && req.method === "GET") return send(200, { current_page: 1, last_page: 1, data: [PF_PRODUCT, PF_EMPTY, ...pf.made.values()] });
+  // ---- catalog + product creation (the tool's "make a product from a design")
+  if (path === "/v1/catalog/blueprints.json") return send(200, PF_BLUEPRINTS.map(([id, title, brand, model]) => ({ id, title, brand, model, images: [`https://img.test/bp${id}.png`] })));
+  const bpOne = path.match(/^\/v1\/catalog\/blueprints\/(\d+)\.json$/);
+  if (bpOne) { const b = PF_BLUEPRINTS.find((x) => x[0] === Number(bpOne[1])); return b ? send(200, { id: b[0], title: b[1], brand: b[2], model: b[3], description: "<p>blank</p>", images: [`https://img.test/bp${b[0]}.png`] }) : send(404, {}); }
+  const bpProv = path.match(/^\/v1\/catalog\/blueprints\/(\d+)\/print_providers\.json$/);
+  if (bpProv) return send(200, Number(bpProv[1]) === 1298 ? [{ id: 39, title: "SwiftPOD" }, { id: 29, title: "Monster Digital" }] : [{ id: 29, title: "Monster Digital" }, { id: 99, title: "Printify Choice" }]);
+  const bpVars = path.match(/^\/v1\/catalog\/blueprints\/(\d+)\/print_providers\/(\d+)\/variants\.json$/);
+  if (bpVars) { pf.variantCalls.push([Number(bpVars[1]), Number(bpVars[2])]); return send(200, { id: Number(bpVars[2]), variants: pfCatalogVariants(Number(bpVars[1])) }); }
+  if (path === "/v1/uploads/images.json") {
+    let width = 64, height = 64;
+    if (body.url) {   // Printify downloads the design from the site's public bucket
+      const got = await fetch(body.url);
+      if (!got.ok) return send(400, { errors: { reason: "Could not download image" } });
+      pf.downloaded.push(Buffer.from(await got.arrayBuffer()).toString());
+      width = 4500; height = 5400;
+    } else if (!body.contents) return send(400, { errors: { reason: "No image" } });
+    pf.uploads.push(body);
+    return send(200, { id: `img${pf.uploads.length}`, file_name: body.file_name, width, height, size: 1, mime_type: "image/png", preview_url: "x" });
+  }
+  if (path === "/v1/shops/111/products.json" && req.method === "POST") {
+    const enabled = body.variants.filter((v) => v.is_enabled);
+    if (enabled.length > 100) return send(400, { errors: { reason: "Too many variants enabled. Maximum allowed: 100", code: 8251 } });
+    const cat = pfCatalogVariants(body.blueprint_id);
+    const id = `pfnew${++pf.n}`;
+    const colors = [...new Set(cat.map((v) => v.options.color))], sizes = [...new Set(cat.map((v) => v.options.size))];
+    const product = {
+      id, title: body.title, description: body.description, blueprint_id: body.blueprint_id, print_provider_id: body.print_provider_id, tags: [],
+      options: [
+        { name: "Sizes", type: "size", values: sizes.map((t, i) => ({ id: 500 + i, title: t })) },   // sizes first, as some blanks do
+        { name: "Colors", type: "color", values: colors.map((t, i) => ({ id: 900 + i, title: t, colors: [PF_HEX[t] || "#777777"] })) },
+      ],
+      variants: cat.map((v) => {
+        const mine = body.variants.find((x) => x.id === v.id) || {};
+        return { id: v.id, title: v.title, cost: pfCost(body.blueprint_id, v.options.size), price: mine.price ?? 0, is_enabled: Boolean(mine.is_enabled),
+          is_default: false, is_available: v.options.color !== "Sold Out", options: [500 + sizes.indexOf(v.options.size), 900 + colors.indexOf(v.options.color)] };
+      }),
+      images: colors.map((c) => ({ src: `https://img.test/${id}-${c}.png`, variant_ids: cat.filter((v) => v.options.color === c).map((v) => v.id), position: "front", is_default: c === colors[0] })),
+      print_areas: body.print_areas,
+    };
+    pf.made.set(id, product); pf.created.push(body);
+    return send(200, product);
+  }
+  const delProd = path.match(/^\/v1\/shops\/111\/products\/(\w+)\.json$/);
+  if (delProd && req.method === "DELETE") { pf.deleted.push(delProd[1]); pf.made.delete(delProd[1]); return send(200, {}); }
   if (path === "/v1/shops/111/orders/shipping.json") {
     pf.shipping.push(body);
     if (body.address_to.country === "KP") return send(400, { errors: { reason: "Unsupported country" } });
@@ -789,6 +847,103 @@ assert.equal(pf.hooks.length, 4, "connecting again replaces, never duplicates");
 assert.ok(pf.hooks.every((h) => h.secret === hookSecret && h.url.endsWith("/functions/v1/printifyWebhook")));
 assert.equal((await pod(admin.sb, { action: "status" })).webhooks_ok, true);
 await service.Product.delete(tee.id);
+
+// ---------------- the tool makes a print product from a design (toolApi pod_*; Printify played on 54395)
+assert.equal((await tool({ action: "pod_catalog" }, "wrong-token-0123456789abcdef")).http, 401);
+const cat1 = await tool({ action: "pod_catalog" });
+assert.deepEqual(cat1.categories.map((c) => [c.key, c.all.map((b) => b.id)]),
+  [["tshirts", [12, 36]], ["hoodies", [77, 1298]], ["sweatshirts", [49]], ["embroidery", [1687]]], "mugs and blankets stay out");
+assert.deepEqual(cat1.categories[0].bestsellers.map((b) => [b.id, b.from_cost]), [[12, null], [36, null]], "bestsellers in the owner's order; no price read yet");
+const teeInfo = await tool({ action: "pod_blueprint", blueprint_id: 12 });
+assert.deepEqual([teeInfo.provider, teeInfo.from_cost, teeInfo.default_price, teeInfo.category, teeInfo.embroidery],
+  [{ id: 99, title: "Printify Choice" }, 1129, 2199, "tshirts", false], "Printify Choice first; tees at $21.99");
+assert.deepEqual(teeInfo.colors.map((c) => [c.title, c.hex]), [["Black", "#000000"], ["White", "#ffffff"], ["Navy", "#1f2a44"], ["Sold Out", "#777777"]]);
+assert.deepEqual(teeInfo.sizes.map((z) => z.title), ["S", "M", "L", "XL", "2XL"]);
+assert.deepEqual(teeInfo.positions.map((p) => p.position), ["front"], "the neck label is not a design area");
+assert.equal(pf.deleted.length, 1, "the price probe product is deleted at once");
+assert.equal(pf.made.size, 0);
+await tool({ action: "pod_blueprint", blueprint_id: 12 });
+assert.equal(pf.deleted.length, 1, "kept for a week: no second probe");
+const hoodInfo = await tool({ action: "pod_blueprint", blueprint_id: 77 });
+assert.deepEqual([hoodInfo.from_cost, hoodInfo.default_price], [2158, 3199], "cost + $10 rounded up to .99");
+assert.deepEqual((await tool({ action: "pod_blueprint", blueprint_id: 1298 })).provider, { id: 29, title: "Monster Digital" }, "a US provider when Printify Choice has none");
+const embInfo = await tool({ action: "pod_blueprint", blueprint_id: 1687 });
+assert.deepEqual([embInfo.embroidery, embInfo.positions.map((p) => p.position)], [true, ["front_left_chest"]]);
+const cat2 = await tool({ action: "pod_catalog" });
+assert.deepEqual(cat2.categories[1].bestsellers.map((b) => [b.id, b.from_cost, b.provider]), [[77, 2158, "Printify Choice"], [1298, 2500, "Monster Digital"]], "known prices show as From USD");
+
+// the design goes to the site's storage first, Printify downloads it from there
+const designUp = await tool({ action: "upload_url", name: "Lion-of-Judah.png" });
+assert.equal((await fetch(designUp.upload_url, { method: "PUT", body: "PNGDATA" })).status, 200);
+const black = teeInfo.colors.find((c) => c.title === "Black").id, white = teeInfo.colors.find((c) => c.title === "White").id;
+const allSizes = teeInfo.sizes.map((z) => z.id);
+const listing = { title: "Lion of Judah Tee", description: "<p>Bold.</p>", bible_inspiration: "<p>Rev 5:5</p>", seo_title: "Lion of Judah", meta_description: "Tee" };
+assert.equal((await tool({ action: "pod_create", blueprint_id: 12, colors: [black], sizes: allSizes, design_url: "https://evil.example/x.png", listing })).http, 400, "only designs in the site's own bucket");
+assert.equal((await tool({ action: "pod_create", blueprint_id: 12, colors: [], sizes: allSizes, design_url: designUp.ref, listing })).http, 400, "at least one colour");
+assert.equal((await tool({ action: "pod_create", blueprint_id: 12, colors: [black], sizes: allSizes, design_url: designUp.ref, listing: { ...listing, description: "" } })).http, 400);
+const made1 = await tool({ action: "pod_create", blueprint_id: 12, colors: [black, white], sizes: allSizes, design_url: designUp.ref, design_name: "Lion-of-Judah.png", listing });
+assert.deepEqual([made1.http, made1.created, made1.price, made1.variants], [200, true, 21.99, 10]);
+const sentProduct = pf.created.at(-1);
+assert.deepEqual([sentProduct.blueprint_id, sentProduct.print_provider_id, sentProduct.title], [12, 99, "Lion of Judah Tee"]);
+assert.equal(sentProduct.variants.filter((v) => v.is_enabled).length, 10);
+assert.deepEqual([...new Set(sentProduct.variants.filter((v) => v.is_enabled).map((v) => v.price))].sort(), [2199, 2499], "2XL costs $2.19 more -> $24.99");
+assert.deepEqual(sentProduct.print_areas[0].placeholders[0].position, "front");
+assert.equal(sentProduct.print_areas[0].placeholders[0].images[0].scale, 1, "a 4500x5400 design fills the 3000x3600 area");
+assert.equal(pf.downloaded.at(-1), "PNGDATA", "Printify got the design from the site");
+assert.equal((await fetch(designUp.ref)).status, 400, "the design copy on the site is removed once Printify has it");
+const siteTee = await service.Product.get(made1.id);
+assert.deepEqual([siteTee.status, siteTee.title, siteTee.slug, siteTee.category, siteTee.price, siteTee.bible_inspiration, siteTee.printify_product_id],
+  ["draft", "Lion of Judah Tee", "lion-of-judah-tee", "Apparel", 21.99, "<p>Rev 5:5</p>", made1.printify_product_id]);
+assert.deepEqual(siteTee.options.find((o) => o.type === "color").values.map((v) => v.title), ["Black", "White"]);
+assert.equal(siteTee.variants.length, 10);
+assert.equal(siteTee.variants.find((v) => v.title === "Black / 2XL").extra, 300);
+// too many colour × size combinations for Printify, and an embroidered design (chest area, scaled to fit)
+const designUp2 = await tool({ action: "upload_url", name: "Cross.png" });
+await fetch(designUp2.upload_url, { method: "PUT", body: "PNG2" });
+const made2 = await tool({ action: "pod_create", blueprint_id: 1687, colors: embInfo.colors.map((c) => c.id), sizes: embInfo.sizes.map((z) => z.id), price: 39.5,
+  design_url: designUp2.ref, listing: { ...listing, title: "Lion of Judah Tee" } });
+assert.deepEqual([made2.http, made2.price], [200, 39.5]);
+const emb = pf.created.at(-1).print_areas[0].placeholders[0];
+assert.deepEqual([emb.position, emb.images[0].scale], ["front_left_chest", 0.8333], "a tall design fits inside the square chest area");
+assert.equal((await service.Product.get(made2.id)).slug, "lion-of-judah-tee-2", "same name -> its own address");
+// products designed in Printify itself come over with "Đồng bộ"
+const toolSync = await tool({ action: "pod_sync" });
+assert.deepEqual([toolSync.http, toolSync.updated.includes("Lion of Judah Tee"), toolSync.skipped], [200, true, ["Draft In Printify"]]);
+// the real desktop tool against this toolApi (set TOOL_REPO=<DN-Product-Studio clone> and TOOL_PY=<its python>)
+if (process.env.TOOL_REPO) {
+  const script = `
+import json, sys, tempfile
+from pathlib import Path
+sys.path.insert(0, ${JSON.stringify(process.env.TOOL_REPO)})
+from PIL import Image
+import webstore
+c = webstore.SiteClient(sys.argv[1], "test-token-0123456789abcdefgh")
+bp = c.pod_blueprint(12)
+assert c.pod_catalog()["categories"][0]["key"] == "tshirts"
+td = Path(tempfile.mkdtemp())
+Image.new("RGBA", (4500, 5400), (0, 0, 0, 0)).save(td / "Tool-Made.png")
+cols = [x["id"] for x in bp["colors"] if x["title"] in ("Black", "White")]
+item = {"id": "x", "title": "Tool Made Tee", "file": str(td / "Tool-Made.png"), "price": 22.99,
+        "spec": {"blueprint_id": 12, "colors": cols, "sizes": [z["id"] for z in bp["sizes"]], "position": "front"},
+        "listing": {"description": "<p>From the tool.</p>", "bible_inspiration": "", "story_behind_design": "", "product_info": "",
+                    "seo_title": "Tool Made Tee", "meta_description": "From the tool."}}
+web = webstore.publish_design(item, c)
+print(json.dumps({"web": web, "sync": c.pod_sync()}))`;
+  const out = await new Promise((resolve, reject) => {
+    const ch = spawn(process.env.TOOL_PY || "python3", ["-c", script, `${URL_}/functions/v1/toolApi`], { env: { ...process.env, NO_PROXY: "127.0.0.1,localhost" } });
+    let so = "", se = "";
+    ch.stdout.on("data", (d) => { so += d; });
+    ch.stderr.on("data", (d) => { se += d; });
+    ch.on("close", (code) => (code ? reject(new Error(`tool script failed:\n${se}`)) : resolve(JSON.parse(so))));
+  });
+  const toolTee = await service.Product.get(out.web.id);
+  assert.deepEqual([out.web.status, toolTee.status, toolTee.title, toolTee.price, toolTee.variants.length, toolTee.printify_product_id],
+    ["draft", "draft", "Tool Made Tee", 22.99, 10, out.web.printify_product_id], "the desktop tool makes a draft print product");
+  assert.equal(pf.created.at(-1).print_areas[0].placeholders[0].images[0].scale, 1);
+  assert.ok(Array.isArray(out.sync.created));
+  console.log("  desktop tool -> toolApi pod flow: ok");
+}
+for (const p of await service.Product.list()) if (p.printify_product_id) await service.Product.delete(p.id);
 for (const e of [p1, p2, pDraft]) await service.Ebook.delete(e.id);
 
 void profiles; void service;

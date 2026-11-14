@@ -222,6 +222,15 @@ async function storage(req, res, url, raw, claims) {
     fs.writeFileSync(file, Buffer.from(await blob.arrayBuffer()));
     return json(res, 200, { Key: `${bucket}/${rest.join("/")}`, Id: crypto.randomUUID() });
   }
+  if (req.method === "DELETE" && !mode) {   // storage.remove([...]): DELETE /object/<bucket> { prefixes }
+    if (claims?.role !== "service_role") return json(res, 403, { message: "new row violates row-level security policy" });
+    const gone = [];
+    for (const p of JSON.parse(raw || "{}").prefixes || []) {
+      const f = path.join(FILES, bucket, String(p).replace(/\.\./g, ""));
+      if (fs.existsSync(f)) { fs.unlinkSync(f); gone.push({ name: p }); }
+    }
+    return json(res, 200, gone);
+  }
   if (req.method === "GET") {
     const allowed = (mode === "public" && bucket === "public-files") ||
       (mode === "sign" && verify(url.searchParams.get("token"))?.url === `${bucket}/${rest.join("/")}`);

@@ -1,12 +1,11 @@
 import { createClientFromRequest, secrets, serve } from '../_shared/backend.js';
 import { paypal, paypalEnv, paypalConfigured, paypalClientId, money, firstCapture, issueOf } from '../_shared/paypal.js';
-import {
-  printify, printifyConfigured, shopId, errorOf, fromPrintify, guessCategory, slugify, webhookSecret, DEFAULT_PRICE,
-} from '../_shared/printify.js';
+import { printify, printifyConfigured, shopId, errorOf, webhookSecret } from '../_shared/printify.js';
 import {
   POD_PREFIX, cleanAddress, priceCart, quoteShipping, subtotalOf, orderLink, publicOrder, completePodOrder,
   submitToPrintify, siteStatusFor, fullName,
 } from '../_shared/pod.js';
+import { syncProducts } from '../_shared/podsync.js';
 
 // Print-on-demand shop: the site sells, PayPal takes the money, Printify prints and ships.
 // Buyers:
@@ -61,48 +60,6 @@ function paypalOrderBody(order, lines, address, origin) {
     }],
     application_context: { brand_name: 'Dark Network', shipping_preference: 'SET_PROVIDED_ADDRESS', user_action: 'PAY_NOW' },
   };
-}
-
-async function syncProducts(db) {
-  const shop = await shopId();
-  const all = [];
-  for (let page = 1; page <= 20; page++) {
-    const r = await printify('GET', `/shops/${shop}/products.json?page=${page}&limit=50`);
-    if (!r.ok) throw new Error(errorOf(r));
-    all.push(...(r.data?.data || []));
-    if (!r.data?.last_page || page >= Number(r.data.last_page)) break;
-  }
-  const existing = (await db.Product.list()).filter((p) => p.printify_product_id);
-  const slugs = new Set((await db.Product.list()).map((p) => p.slug));
-  const result = { created: [], updated: [], skipped: [], missing: [] };
-  for (const p of all) {
-    const mine = existing.find((e) => e.printify_product_id === String(p.id));
-    const price = Number(mine?.price) > 0 ? Number(mine.price) : DEFAULT_PRICE;
-    const fields = fromPrintify(p, price);
-    if (!fields.variants.length) { result.skipped.push(p.title); continue; }
-    if (mine) {
-      const oldMockups = new Set((mine.variant_images || []).map((i) => i.src));
-      const ownPictures = (mine.images || []).some((src) => !oldMockups.has(src));
-      await db.Product.update(mine.id, {
-        options: fields.options, variants: fields.variants, variant_images: fields.variant_images,
-        ...(ownPictures ? {} : { images: fields.images }),   // keep pictures the owner uploaded
-      });
-      result.updated.push(mine.title);
-    } else {
-      let slug = slugify(p.title);
-      for (let i = 2; slugs.has(slug); i++) slug = `${slugify(p.title).slice(0, 74)}-${i}`;
-      slugs.add(slug);
-      await db.Product.create({
-        title: p.title, slug, category: guessCategory(`${p.title} ${p.tags?.join(' ') || ''}`),
-        price, description: p.description || '', status: 'draft', featured: false, sort_order: 0,
-        printify_product_id: String(p.id), ...fields,
-      });
-      result.created.push(p.title);
-    }
-  }
-  const ids = new Set(all.map((p) => String(p.id)));
-  result.missing = existing.filter((e) => !ids.has(e.printify_product_id)).map((e) => e.title);
-  return result;
 }
 
 async function refreshFromPrintify(db, order) {

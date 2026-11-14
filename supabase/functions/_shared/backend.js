@@ -68,6 +68,14 @@ export function createClientFromRequest(req) {
             const ref = isPrivate ? path : admin.storage.from(bucket).getPublicUrl(path).data.publicUrl;
             return { upload_url: data.signedUrl, ref };
           },
+          // Deletes a picture of the public bucket by its public address (a design Printify has copied).
+          async RemovePublicFile({ url }) {
+            const marker = "/storage/v1/object/public/public-files/";
+            const path = String(url || "").split(marker)[1];
+            if (!path) return false;
+            const { error } = await admin.storage.from("public-files").remove([decodeURIComponent(path)]);
+            return !error;
+          },
           async CreateFileSignedUrl({ file_uri, expires_in = 120 }) {
             // saved on the buyer's computer under the file's own name, without the storage prefix
             const download = file_uri.split("/").pop().replace(/^[0-9a-f]{8,9}_/, "");

@@ -14,5 +14,6 @@ export LEMON_SQUEEZY_API_KEY=k LEMON_SQUEEZY_STORE_ID=77 LEMON_SQUEEZY_WEBHOOK_S
        PRINTIFY_API_TOKEN=pfy-token PRINTIFY_API_URL=http://127.0.0.1:54395   # test.mjs plays PayPal on 54397, Printify on 54395
 ./start.sh                                   # recreates database "dn", prints URL + keys
 node test.mjs <url> <anon key> <service key> # database rules + every edge function
+# TOOL_REPO=/path/to/DN-Product-Studio TOOL_PY=/path/to/its/python node test.mjs ...  # also drives the real desktop tool against toolApi
 node ui-smoke.mjs <site url> <url> <service key> <out dir>   # built site in Chromium, screenshots (restart the stack first)
 ```

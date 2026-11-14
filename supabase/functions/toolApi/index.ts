@@ -1,12 +1,14 @@
 import { createClientFromRequest, secrets, serve } from '../_shared/backend.js';
 import { chatList, chatReply, chatThread } from '../_shared/chat.js';
 import { ordersList } from '../_shared/stats.js';
+import { printifyConfigured } from '../_shared/printify.js';
+import { syncProducts, catalogList, blueprintInfo, createFromDesign } from '../_shared/podsync.js';
 
 // Entry point for the desktop tool "DN Product Studio".
 // The tool sends the secret TOOL_API_TOKEN in the X-Tool-Token header.
 // It can: check the connection, swap pictures for lighter copies (media_list / set_media), read the orders, the visit counter and the statistics, answer the customer chat, list records, get a one-time upload address, re-attach the PDF
 // of a book copied from the old site, and create or update an Ebook / Product. New records are ALWAYS drafts; the tool can never
-// publish, unpublish or delete anything.
+// publish, unpublish or delete anything. With Printify connected it also makes print-on-demand products from a design (pod_*).
 
 const FIELDS = {
   Ebook: ['title', 'slug', 'subtitle', 'description', 'price', 'cover_image', 'what_you_learn', 'who_for',
@@ -126,6 +128,28 @@ async function handler(req) {
       if (current.length !== images.length) return Response.json({ error: 'Picture count changed' }, { status: 409 });
       await db.entities[body.entity].update(row.id, body.entity === 'Ebook' ? { cover_image: images[0] } : { images });
       return Response.json({ ok: true });
+    }
+
+    // ---- print on demand (Printify): pick a product type, make a product from a design, copy products over.
+    // New site rows are drafts, like everything the tool creates.
+    if (String(body?.action || '').startsWith('pod_')) {
+      if (!printifyConfigured()) return Response.json({ error: 'Chưa có PRINTIFY_API_TOKEN trong Supabase > Edge Functions > Secrets.' }, { status: 503 });
+      if (body.action === 'pod_catalog') return Response.json(await catalogList(db.entities));
+      if (body.action === 'pod_blueprint') return Response.json(await blueprintInfo(db.entities, body.blueprint_id, { fresh: body.fresh === true }));
+      if (body.action === 'pod_sync') return Response.json(await syncProducts(db.entities));
+      if (body.action === 'pod_create') {
+        const listing = Object.fromEntries(['title', 'slug', 'description', 'bible_inspiration', 'story_behind_design', 'product_info', 'size_info',
+          'shipping_info', 'seo_title', 'meta_description'].filter((k) => body.listing?.[k] !== undefined).map((k) => [k, clean(body.listing[k])]));
+        try {
+          return Response.json(await createFromDesign(db.entities, { ...body, listing }, {
+            supabaseUrl: secrets.get('SUPABASE_URL'),
+            removePublicFile: (url) => db.integrations.Core.RemovePublicFile({ url }),
+          }));
+        } catch (error) {
+          return Response.json({ error: error.message }, { status: 400 });
+        }
+      }
+      return Response.json({ error: 'Unknown action' }, { status: 400 });
     }
 
     const entity = body?.entity;
