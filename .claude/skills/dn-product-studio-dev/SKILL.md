@@ -57,6 +57,7 @@ PYTHONPATH=$(python3 -c "import playwright,os;print(os.path.dirname(os.path.dirn
 6. Tell the user: open the tool > Cài đặt > Kiểm tra cập nhật.
 
 ## Lessons
+- Windows sorts paths without regard to case (Linux does not): sort file lists with an explicit key (`p.name.lower()`), or a test passes on Linux and fails in the Windows build (1.6.0).
 - GitHub retires macOS runner images: `macos-14` stopped in 10/2026 (job cancelled with "The configuration 'macos-14-arm64-us-default' is not supported"); arm64 now builds on `macos-15`, x64 on `macos-15-intel`. A cancelled job with no steps means a runner label problem, not code.
 - HTTP server: always read the POST body before answering 403, or keep-alive breaks with "Bad request syntax".
 - Tests must not depend on order (set the default price explicitly).
