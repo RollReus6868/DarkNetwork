@@ -97,13 +97,28 @@ export function displayColor(product) {
     || null;
 }
 
-// mockups of one colour, its front picture first
-export function colorImages(product, valueId) {
+// variant_images entries: { src, variant_ids, is_default, hidden?, own? }. The owner hides a picture
+// in Admin (hidden: true, kept so a Printify re-sync does not bring it back) or adds their own (own: true).
+export const visibleImages = (list) => (list || []).filter((img) => img && img.src && !img.hidden);
+const mainFirst = (list) => [...list].sort((a, b) => Number(Boolean(b.is_default)) - Number(Boolean(a.is_default)));
+
+// ids of the variants (all sizes) of one colour
+export function colorVariantIds(product, valueId) {
   const color = colorOption(product);
   if (!color) return [];
-  const ids = new Set((product.variants || []).filter((v) => v.options?.[color.index] === valueId).map((v) => v.id));
-  const own = (product.variant_images || []).filter((img) => (img.variant_ids || []).some((id) => ids.has(id)));
-  return [...new Set([...own].sort((a, b) => Number(b.is_default) - Number(a.is_default)).map((img) => img.src))];
+  return (product.variants || []).filter((v) => v.options?.[color.index] === valueId).map((v) => v.id);
+}
+
+// entries of one colour in display order (main picture first); with { all: true } hidden ones too
+export function colorEntries(product, valueId, { all = false } = {}) {
+  const ids = new Set(colorVariantIds(product, valueId));
+  const list = (product.variant_images || []).filter((img) => img?.src && (img.variant_ids || []).some((id) => ids.has(id)));
+  return mainFirst(all ? list : visibleImages(list));
+}
+
+// pictures of one colour, its main (front) picture first
+export function colorImages(product, valueId) {
+  return [...new Set(colorEntries(product, valueId).map((img) => img.src))];
 }
 
 // The pictures cards and the gallery show by default. Pictures the owner uploaded (not Printify
@@ -121,7 +136,7 @@ export function displayImages(product) {
 
 export function imagesFor(product, variantId) {
   if (!variantId) return product.images || [];
-  const own = (product.variant_images || []).filter((img) => (img.variant_ids || []).includes(variantId));
+  const own = visibleImages(product.variant_images).filter((img) => (img.variant_ids || []).includes(variantId));
   if (!own.length) return product.images || [];
-  return [...own].sort((a, b) => Number(b.is_default) - Number(a.is_default)).map((img) => img.src);
+  return [...new Set(mainFirst(own).map((img) => img.src))];
 }

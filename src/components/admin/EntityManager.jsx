@@ -13,6 +13,7 @@ import {
 import { sortByCustomOrder } from "@/lib/displayOrder";
 import { forgetSiteData } from "@/hooks/useSiteData";
 import { colorOption, colorImages, displayColor } from "@/lib/podCart";
+import PodImagesEditor from "@/components/admin/PodImagesEditor";
 
 /**
  * Generic admin CRUD manager for a Base44 entity.
@@ -21,6 +22,7 @@ import { colorOption, colorImages, displayColor } from "@/lib/podCart";
  *   type: text | number | select | boolean | textarea | richtext | url
  *         | image | images | stringlist | faqlist | privatefile | publicfile
  *         | ebookpicker | podcolor (colour a Printify product shows first)
+ *         | podimages (pictures of each colour of a Printify product: variant_images)
  */
 
 export function slugify(str = "") {
@@ -119,9 +121,14 @@ export default function EntityManager({
     setEditing("new");
   };
 
-  const upload = async (key, file, { multiple = false, isPrivate = false } = {}) => {
+  // returnUrl: give the uploaded picture's address back instead of putting it in the form
+  const upload = async (key, file, { multiple = false, isPrivate = false, returnUrl = false } = {}) => {
     setUploading(key);
     try {
+      if (returnUrl) {
+        const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
+        return file_url;
+      }
       if (isPrivate) {
         const { file_uri } = await base44.integrations.Core.UploadPrivateFile({ file });
         set(key, file_uri);
@@ -424,7 +431,7 @@ export default function EntityManager({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {fields.filter((f) => f.type !== "podcolor" || colorOption(form)).map((f) => (
+              {fields.filter((f) => !["podcolor", "podimages"].includes(f.type) || colorOption(form)).map((f) => (
                 <div key={f.key} className={f.half ? "col-span-2 sm:col-span-1" : "col-span-2"}>
                   <FieldInput field={f} value={form[f.key]} onChange={(v) => set(f.key, v)} onUpload={upload} uploading={uploading} form={form} />
                 </div>
@@ -553,7 +560,11 @@ function FieldInput({ field: f, value, onChange, onUpload, uploading, form }) {
               {list.map((src, i) => (
                 <div key={`${src}-${i}`} className="relative w-20 h-20 overflow-hidden rounded bg-secondary border border-border">
                   <Image src={src} alt="" className="w-full h-full" fittingType="fill" />
-                  {i === 0 && <span className="absolute bottom-0 inset-x-0 bg-black/70 text-[9px] text-center uppercase text-primary">Ảnh chính</span>}
+                  {i === 0 ? (
+                    <span className="absolute bottom-0 inset-x-0 bg-black/70 text-[9px] text-center uppercase text-primary">Ảnh chính</span>
+                  ) : (
+                    <button type="button" onClick={() => onChange([src, ...list.filter((_, j) => j !== i)])} title="Đặt làm ảnh chính" className="absolute bottom-0 inset-x-0 bg-black/60 hover:bg-black/80 text-[9px] uppercase text-white hover:text-primary flex items-center justify-center gap-0.5"><Star className="w-2.5 h-2.5" /> Ảnh chính</button>
+                  )}
                   <button type="button" onClick={() => onChange(list.filter((_, j) => j !== i))} className="absolute top-0.5 right-0.5 bg-black/70 p-0.5 rounded text-white hover:text-red-400"><X className="w-3 h-3" /></button>
                 </div>
               ))}
@@ -617,6 +628,17 @@ function FieldInput({ field: f, value, onChange, onUpload, uploading, form }) {
         </div>
       );
     }
+    case "podimages":
+      return (
+        <PodImagesEditor
+          form={form}
+          value={value}
+          onChange={onChange}
+          uploadUrl={(file) => onUpload(f.key, file, { returnUrl: true })}
+          label={label}
+          hint={hint}
+        />
+      );
     case "ebookpicker":
       return (
         <div>

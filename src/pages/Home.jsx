@@ -47,7 +47,8 @@ export default function Home() {
   const ebookRows = buildEbookRows(ebooks);
   const videoLibraryContent = siteContent.find((c) => c.section_key === "video_library");
   const latestStudies = studies.slice(0, 6);
-  const featuredProducts = featuredFirst(products, 4);
+  // up to 12 products in the auto-scrolling row (it shows 2 / 3 / 4 at a time and loops)
+  const featuredProducts = featuredFirst(products, 12);
   const popularVideos = videos.filter((v) => v.popular).slice(0, 4);
   const popularToShow = popularVideos.length >= 4 ? popularVideos : videos.slice(0, 4);
 

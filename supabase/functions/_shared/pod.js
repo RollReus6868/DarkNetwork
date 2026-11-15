@@ -75,7 +75,8 @@ export async function priceCart(db, rawItems) {
 }
 
 export function imageFor(product, variantId) {
-  const own = (product.variant_images || []).filter((img) => (img.variant_ids || []).includes(variantId));
+  // pictures the owner hid in Admin (hidden: true) are never used
+  const own = (product.variant_images || []).filter((img) => img?.src && !img.hidden && (img.variant_ids || []).includes(variantId));
   return (own.find((img) => img.is_default) || own[0])?.src || product.images?.[0] || '';
 }
 

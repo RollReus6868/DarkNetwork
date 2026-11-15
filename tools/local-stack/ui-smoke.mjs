@@ -369,14 +369,35 @@ for (const [w, h] of [[375, 667], [390, 844]]) {
   await pick.waitFor();
   await pick.selectOption("Dark Chocolate");
   await owner.shot("admin_default_color");
+  // "Ảnh theo màu áo": White -> delete the front picture, make person-3 the main picture, add an own picture
+  await owner.getByRole("radio", { name: /^White/ }).click();
+  const thumb = (src) => owner.locator("div.relative").filter({ has: owner.locator(`img[src="${src}"]`) })
+    .filter({ has: owner.getByRole("button", { name: "Xoá ảnh" }) });
+  await thumb(TEE_IMG("white", "front")).getByRole("button", { name: "Xoá ảnh" }).click();
+  await thumb(TEE_IMG("white", "person-3")).getByRole("button", { name: "Đặt ảnh chính", exact: true }).click();
+  await owner.getByPlaceholder(/dán link ảnh cho màu White/).fill("https://my.cdn/white-street.jpg");
+  await owner.getByRole("radio", { name: /^Black/ }).click();      // leaves the box: the link is added to White
+  await owner.getByRole("radio", { name: /^White/ }).click();
+  await owner.getByRole("button", { name: /Khôi phục 1 ảnh đã xoá/ }).waitFor();
+  await thumb(TEE_IMG("white", "person-3")).getByText("Ảnh chính", { exact: true }).waitFor();
+  await thumb("https://my.cdn/white-street.jpg").waitFor();
+  await owner.getByText("Ảnh theo màu áo", { exact: true }).scrollIntoViewIfNeeded();
+  await owner.shot("admin_color_pictures");
   await owner.getByRole("button", { name: "Lưu", exact: true }).click();
   await owner.getByText("Đã lưu", { exact: true }).first().waitFor();
-  assert.equal((await db.Product.get(heritage.id)).default_color, "Dark Chocolate");
+  const saved = await db.Product.get(heritage.id);
+  assert.equal(saved.default_color, "Dark Chocolate");
+  const whites = saved.variant_images.filter((i) => i.variant_ids.includes(20010));
+  assert.deepEqual([whites.find((i) => i.src === TEE_IMG("white", "front")).hidden, whites.filter((i) => i.is_default).map((i) => i.src), whites.at(-1)],
+    [true, [TEE_IMG("white", "person-3")], { src: "https://my.cdn/white-street.jpg", variant_ids: [20010], is_default: false, own: true }]);
   const p = await open(1440, 900);
   await p.goto(`${SITE}/shop`);
   assert.equal(await cardSrc(p), TEE_IMG("dark-chocolate", "front"));
   await p.goto(`${SITE}/shop/${heritage.slug}`);
   await p.locator("#pod-buy").getByText("Dark Chocolate", { exact: true }).waitFor();
+  await p.locator("#pod-buy").getByRole("button", { name: "White" }).click();
+  await p.getByText("1 / 15").waitFor();     // 15 - the deleted front + the owner's picture
+  assert.equal(await p.getByTestId("product-thumbs").locator("img").first().getAttribute("src"), TEE_IMG("white", "person-3"), "the chosen main picture comes first");
   assert.equal((await db.Product.get(heritage.id)).images.length, 15, "the stored gallery is left as Printify made it");
 }
 

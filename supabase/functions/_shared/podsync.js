@@ -7,6 +7,26 @@
 import { printify, shopId, errorOf, fromPrintify, guessCategory, slugify, roundUp99, DEFAULT_PRICE } from './printify.js';
 
 // ---------------------------------------------------------------- site rows from Printify products
+// Fresh Printify mockups merged with what the owner did in Admin > "Ảnh theo màu áo": a picture they
+// hid stays hidden, the main picture they chose stays main, their own uploads stay (for variants
+// still on sale); mockups Printify no longer has go, new ones are added at the end.
+export function mergeVariantImages(old = [], fresh = [], enabledIds = new Set()) {
+  const bySrc = new Map(fresh.map((img) => [img.src, img]));
+  const out = [];
+  for (const mine of Array.isArray(old) ? old : []) {
+    if (!mine?.src) continue;
+    const now = bySrc.get(mine.src);
+    if (now) {
+      out.push({ ...now, is_default: Boolean(mine.is_default), ...(mine.hidden ? { hidden: true } : {}) });
+      bySrc.delete(mine.src);
+    } else if (mine.own) {
+      const ids = (mine.variant_ids || []).filter((id) => enabledIds.has(id));
+      if (ids.length) out.push({ ...mine, variant_ids: ids });
+    }
+  }
+  return [...out, ...bySrc.values()];
+}
+
 // One Printify product -> a new draft, or a refresh of the existing row (price, text and pictures the
 // owner uploaded are kept). extra = fields for a NEW row (listing text from the tool, price).
 export async function upsertFromPrintify(db, p, extra = {}, slugs = null) {
@@ -17,8 +37,10 @@ export async function upsertFromPrintify(db, p, extra = {}, slugs = null) {
   if (mine) {
     const oldMockups = new Set((mine.variant_images || []).map((i) => i.src));
     const ownPictures = (mine.images || []).some((src) => !oldMockups.has(src));
+    const enabledIds = new Set(fields.variants.map((v) => v.id));
     const row = await db.Product.update(mine.id, {
-      options: fields.options, variants: fields.variants, variant_images: fields.variant_images,
+      options: fields.options, variants: fields.variants,
+      variant_images: mergeVariantImages(mine.variant_images, fields.variant_images, enabledIds),
       ...(ownPictures ? {} : { images: fields.images }),   // keep pictures the owner uploaded
     });
     return { updated: true, row };

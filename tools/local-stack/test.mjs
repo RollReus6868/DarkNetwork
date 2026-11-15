@@ -731,6 +731,22 @@ assert.deepEqual([tee.price, tee.images, tee.variants.find((v) => v.id === 103).
 await service.Product.update(tee.id, { price: 21.99 });
 await pod(admin.sb, { action: "sync" });
 tee = await service.Product.get(tee.id);
+// Admin > "Ảnh theo màu áo": hide a mockup, choose another main picture, add an own picture;
+// a re-sync keeps all three, and the cart line uses the chosen picture
+const printifyPictures = tee.variant_images;
+const edited = tee.variant_images.map((img) => (img.src.endsWith("black-front.png") ? { ...img, hidden: true, is_default: false }
+  : img.src.endsWith("black-back.png") ? { ...img, is_default: true } : img));
+await service.Product.update(tee.id, { variant_images: [...edited, { src: "https://my.cdn/white-lifestyle.jpg", variant_ids: [201, 203, 999], is_default: false, own: true }] });
+await pod(admin.sb, { action: "sync" });
+tee = await service.Product.get(tee.id);
+assert.deepEqual(tee.variant_images.map((i) => [i.src.split("/").pop(), Boolean(i.is_default), Boolean(i.hidden), i.variant_ids]), [
+  ["black-front.png", false, true, [101, 102, 103]], ["white-front.png", false, false, [201, 203]], ["black-back.png", true, false, [101, 102, 103]],
+  ["white-lifestyle.jpg", false, false, [201, 203]],
+], "owner's picture choices survive a Printify re-sync (an own picture keeps only variants still on sale)");
+await service.Product.update(tee.id, { status: "published" });
+const pictured = await pod(client(), { action: "quote", items: [{ product_id: tee.id, variant_id: 101, quantity: 1 }], address: { first_name: "A", last_name: "B", email: "a@b.co", country: "US", region: "GA", address1: "1 St", city: "Atlanta", zip: "30303" } });
+assert.equal(pictured.lines[0].image, "https://img.test/black-back.png", "a hidden picture is never the cart picture");
+await service.Product.update(tee.id, { status: "draft", variant_images: printifyPictures });
 
 const addr = { first_name: "Mary", last_name: "Jones", email: "Mary@Example.com ", phone: "", country: "US", region: "GA", address1: "1 Peachtree St", address2: "", city: "Atlanta", zip: "30303" };
 const cartItems = [{ product_id: tee.id, variant_id: 101, quantity: 1 }, { product_id: tee.id, variant_id: 103, quantity: 2 }];
