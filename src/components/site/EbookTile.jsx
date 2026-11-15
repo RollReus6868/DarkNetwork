@@ -40,11 +40,6 @@ export default function EbookTile({ ebook, className = "", compact = false }) {
               </span>
             )}
             <EbookPartBadge ebook={ebook} />
-            {ebook.parts_saving > 0 && (
-              <span className="bg-[#14532d] text-[#f4ead4] text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-sm shadow-md">
-                Save {ebook.parts_saving}% vs. parts
-              </span>
-            )}
           </div>
           <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
             {isNew && <span className="badge-new">New</span>}
@@ -81,6 +76,14 @@ export default function EbookTile({ ebook, className = "", compact = false }) {
             <span className="text-sm text-[#2b1d0a]/50 line-through">{formatPrice(ebook.original_price)}</span>
           )}
         </div>
+
+        {/* a full version: what it saves against buying its parts (under the price, so it never
+            collides with the SAVE badge of a sale price on the cover) */}
+        {ebook.parts_saving > 0 && (
+          <p className="-mt-2 mb-3 text-xs font-semibold text-[#14532d]" data-testid="parts-saving">
+            ✦ All {ebook.parts_count} parts in one · save {ebook.parts_saving}% vs. parts
+          </p>
+        )}
 
         <div className="mt-auto">
           <EbookBuyButton ebook={ebook} variant="card" />

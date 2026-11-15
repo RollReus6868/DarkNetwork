@@ -146,7 +146,7 @@ const canonFull = ebooks.find((e) => e.title === "The Ethiopian Canon");
   const full = await titlesIn("Full Versions");
   assert.deepEqual(full.sort(), [enochFull.title, canonFull.title].sort(), `full versions: ${full}`);
   const enochCard = shelf("Full Versions").locator(".dn-book").filter({ hasText: enochFull.title }).first();
-  await enochCard.getByText("Save 32% vs. parts").waitFor();    // 5 parts cost $39.95, the full version $26.99
+  await enochCard.getByTestId("parts-saving").getByText("All 5 parts in one · save 32% vs. parts").waitFor();   // 5 parts cost $39.95, the full version $26.99
 
   const topics = await titlesIn("In-Depth Topics");
   assert.equal(topics[0], "Fresh Arrival", `a new book leads In-Depth Topics: ${topics.slice(0, 3).join(" | ")}`);
@@ -160,6 +160,18 @@ const canonFull = ebooks.find((e) => e.title === "The Ethiopian Canon");
   const canonOnly = await titlesIn("Part Series");
   assert.ok(canonOnly.length === 5 && canonOnly.every((t) => t.startsWith("The Ethiopian Canon - Part")), `one series: ${canonOnly}`);
   await page.locator("section").filter({ hasText: "Full Versions" }).first().screenshot({ path: path.join(OUT, "1440_home_shelves.png") });
+
+  {
+    const phone = await open(390, 844);
+    await phone.goto(SITE);
+    const chips = phone.getByRole("group", { name: "Choose a series" });
+    await chips.getByRole("button", { name: "All" }).waitFor();
+    const tops = await chips.getByRole("button").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().top));
+    assert.ok(tops.every((t) => t === tops[0]), "series buttons on one line on a phone");
+    await phone.getByRole("region", { name: "Full Versions" }).scrollIntoViewIfNeeded();
+    await phone.shot("home_shelves");
+    await phone.context().close();
+  }
 
   // Books page: filter buttons, one heading per series with its full version
   await page.goto(`${SITE}/books`);

@@ -14,7 +14,7 @@ export function SeriesChips({ series, value, onChange, className = "" }) {
       type="button"
       onClick={() => onChange(key)}
       aria-pressed={value === key}
-      className={`px-4 py-1.5 rounded-full text-sm border transition-colors ${
+      className={`shrink-0 whitespace-nowrap px-4 py-1.5 rounded-full text-sm border transition-colors ${
         value === key
           ? "bg-[#2b1d0a] text-[#f4ead4] border-[#2b1d0a]"
           : "border-[#2b1d0a]/25 text-[#2b1d0a]/75 hover:border-[#8a6420] hover:text-[#8a6420]"
@@ -24,7 +24,8 @@ export function SeriesChips({ series, value, onChange, className = "" }) {
     </button>
   );
   return (
-    <div className={`flex flex-wrap gap-2 ${className}`} role="group" aria-label="Choose a series">
+    // one line: scrolls sideways on a phone instead of wrapping onto three lines
+    <div className={`flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap ${className}`} role="group" aria-label="Choose a series">
       {chip("all", "All")}
       {series.map((row) => chip(row.key, row.short))}
     </div>
