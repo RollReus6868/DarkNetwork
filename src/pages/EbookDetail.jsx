@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { useParams, Link } from "react-router-dom";
-import { ChevronRight, Check, Star } from "lucide-react";
+import { ChevronRight, Check, Star, ArrowRight, Layers } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import YouTubeEmbed from "@/components/site/YouTubeEmbed";
 import { useSiteData } from "@/hooks/useSiteData";
@@ -12,11 +12,13 @@ import BonusGift from "@/components/site/BonusGift";
 import RelatedEbooks from "@/components/site/RelatedEbooks";
 import EbookPartBadge from "@/components/site/EbookPartBadge";
 import { getRelatedEbooks } from "@/lib/relatedEbooks";
+import { seriesOf } from "@/lib/ebookGroups";
+import { formatPrice } from "@/lib/pricing";
 import { ProductTextPrice } from "@/components/site/ProductTextPrice";
 
 export default function EbookDetail() {
   const { slug } = useParams();
-  const { ebooks, videos, studies, loading } = useSiteData();
+  const { ebooks, ebookCatalog, videos, studies, loading } = useSiteData();
   const [ebook, setEbook] = useState(null);
   const [notFound, setNotFound] = useState(false);
   const [added, setAdded] = useState(false);
@@ -42,6 +44,7 @@ export default function EbookDetail() {
   const relatedVideo = videos.find((v) => v.id === ebook.related_video_id);
   const relatedStudies = studies.filter((s) => ebook.related_study_ids?.includes(s.id)).slice(0, 3);
   const otherEbooks = getRelatedEbooks(ebook, ebooks);
+  const series = seriesOf(ebookCatalog, ebook);
 
   const handleAdd = () => {
     addToCart({ id: ebook.id, type: "ebook", title: ebook.title, price: ebook.price, image: ebook.cover_image, slug: ebook.slug });
@@ -106,7 +109,36 @@ export default function EbookDetail() {
               <span className="text-sm text-muted-foreground uppercase tracking-wide">Instant Download</span>
             </div>
 
+            {/* a full version: what it saves against its parts */}
+            {ebook.parts_saving > 0 && (
+              <p className="mt-3 text-sm text-foreground/75 flex items-center gap-2">
+                <Layers className="w-4 h-4 text-primary shrink-0" />
+                All {ebook.parts_count} parts in one book — save {ebook.parts_saving}% vs. buying them separately ({formatPrice(ebook.parts_total)}).
+              </p>
+            )}
+
             <BonusGift ebook={ebook} />
+
+            {/* a part: point to the full version of its series */}
+            {series?.full && series.full.id !== ebook.id && (
+              <Link
+                to={`/books/${series.full.slug}`}
+                className="mt-6 flex items-center gap-4 p-4 rounded border border-primary/40 bg-primary/5 hover:bg-primary/10 transition-colors group"
+                data-testid="full-version-offer"
+              >
+                <div className="w-14 h-[78px] shrink-0 overflow-hidden rounded-sm">
+                  <Image src={series.full.cover_image} alt="" className="w-full h-full" fittingType="fill" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-heading text-lg leading-tight">Want all {series.parts.length} parts?</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Get the Full Version for {formatPrice(series.full.price)}
+                    {series.save > 0 ? <> — <span className="text-primary font-semibold">save {series.save}%</span> vs. buying every part</> : null}.
+                  </p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-primary shrink-0 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            )}
 
             <div className="flex flex-col gap-3 mt-6">
               <EbookBuyButton ebook={ebook} variant="detail" />

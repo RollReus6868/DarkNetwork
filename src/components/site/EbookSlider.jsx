@@ -10,7 +10,7 @@ const SLIDE = "min-w-0 pl-4 md:pl-6 flex-[0_0_80%] sm:flex-[0_0_50%] md:flex-[0_
 const SLIDE_COMPACT = "min-w-0 pl-4 md:pl-6 flex-[0_0_48%] sm:flex-[0_0_32%] md:flex-[0_0_26%] lg:flex-[0_0_19.5%]";
 
 // Một hàng trượt ebook ở trang chủ: tiêu đề nhóm phía trên, nút qua lại hai đầu.
-export default function EbookSlider({ title, ebooks = [], compact = false }) {
+export default function EbookSlider({ title, ebooks = [], compact = false, controls = null, footer = null }) {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: "start", dragFree: false },
@@ -18,6 +18,16 @@ export default function EbookSlider({ title, ebooks = [], compact = false }) {
   );
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
+
+  // on a wide screen a row that fits whole (3 books, or 5 short parts) stands still: no loop showing
+  // the same book twice
+  const [wide, setWide] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const handler = () => setWide(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -57,13 +67,37 @@ export default function EbookSlider({ title, ebooks = [], compact = false }) {
       <span className="h-px flex-1 bg-[#2b1d0a]/15" />
     </div>
   );
+  const top = (
+    <>
+      {heading}
+      {controls}
+    </>
+  );
+
+  if (wide && ebooks.length <= (compact ? 5 : 3)) {
+    return (
+      <div>
+        {top}
+        <div className="flex flex-wrap justify-center items-stretch gap-6" role="region" aria-label={title}>
+          {ebooks.map((ebook) => (
+            <div key={ebook.id} className={compact ? "w-[calc(20%-1.2rem)]" : "w-[calc(33.333%-1rem)]"}>
+              <EbookTile ebook={ebook} compact={compact} />
+            </div>
+          ))}
+        </div>
+        {footer}
+      </div>
+    );
+  }
 
   // Reduced motion: static responsive grid, no auto-scroll
   if (reducedMotion) {
     return (
       <div>
-        {heading}
+        {top}
         <div
+          role="region"
+          aria-label={title}
           className={`grid grid-cols-1 items-center gap-6 max-w-sm sm:max-w-none mx-auto ${
             compact ? "sm:grid-cols-4 lg:grid-cols-5" : "sm:grid-cols-2 lg:grid-cols-3"
           }`}
@@ -72,13 +106,14 @@ export default function EbookSlider({ title, ebooks = [], compact = false }) {
             <EbookTile key={ebook.id} ebook={ebook} compact={compact} />
           ))}
         </div>
+        {footer}
       </div>
     );
   }
 
   return (
     <div>
-      {heading}
+      {top}
       <div className="relative">
         {/* Arrows */}
         <button
@@ -114,6 +149,7 @@ export default function EbookSlider({ title, ebooks = [], compact = false }) {
           </div>
         </div>
       </div>
+      {footer}
     </div>
   );
 }

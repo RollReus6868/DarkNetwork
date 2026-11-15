@@ -40,6 +40,11 @@ export default function EbookTile({ ebook, className = "", compact = false }) {
               </span>
             )}
             <EbookPartBadge ebook={ebook} />
+            {ebook.parts_saving > 0 && (
+              <span className="bg-[#14532d] text-[#f4ead4] text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-sm shadow-md">
+                Save {ebook.parts_saving}% vs. parts
+              </span>
+            )}
           </div>
           <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
             {isNew && <span className="badge-new">New</span>}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { sortByCustomOrder } from "@/lib/displayOrder";
 import { displayImages, displayColor } from "@/lib/podCart";
+import { buildCatalog } from "@/lib/ebookGroups";
 
 // Everything the public pages list (books, videos, studies...), loaded ONCE and shared by every page:
 // moving from page to page reuses it instead of downloading all nine tables again, which keeps the
@@ -10,7 +11,7 @@ const FRESH_MS = 3 * 60 * 1000;
 let cache = null;       // { data, at }
 let inflight = null;    // Promise<data> while loading
 
-const EMPTY = { studies: [], videos: [], ebooks: [], products: [], resources: [], testimonials: [], siteContent: [], membershipStats: [], heroSlides: [] };
+const EMPTY = { ebookCatalog: buildCatalog([]), studies: [], videos: [], ebooks: [], products: [], resources: [], testimonials: [], siteContent: [], membershipStats: [], heroSlides: [] };
 
 async function fetchAll() {
   const [s, v, e, p, r, t, sc, ms, hs] = await Promise.all([
@@ -24,10 +25,19 @@ async function fetchAll() {
     base44.entities.MembershipStat.list("sort_order", 50).catch(() => []),
     base44.entities.HeroSlide.filter({ status: "published" }, "sort_order", 50).catch(() => []),
   ]);
+  const sortedEbooks = sortByCustomOrder(e);
+  // Full Versions / In-Depth Topics / Part Series (src/lib/ebookGroups.js). A full version also
+  // carries what it saves against buying its parts one by one, for its card and page.
+  const ebookCatalog = buildCatalog(sortedEbooks);
+  ebookCatalog.savings.forEach((row, id) => {
+    const ebook = sortedEbooks.find((b) => b.id === id);
+    if (ebook) Object.assign(ebook, { parts_saving: row.save, parts_count: row.parts.length, parts_total: row.partsTotal });
+  });
   return {
+    ebookCatalog,
     studies: s,
     videos: v,
-    ebooks: sortByCustomOrder(e),
+    ebooks: sortedEbooks,
     // Printify products show the colour chosen in Admin (default: black) on every card and gallery
     products: sortByCustomOrder(p).map((product) => ({
       ...product,

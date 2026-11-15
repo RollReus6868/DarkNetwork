@@ -122,21 +122,68 @@ async function open(width, height) {
   return page;
 }
 
-// ---- books added later (tool: no number; Admin used to give the last number) and more than 8
-// single books: the home "Full Editions" row shows every one, never-placed books first
+// ---- three shelves: Full Versions / In-Depth Topics / Part Series (one row, buttons per series).
+// Books added later (tool: no number) lead their shelf after "Featured" ones.
 const extra = Array.from({ length: 9 }, (_, i) => ({ ...ebooks.find((e) => !/part\s*\d/i.test(e.title)), id: undefined,
   title: `Standalone Title ${"ABCDEFGHI"[i]}`, slug: `standalone-${i + 1}`, sort_order: 100 + i, featured: false }));
 await db.Ebook.bulkCreate(extra);
 await db.Ebook.create({ ...extra[0], title: "Fresh Arrival", slug: "fresh-arrival", sort_order: 0 });
+// a second part series; its single-book namesake ("The Ethiopian Canon", $14.99) becomes its full version
+const canonParts = seedFile("ethiopian-canon-parts.ebook.json").map((e, i) => ({ ...e, cover_image: COVER, status: "published", sort_order: 200 + i, secure_file_uri: "book.pdf" }));
+await db.Ebook.bulkCreate(canonParts);
+const enochFull = ebooks.find((e) => e.title === "The Book of Enoch: A Black Reader's Study Edition");
+const canonFull = ebooks.find((e) => e.title === "The Ethiopian Canon");
 {
   const page = await open(1440, 900);
   await page.goto(SITE);
-  const row = page.locator("section").filter({ hasText: "Full Editions" }).first();
-  await row.locator(".dn-book h3").first().waitFor();
-  const titles = await row.locator(".dn-book h3").allInnerTexts();
-  const featured = ebooks.filter((e) => e.featured && !/part\s*\d/i.test(e.title)).length;   // "Featured" books stay in front
-  assert.equal(titles[featured], "Fresh Arrival", `a new book leads the row after featured ones: ${titles.slice(0, featured + 2).join(" | ")}`);
-  for (const t of ["Standalone Title I", "Fresh Arrival"]) assert.ok(titles.includes(t), `${t} on the home page`);
+  const shelf = (name) => page.getByRole("region", { name });
+  const titlesIn = async (name) => [...new Set(await shelf(name).locator(".dn-book h3").allInnerTexts())];
+  await shelf("Full Versions").locator(".dn-book h3").first().waitFor();
+  const heads = await page.locator("section").filter({ hasText: "Full Versions" }).first()
+    .locator('[role="region"]').evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
+  assert.deepEqual(heads, ["Full Versions", "In-Depth Topics", "Part Series"], `shelf order: ${heads}`);
+
+  const full = await titlesIn("Full Versions");
+  assert.deepEqual(full.sort(), [enochFull.title, canonFull.title].sort(), `full versions: ${full}`);
+  const enochCard = shelf("Full Versions").locator(".dn-book").filter({ hasText: enochFull.title }).first();
+  await enochCard.getByText("Save 32% vs. parts").waitFor();    // 5 parts cost $39.95, the full version $26.99
+
+  const topics = await titlesIn("In-Depth Topics");
+  assert.equal(topics[0], "Fresh Arrival", `a new book leads In-Depth Topics: ${topics.slice(0, 3).join(" | ")}`);
+  assert.ok(topics.includes("Standalone Title I") && !topics.some((t) => /part\s*\d/i.test(t)), `topics: ${topics}`);
+
+  const parts = await titlesIn("Part Series");
+  assert.equal(parts.length, 10, `all 10 parts in one row: ${parts}`);
+  assert.ok(parts.slice(0, 5).every((t) => t.startsWith("The Book of Enoch")) && parts[0].endsWith("Part 1"), `series after series, Part 1 first: ${parts}`);
+  await page.getByRole("button", { name: "The Ethiopian Canon", exact: true }).click();
+  await page.getByRole("link", { name: /Get the Full Version · \$14\.99 \(save 62%\)/ }).waitFor();
+  const canonOnly = await titlesIn("Part Series");
+  assert.ok(canonOnly.length === 5 && canonOnly.every((t) => t.startsWith("The Ethiopian Canon - Part")), `one series: ${canonOnly}`);
+  await page.locator("section").filter({ hasText: "Full Versions" }).first().screenshot({ path: path.join(OUT, "1440_home_shelves.png") });
+
+  // Books page: filter buttons, one heading per series with its full version
+  await page.goto(`${SITE}/books`);
+  await page.getByRole("button", { name: /^Part Series/ }).click();
+  await page.waitForURL(/\?type=parts$/);
+  await page.getByRole("heading", { name: "The Ethiopian Canon", exact: true }).waitFor();
+  assert.equal(await page.getByRole("heading", { name: /^Full Versions/ }).count(), 0);
+  assert.equal(await page.locator("[data-series] .dn-book").count(), 10);
+  await page.shot("books_parts");
+  await page.getByRole("button", { name: /^In-Depth Topics/ }).click();
+  await page.getByText("Fresh Arrival").first().waitFor();
+  assert.equal(await page.locator("[data-series]").count(), 0);
+  await page.getByRole("button", { name: /^All/ }).click();
+  for (const h of ["Full Versions", "In-Depth Topics", "Part Series"]) await page.getByRole("heading", { name: new RegExp(`^${h}`) }).waitFor();
+
+  // a part's page points to its full version; the full version says what it saves
+  await page.goto(`${SITE}/books/${canonParts[1].slug}`);
+  const offer = page.getByTestId("full-version-offer");
+  await offer.getByText("Want all 5 parts?").waitFor();
+  assert.equal(await offer.getAttribute("href"), `/books/${canonFull.slug}`);
+  await page.shot("part_offer");
+  await page.goto(`${SITE}/books/${enochFull.slug}`);
+  await page.getByText("All 5 parts in one book — save 32% vs. buying them separately ($39.95).").waitFor();
+  assert.equal(await page.getByTestId("full-version-offer").count(), 0);
   await page.context().close();
 }
 

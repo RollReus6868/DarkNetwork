@@ -487,7 +487,7 @@ function FieldInput({ field: f, value, onChange, onUpload, uploading, form }) {
         <div>
           {label}
           <select value={value ?? f.options[0]} onChange={(e) => onChange(e.target.value)} className={inputCls}>
-            {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
+            {f.options.map((o) => <option key={o} value={o}>{f.labels?.[o] || o}</option>)}
           </select>
           {hint}
         </div>

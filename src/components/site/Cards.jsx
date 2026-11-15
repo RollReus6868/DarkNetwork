@@ -62,8 +62,8 @@ export function VideoCard({ video }) {
   );
 }
 
-export function EbookCard({ ebook }) {
-  return <EbookTile ebook={ebook} />;
+export function EbookCard({ ebook, compact = false }) {
+  return <EbookTile ebook={ebook} compact={compact} />;
 }
 
 export function ProductCard({ product }) {

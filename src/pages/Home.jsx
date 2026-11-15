@@ -3,7 +3,8 @@ import { ArrowRight, BookOpen, Sparkles, Youtube, Facebook, Instagram, Music2 } 
 import Seo from "@/components/site/Seo";
 import EmailCapture from "@/components/site/EmailCapture";
 import EbookSlider from "@/components/site/EbookSlider";
-import { buildEbookRows } from "@/lib/ebookGroups";
+import { KIND_TITLES } from "@/lib/ebookGroups";
+import { PartSeriesRow } from "@/components/site/EbookShelves";
 import HeroCarousel from "@/components/site/HeroCarousel";
 import VideoLibrary from "@/components/site/VideoLibrary";
 import Testimonials from "@/components/site/Testimonials";
@@ -38,13 +39,12 @@ const SOCIALS = [
 ];
 
 export default function Home() {
-  const { studies, videos, ebooks, products, testimonials, siteContent, membershipStats, heroSlides, loading } = useSiteData();
+  const { ebookCatalog, studies, videos, ebooks, products, testimonials, siteContent, membershipStats, heroSlides, loading } = useSiteData();
 
   // Items flagged "featured" in Admin come first; the rest fill remaining slots.
   const featuredFirst = (list, n) => [...list.filter((i) => i.featured), ...list.filter((i) => !i.featured)].slice(0, n);
   // Featured Ebooks tách thành nhiều hàng: hàng bản đầy đủ trước, rồi mỗi bộ
   // sách theo part một hàng riêng.
-  const ebookRows = buildEbookRows(ebooks);
   const videoLibraryContent = siteContent.find((c) => c.section_key === "video_library");
   const latestStudies = studies.slice(0, 6);
   // up to 12 products in the auto-scrolling row (it shows 2 / 3 / 4 at a time and loops)
@@ -114,7 +114,7 @@ export default function Home() {
       <VideoLibrary content={videoLibraryContent} stats={membershipStats} />
 
       {/* SECTION 3 — EBOOK SLIDER */}
-      {ebookRows.length > 0 && (
+      {ebooks.length > 0 && (
         <section className="dn-cream py-20 lg:py-28 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <SectionHeading
@@ -134,9 +134,10 @@ export default function Home() {
             </ul>
 
             <div className="space-y-16">
-              {ebookRows.map((row) => (
-                <EbookSlider key={row.key} title={row.title} ebooks={row.ebooks} compact={row.key !== "full"} />
-              ))}
+              {/* Full Versions → In-Depth Topics → Part Series (all short parts in one row) */}
+              <EbookSlider title={KIND_TITLES.full} ebooks={ebookCatalog.full} />
+              <EbookSlider title={KIND_TITLES.topic} ebooks={ebookCatalog.topic.slice(0, 24)} />
+              <PartSeriesRow series={ebookCatalog.series} />
             </div>
 
             <div className="text-center mt-12">
