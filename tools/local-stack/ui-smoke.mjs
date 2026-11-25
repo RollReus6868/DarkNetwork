@@ -199,6 +199,28 @@ const canonFull = ebooks.find((e) => e.title === "The Ethiopian Canon");
   await page.context().close();
 }
 
+// ---- footer > Legal: every policy page opens (they once all said "Page Not Found") with the real email
+{
+  const page = await open(390, 844);
+  const pages = [["privacy-policy", "Privacy Policy"], ["terms", "Terms & Conditions"], ["refund-policy", "Refund Policy"],
+    ["digital-product-policy", "Digital Product Policy"], ["shipping-policy", "Shipping Policy"]];
+  await page.goto(SITE);
+  for (const [slug, title] of pages) {
+    await page.getByRole("contentinfo").getByRole("link", { name: title, exact: true }).click();
+    await page.waitForURL(new RegExp(`/${slug}$`));
+    await page.getByRole("heading", { level: 1, name: title }).waitFor();
+    assert.ok(await page.locator("section h2").count() >= 5, `${title} has its sections`);
+    assert.equal(await page.getByText("Page Not Found").count(), 0);
+    const body = await page.locator("body").innerText();
+    assert.ok(!body.includes("support@darknetwork.com"), `${title}: no foreign email`);
+    if (slug !== "terms") await page.locator('a[href="mailto:support@darknetworkofficial.uk"]').first().waitFor();
+    await page.shot(`legal_${slug}`);
+  }
+  await page.goto(`${SITE}/contact`);
+  await page.locator('a[href="mailto:support@darknetworkofficial.uk"]').waitFor();
+  await page.context().close();
+}
+
 // ---- visitor on a phone and on a desktop
 for (const [w, h] of [[390, 844], [1440, 900]]) {
   const page = await open(w, h);

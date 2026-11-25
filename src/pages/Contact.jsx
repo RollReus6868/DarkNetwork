@@ -4,6 +4,7 @@ import { getChatGuestKey } from "@/lib/chatGuestKey";
 import { Mail, Loader2, Check, MessageSquare } from "lucide-react";
 import Seo from "@/components/site/Seo";
 import { SectionHeading } from "@/components/site/Cards";
+import { SUPPORT_EMAIL } from "@/lib/legalContent";
 
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -25,7 +26,7 @@ export default function Contact() {
       setForm({ name: "", email: "", subject: "", message: "" });
     } catch (err) {
       setStatus("error");
-      setError("Something went wrong. Please email us directly at support@darknetwork.com");
+      setError(`Something went wrong. Please email us directly at ${SUPPORT_EMAIL}`);
     }
   };
 
@@ -105,8 +106,8 @@ export default function Contact() {
 
           <div className="mt-12 pt-8 border-t border-border text-center">
             <p className="text-sm text-muted-foreground mb-2">Prefer email?</p>
-            <a href="mailto:support@darknetwork.com" className="text-primary flex items-center justify-center gap-2 hover:underline">
-              <Mail className="w-4 h-4" /> support@darknetwork.com
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary flex items-center justify-center gap-2 hover:underline">
+              <Mail className="w-4 h-4" /> {SUPPORT_EMAIL}
             </a>
           </div>
         </div>
